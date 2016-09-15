@@ -1,7 +1,7 @@
 # aquastax
 This is the repo for my remake of AquaStax, a 2007 mobile puzzle game.
 
-![Splash Screen](/res/aquastax_splashscreen.png?raw=true "")
+![Splash Screen](/reference/aquastax_anim_01_240x320_efigs.gif?raw=true "")
 
 The game will use the Cocos2d-JS framework, and be coded in Javascript, with possibly some old Java tools.
 
