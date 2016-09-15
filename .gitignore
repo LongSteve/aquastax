@@ -1,1 +1,4 @@
 /frameworks/
+*.cocos-project.json
+*.DS_Store
+*.txt

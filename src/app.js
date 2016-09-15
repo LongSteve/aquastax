@@ -17,11 +17,17 @@ var HelloWorldLayer = cc.Layer.extend({
         // add a label shows "Hello World"
         // create and initialize a label
         var helloLabel = new cc.LabelTTF("AquaStax", "Arial", 38);
+
         // position the label on the center of the screen
         helloLabel.x = size.width / 2;
         helloLabel.y = size.height / 2 + 200;
         // add the label as a child to this layer
         this.addChild(helloLabel, 5);
+
+        var steveLabel = new cc.LabelTTF("made with love by Steve Longhurst", "Arial", 24);
+        steveLabel.x = size.width / 2;
+        steveLabel.y = size.height / 2 - 200;
+        this.addChild(steveLabel, 5);
 
         // add "HelloWorld" splash screen"
         this.sprite = new cc.Sprite(res.HelloWorld_png);
