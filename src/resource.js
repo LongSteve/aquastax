@@ -1,8 +1,10 @@
+'use strict';
+
 var res = {
-    HelloWorld_png : "res/aquastax_splashscreen.png",
+   SpashScreen: 'res/aquastax_splashscreen.png',
 };
 
-var g_resources = [];
+var gResources = [ ];
 for (var i in res) {
-    g_resources.push(res[i]);
+   gResources.push (res[i]);
 }

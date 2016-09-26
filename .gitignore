@@ -1,3 +1,4 @@
 /frameworks/
 *.DS_Store
-*.txt
+/node_modules/
+/.tmp/

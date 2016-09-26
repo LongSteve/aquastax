@@ -1,0 +1,32 @@
+{
+  "name": "aquastax",
+  "version": "0.0.1",
+  "description": "A Cocos2d-JS 2D Platform Game",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LongSteve/aquastax"
+  },
+  "author": "Steve Longhurst (steve@longsteve.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LongSteve/aquastax/issues"
+  },
+  "homepage": "https://github.com/LongSteve/aquastax",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-cached": "^1.1.0",
+    "gulp-embedlr": "^0.5.2",
+    "gulp-jshint": "^2.0.1",
+    "gulp-livereload": "^3.8.1",
+    "gulp-serve": "^1.4.0",
+    "gulp-util": "^3.0.7",
+    "jshint": "^2.9.3",
+    "jshint-stylish": "^2.2.1",
+    "lazypipe": "^1.0.1",
+    "minimist": "^1.2.0"
+  }
+}
