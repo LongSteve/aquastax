@@ -1,39 +1,55 @@
 /* jshint node: true */
 'use strict';
 
-var fs = require ('fs');
-
+// Import gulp
 var gulp = require ('gulp');
+
+// And lots of useful plugins
 var gutil = require ('gulp-util');
 var cached = require ('gulp-cached');
-
-var lazypipe = require ('lazypipe');
-var minimist = require ('minimist');
-
-var stylish = require ('jshint-stylish');
-
 var serve = require ('gulp-serve');
 var livereload = require ('gulp-livereload');
 var embedlr = require ('gulp-embedlr');
 var jshint = require ('gulp-jshint');
 
+// Stylish jshint plugin for nicer command line output
+var stylish = require ('jshint-stylish');
+
+// Filesystem (almost always needed)
+var fs = require ('fs');
+
+// Lazypipe for performance
+var lazypipe = require ('lazypipe');
+
+// Minimist for command line parsing
+var minimist = require ('minimist');
+
+// Process command line arg for enabling stylish jshint output
+// Use --jshint=stylish
 var argv = minimist (process.argv.slice (2), {'string': 'jshint'});
 
+// Set true when using the long running 'gulp serve' command
 var isWatching = false;
 
+/**
+ * Default task (run jshint and build the index.html)
+ */
 gulp.task ('default', ['jshint', 'index']);
 
-gulp.task ('index', index);
-
-function index ()
-{
+/**
+ * Generate index.html in .tmp folder, embedding the livereload script tag
+ */
+gulp.task ('index', function () {
    return gulp.src ('./index.html')
      .pipe (embedlr ())
      .pipe (gulp.dest ('./.tmp/'))
      .pipe (_livereload ())
    ;
-}
+});
 
+/**
+ * Run jshint on all the files
+ */
 gulp.task ('jshint', function () {
    return gulp.src ([
       './gulpfile.js',
@@ -41,11 +57,15 @@ gulp.task ('jshint', function () {
       './res/**/*.js',
       './main.js'
    ])
-   .pipe (cached ('jshint'))
-   .pipe (_jshint (argv.jshint))
-   .pipe (_livereload ());
+   .pipe (cached ('jshint'))        // cache in memory
+   .pipe (_jshint (argv.jshint))    // pass in command line arg for 'stylish'
+   .pipe (_livereload ());          // pass to livereload
 });
 
+/**
+ * Serve up the index.html and the rest of the project .js files (for debug running).
+ * This is our version of 'cocos run -p web', but with livereload, and jshinting.
+ */
 gulp.task ('serve', ['watch']);
 
 gulp.task ('static', serve ({
@@ -60,14 +80,17 @@ gulp.task ('watch', ['static', 'default'], function () {
 
    gulp.watch (['./main.js', '**/*.js'], ['jshint']).on ('change', function (evt) {
       if (evt.type !== 'changed') {
-         gulp.start ('index');
+         gulp.start ('index');         // which I could remember why I needed to do this!
       }
    });
 
    gulp.watch ('./index.html', ['index']);
-
 });
 
+/**
+ * Jshint with either default or stylish reporter (default works better in SlickEdit
+ * whereas stylish better in build logs)
+ */
 function _jshint (reporter) {
    var jshintfile = './.jshintrc';
    var jshintSettings = JSON.parse (fs.readFileSync (jshintfile, 'utf8'));
@@ -77,6 +100,9 @@ function _jshint (reporter) {
       .pipe (jshint.reporter, reporter === 'stylish' ? stylish : 'default') ();
 }
 
+/**
+ * Livereload (or noop if not run by watch)
+ */
 function _livereload () {
    return lazypipe ()
       .pipe (isWatching ? livereload : gutil.noop) ();
