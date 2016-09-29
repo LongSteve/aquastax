@@ -1,7 +1,8 @@
 'use strict';
 
 var res = {
-   SpashScreen: 'res/aquastax_splashscreen.png',
+   OriginalLogo: 'res/original_logo.png',
+   AquaStaxLogo: 'res/aquastax_logo.png',
 };
 
 var gResources = [ ];

@@ -44,12 +44,6 @@ var MainLayer = cc.Layer.extend ( {
       self.frameSize.y = 120;
       self.addChild (self.frameSize, 5);
 
-      //self.tmpPanel = new cc.LayerColor (cc.color (255,0,0,255), 10, 10);
-      //self.tmpPanel.setAnchorPoint (0.5, 0.5);
-      //self.tmpPanel.x = cc.winSize.width / 2;
-      //self.tmpPanel.y = cc.winSize.height / 2;
-      //self.addChild (self.tmpPanel, 1);
-
       self.menuPanel = new cc.LayerColor (cc.color (64,64,0,128), cc.winSize.width / 2, cc.winSize.height);
       self.menuPanel.x = cc.winSize.width / 4;
       self.menuPanel.y = cc.winSize.height / 4;
