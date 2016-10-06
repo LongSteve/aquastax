@@ -1,6 +1,6 @@
 'use strict';
 
-var MainLayer = cc.Layer.extend ( {
+var MenuLayer = cc.Layer.extend ( {
    // panels
    tmpPanel:null,
    menuPanel:null,
@@ -60,6 +60,21 @@ var MainLayer = cc.Layer.extend ( {
       menu.y = self.menuPanel.getContentSize ().height / 2;
       self.menuPanel.addChild (menu);
 
+      var w = 240 * 3;
+      var h = 320 * 3;
+
+      var screenPanel = new cc.LayerColor (cc.color (255,0,0,255), w, h);
+      screenPanel.x = (cc.winSize.width - w) / 2;
+      screenPanel.y = (cc.winSize.height - h) / 2;
+
+      var gumbler = new cc.Sprite (res.Gumbler);
+      gumbler.setAnchorPoint (0.5, 0);
+      gumbler.setScale (3.0);
+      gumbler.x = w / 2;
+      screenPanel.addChild (gumbler);
+
+      self.addChild (screenPanel, 10);
+
       cc.view.setResizeCallback (function () {
          self.updateSizeLabels ();
       });
@@ -92,11 +107,11 @@ var MainLayer = cc.Layer.extend ( {
    }
 });
 
-/* exported MainScene */
-var MainScene = cc.Scene.extend ( {
+/* exported MenuScene */
+var MenuScene = cc.Scene.extend ( {
    onEnter: function () {
       this._super ();
-      var layer = new MainLayer ();
+      var layer = new MenuLayer ();
       this.addChild (layer);
    }
 });

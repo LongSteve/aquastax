@@ -1,6 +1,6 @@
 'use strict';
 
-/* global res */
+/* global res, MenuScene */
 
 var SplashLayer = cc.Layer.extend ( {
 
@@ -25,17 +25,19 @@ var SplashLayer = cc.Layer.extend ( {
       self.logo1 = new cc.Sprite (res.OriginalLogo);
       self.logo1.x = cc.winSize.width / 2;
       self.logo1.y = cc.winSize.height / 2;
-      self.logo1.setScale(3.0, 3.0);
+      self.logo1.setScale(3.0);
       self.addChild (self.logo1, 1);
 
       self.logo2 = new cc.Sprite (res.AquaStaxLogo);
       self.logo2.setVisible (false);
       self.logo2.x = cc.winSize.width / 2;
-      self.logo2.y = cc.winSize.height / 2;
-      self.logo2.setScale (3.0, 3.0);
+      self.logo2.y = cc.winSize.height * 1.5;
+      self.logo2.setScale (3.0);
       self.addChild (self.logo2, 2);
 
-      cc.director.getScheduler().scheduleCallbackForTarget (self, self.updateLogos, 3.0, 2, 0, false);
+      self.schedule (function () {
+         self.updateLogos ();
+      }, 3.0, 2);
 
       return true;
    },
@@ -44,23 +46,45 @@ var SplashLayer = cc.Layer.extend ( {
        var self = this;
 
        if (self.state === 0) {
+
           self.logo2.setVisible (true);
-          self.logo1.setVisible (false);
+
+          var moveAction = cc.moveTo (2.0, cc.winSize.width / 2, cc.winSize.height / 2);
+          moveAction.easing (cc.easeBounceOut ());
+          self.logo2.runAction (moveAction);
+
+          var fadeAction = cc.fadeOut (0.5);
+          self.logo1.runAction (fadeAction);
+
           self.state++;
+
        } else if (self.state === 1) {
-          self.logo2.setVisible (false);
-          cc.director.getScheduler ().unscheduleAllCallbacksForTarget (self);
-          cc.log ('Transition to main menu');
+
+          var menuScene = new MenuScene ();
+          var transition = new cc.TransitionFadeUp (0.2, menuScene);
+          cc.director.runScene (transition);
        }
+   },
+
+   freeResources: function () {
+       cc.textureCache.removeTextureForKey (res.OriginalLogo);
+       cc.textureCache.removeTextureForKey (res.AquaStaxLogo);
    }
 });
 
 /* exported SplashScene */
 var SplashScene = cc.Scene.extend ( {
+   layer: null,
+
    onEnter: function () {
       this._super ();
-      var layer = new SplashLayer ();
-      this.addChild (layer);
+      this.layer = new SplashLayer ();
+      this.addChild (this.layer);
+   },
+
+   onExit: function () {
+       this._super ();
+       this.layer.freeResources ();
    }
 });
 
