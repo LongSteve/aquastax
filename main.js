@@ -1,6 +1,6 @@
 'use strict';
 
-/* global gResources, SplashScene */
+/* global gResources, SplashScene, MenuScene */
 
 cc.game.onStart = function () {
    if (!cc.sys.isNative && document.getElementById ('cocosLoading')) {
@@ -19,8 +19,9 @@ cc.game.onStart = function () {
 
    //load resources
    cc.LoaderScene.preload (gResources, function () {
-         var splashScene = new SplashScene ();
-         cc.director.runScene (splashScene);
+         var menuScene = new MenuScene ();
+         //var transitionScene = new cc.TransitionFadeUp (0.2, splashScene, cc.color (255,255,255,255));
+         cc.director.runScene (menuScene);
       }, this);
 };
 cc.game.run ();
