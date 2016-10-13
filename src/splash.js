@@ -1,10 +1,8 @@
 'use strict';
 
-/* global res, MenuScene */
+var SplashLayer = cc.Layer.extend ({
 
-var SplashLayer = cc.Layer.extend ( {
-
-   // buttons
+   // logo images
    logo1: null,
    logo2: null,
 
@@ -22,17 +20,17 @@ var SplashLayer = cc.Layer.extend ( {
       bg.y = 0;
       self.addChild (bg, 0);
 
-      self.logo1 = new cc.Sprite (res.OriginalLogo);
+      self.logo1 = new cc.Sprite (aq.res.OriginalLogo);
       self.logo1.x = cc.winSize.width / 2;
       self.logo1.y = cc.winSize.height / 2;
-      self.logo1.setScale(3.0);
+      self.logo1.setScale(aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
       self.addChild (self.logo1, 1);
 
-      self.logo2 = new cc.Sprite (res.AquaStaxLogo);
+      self.logo2 = new cc.Sprite (aq.res.AquaStaxLogo);
       self.logo2.setVisible (false);
       self.logo2.x = cc.winSize.width / 2;
       self.logo2.y = cc.winSize.height * 1.5;
-      self.logo2.setScale (3.0);
+      self.logo2.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
       self.addChild (self.logo2, 2);
 
       self.schedule (function () {
@@ -60,20 +58,19 @@ var SplashLayer = cc.Layer.extend ( {
 
        } else if (self.state === 1) {
 
-          var menuScene = new MenuScene ();
+          var menuScene = new aq.scenes.MenuScene ();
           var transition = new cc.TransitionFadeUp (0.2, menuScene);
           cc.director.runScene (transition);
        }
    },
 
    freeResources: function () {
-       cc.textureCache.removeTextureForKey (res.OriginalLogo);
-       cc.textureCache.removeTextureForKey (res.AquaStaxLogo);
+       cc.textureCache.removeTextureForKey (aq.res.OriginalLogo);
+       cc.textureCache.removeTextureForKey (aq.res.AquaStaxLogo);
    }
 });
 
-/* exported SplashScene */
-var SplashScene = cc.Scene.extend ( {
+aq.scenes.SplashScene = cc.Scene.extend ( {
    layer: null,
 
    onEnter: function () {
@@ -87,4 +84,3 @@ var SplashScene = cc.Scene.extend ( {
        this.layer.freeResources ();
    }
 });
-

@@ -1,6 +1,7 @@
 'use strict';
 
-var MenuLayer = cc.Layer.extend ( {
+var MenuLayer = cc.Layer.extend ({
+
    // panels
    tmpPanel:null,
    menuPanel:null,
@@ -60,20 +61,81 @@ var MenuLayer = cc.Layer.extend ( {
       menu.y = self.menuPanel.getContentSize ().height / 2;
       self.menuPanel.addChild (menu);
 
-      var w = 240 * 3;
-      var h = 320 * 3;
+      var w = 240 * aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR;
+      var h = 320 * aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR;
 
-      var screenPanel = new cc.LayerColor (cc.color (255,0,0,255), w, h);
+      var screenPanel = new cc.LayerColor (cc.color (128,0,0,128), w, h);
       screenPanel.x = (cc.winSize.width - w) / 2;
       screenPanel.y = (cc.winSize.height - h) / 2;
 
-      var gumbler = new cc.Sprite (res.Gumbler);
+      var gumbler = new cc.Sprite (aq.res.Gumbler);
       gumbler.setAnchorPoint (0.5, 0);
-      gumbler.setScale (3.0);
+      gumbler.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
       gumbler.x = w / 2;
       screenPanel.addChild (gumbler);
 
       self.addChild (screenPanel, 10);
+
+      var drawNode = new cc.DrawNode ();
+
+      var block_size = 50;
+      var grid_width = 14;
+
+      var drawTri = function (x, y, type) {
+         var triangle;
+         switch (type) {
+         case 0:
+            triangle = [
+               cc.p (x, y),                  // bottom left    |\
+               cc.p (x, y + block_size),     // top left       | \
+               cc.p (x + block_size, y)      // bottom right   |__\
+            ];
+            break;
+         case 1:
+            triangle = [
+               cc.p (x, y),                                 // bottom left    |--/
+               cc.p (x, y + block_size),                    // top left       | /
+               cc.p (x + block_size, y + block_size)        // bottom right   |/
+            ];
+            break;
+         case 2:
+            triangle = [
+               cc.p (x, y + block_size),                       // bottom left    \--|
+               cc.p (x + block_size, y + block_size),          // top left        \ |
+               cc.p (x + block_size, y)                        // bottom right     \|
+            ];
+            break;
+         case 3:
+            triangle = [
+               cc.p (x, y),                                    // bottom left      /|
+               cc.p (x + block_size, y + block_size),          // top left        / |
+               cc.p (x + block_size, y)                        // bottom right   /__|
+            ];
+            break;
+         }
+
+         drawNode.drawPoly (triangle, cc.color (0,0,255,128), 4, cc.color (255,255,255,255));
+      };
+
+      var border = Math.floor ((screenPanel.width - (block_size * grid_width)) * 0.5);
+
+      //drawNode.setRotation (90);    // positive rotation is clockwise
+
+      //drawTri (0, 0, 0);
+      //drawTri (0, 0, 1);
+      //drawTri (0, 0, 2);
+
+      for (var t = 0; t < 14; t++) {
+         drawTri (border + (t * block_size), 0, 3);
+         drawTri (border + (t * block_size), 0, 1);
+
+         drawTri (border + (t * block_size), block_size, 3);
+         drawTri (border + (t * block_size), block_size, 1);
+      }
+
+      //drawNode.x = 0;
+      //drawNode.y = 0;
+      screenPanel.addChild (drawNode, 0);
 
       cc.view.setResizeCallback (function () {
          self.updateSizeLabels ();
@@ -107,8 +169,7 @@ var MenuLayer = cc.Layer.extend ( {
    }
 });
 
-/* exported MenuScene */
-var MenuScene = cc.Scene.extend ( {
+aq.scenes.MenuScene = cc.Scene.extend ({
    onEnter: function () {
       this._super ();
       var layer = new MenuLayer ();

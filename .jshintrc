@@ -1,7 +1,6 @@
 {
   "browser": true,
   "bitwise": true,
-  "camelcase": true,
   "curly": true,
   "eqeqeq": true,
   "immed": true,
@@ -16,6 +15,7 @@
   "trailing": true,
   "smarttabs": true,
   "globals": {
-    "cc": true
+    "cc": true,
+    "aq": true
   }
 }

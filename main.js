@@ -1,7 +1,5 @@
 'use strict';
 
-/* global gResources, SplashScene, MenuScene */
-
 cc.game.onStart = function () {
    if (!cc.sys.isNative && document.getElementById ('cocosLoading')) {
        //If referenced loading.js, please remove it
@@ -12,16 +10,27 @@ cc.game.onStart = function () {
    cc.view.adjustViewPort (true);
 
    // Setup the resolution policy and design resolution size
-   cc.view.setDesignResolutionSize (1920, 1080, cc.ResolutionPolicy.SHOW_ALL);
+   cc.view.setDesignResolutionSize (aq.config.DESIGN_WIDTH, aq.config.DESIGN_HEIGHT, cc.ResolutionPolicy.SHOW_ALL);
 
    // The game will be resized when browser size change
    cc.view.resizeWithBrowserSize (true);
 
-   //load resources
-   cc.LoaderScene.preload (gResources, function () {
-         var menuScene = new MenuScene ();
-         //var transitionScene = new cc.TransitionFadeUp (0.2, splashScene, cc.color (255,255,255,255));
-         cc.director.runScene (menuScene);
-      }, this);
+   // Load resources
+   cc.LoaderScene.preload (aq.load, function () {
+
+      var toScene;
+      if (aq.config.SHOW_SPLASH_SCREENS) {
+         toScene = new cc.TransitionFadeUp (
+            0.2,                                // time
+            new aq.scenes.SplashScene (),       // scene to transition into
+            cc.color (255,255,255,255)          // fade up from white
+         );
+      } else {
+         toScene = new aq.scenes.MenuScene ();
+      }
+
+      cc.director.runScene (toScene);
+   }, this);
 };
+
 cc.game.run ();

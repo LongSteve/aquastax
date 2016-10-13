@@ -55,6 +55,7 @@ gulp.task ('jshint', function () {
       './gulpfile.js',
       './src/**/*.js',
       './res/**/*.js',
+      './config.js',
       './main.js'
    ])
    .pipe (cached ('jshint'))        // cache in memory
