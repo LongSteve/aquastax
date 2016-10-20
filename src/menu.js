@@ -14,6 +14,12 @@ var MenuLayer = cc.Layer.extend ({
    // buttons
    fullScreenButton:null,
 
+   // grid
+   grid:null,
+
+   // blocks
+   drawNode:null,
+
    ctor: function () {
       var self = this;
 
@@ -74,12 +80,40 @@ var MenuLayer = cc.Layer.extend ({
       gumbler.x = w / 2;
       screenPanel.addChild (gumbler);
 
+      var block_size = aq.config.BLOCK_SIZE;
+      var grid_width = aq.config.GRID_WIDTH;
+      var border = Math.floor ((screenPanel.width - (block_size * grid_width)) * 0.5);
+
+      var grid_height_pixels = screenPanel.height;
+      var grid_height = Math.floor (grid_height_pixels / block_size);
+
+      var grid_middle = grid_width / 2;
+
       self.addChild (screenPanel, 10);
 
-      var drawNode = new cc.DrawNode ();
+      self.grid = new cc.DrawNode ();
 
-      var block_size = 50;
-      var grid_width = 14;
+      var drawGrid = function () {
+         for (var x = 0; x <= grid_width * block_size; x += block_size) {
+
+            var p1 = cc.p (border + x,0);
+            var p2 = cc.p (border + x, (grid_height * block_size));
+            self.grid.drawSegment (p1, p2, 1, cc.color.white);
+         }
+
+         for (var y = 0; y <= grid_height * block_size; y += block_size) {
+
+            var p1 = cc.p (border, y);
+            var p2 = cc.p (border + (grid_width * block_size), y);
+            self.grid.drawSegment (p1, p2, 1, cc.color.white);
+         }
+      };
+
+      drawGrid ();
+
+      screenPanel.addChild (self.grid);
+
+      self.drawNode = new cc.DrawNode ();
 
       var drawTri = function (x, y, type) {
          var triangle;
@@ -114,34 +148,89 @@ var MenuLayer = cc.Layer.extend ({
             break;
          }
 
-         drawNode.drawPoly (triangle, cc.color (0,0,255,128), 4, cc.color (255,255,255,255));
+         self.drawNode.drawPoly (triangle, cc.color (0,0,255,128), 4, cc.color (255,255,255,255));
       };
 
-      var border = Math.floor ((screenPanel.width - (block_size * grid_width)) * 0.5);
+      var drawBlock = function (x, y) {
+         drawTri (x, y, 3);
+         drawTri (x, y, 1);
+      };
 
-      //drawNode.setRotation (90);    // positive rotation is clockwise
+      drawBlock (border, 0);
 
-      //drawTri (0, 0, 0);
-      //drawTri (0, 0, 1);
-      //drawTri (0, 0, 2);
+      self.drawNode.setPosition (0, 0);
 
-      for (var t = 0; t < 14; t++) {
-         drawTri (border + (t * block_size), 0, 3);
-         drawTri (border + (t * block_size), 0, 1);
+      screenPanel.addChild (self.drawNode, 0);
 
-         drawTri (border + (t * block_size), block_size, 3);
-         drawTri (border + (t * block_size), block_size, 1);
-      }
-
-      //drawNode.x = 0;
-      //drawNode.y = 0;
-      screenPanel.addChild (drawNode, 0);
+      self.scheduleUpdate ();
 
       cc.view.setResizeCallback (function () {
          self.updateSizeLabels ();
       });
 
+      cc.eventManager.addListener ({
+         event: cc.EventListener.KEYBOARD,
+         onKeyPressed: function (keyCode, event) {
+            self.keyPressed (keyCode);
+         },
+         onKeyReleased: function (keyCode, event){
+            self.keyReleased (keyCode);
+         }
+      }, self);
+
       return true;
+   },
+
+   // array of keys pressed
+   keysPressed: [],
+
+   // delta x and y for block movement
+   dx:0,
+   dy:0,
+
+   keyPressed: function (keyCode) {
+      var self = this;
+      self.keysPressed [keyCode] = true;
+   },
+
+   keyReleased: function (keyCode) {
+      var self = this;
+      self.keysPressed [keyCode] = false;
+   },
+
+   clearKeys: function () {
+      var self = this;
+      self.keysPressed [cc.KEY.up] = false;
+      self.keysPressed [cc.KEY.down] = false;
+      self.keysPressed [cc.KEY.left] = false;
+      self.keysPressed [cc.KEY.right] = false;
+   },
+
+   update: function () {
+       var self = this;
+
+       if (self.keysPressed [cc.KEY.up]) {
+          self.dy = aq.config.BLOCK_SIZE;
+       } else if (self.keysPressed [cc.KEY.down]) {
+          self.dy = -aq.config.BLOCK_SIZE;
+       } else {
+          self.dy = 0;
+       }
+
+       if (self.keysPressed [cc.KEY.left]) {
+          self.dx = -aq.config.BLOCK_SIZE;
+       } else if (self.keysPressed [cc.KEY.right]) {
+          self.dx = aq.config.BLOCK_SIZE;
+       } else {
+          self.dx = 0;
+       }
+
+       var p = self.drawNode.getPosition ();
+       p.x += self.dx;
+       p.y += self.dy;
+       self.drawNode.setPosition (p);
+
+       self.clearKeys ();
    },
 
    onFullscreenButton: function () {

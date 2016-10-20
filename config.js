@@ -34,6 +34,18 @@ aq.config.SHOW_SPLASH_SCREENS = false;
 aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR = 3.0;
 
 /**
+ * aq.config.BLOCK_SIZE block size in pixels.  A single square block will
+ * be drawn with 2 triangles.
+ */
+aq.config.BLOCK_SIZE = 50;
+
+/**
+ * aq.config.GRID_SIZE is how many blocks fit across the bottom of the
+ * gameplay area.
+ */
+aq.config.GRID_WIDTH = 14;
+
+/**
  * Freeze the aq.config object so we don't go adding to it all over the code
  */
 Object.freeze (aq.config);
