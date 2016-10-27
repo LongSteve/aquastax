@@ -26,7 +26,7 @@ cc.game.onStart = function () {
             cc.color (255,255,255,255)          // fade up from white
          );
       } else {
-         toScene = new aq.scenes.MenuScene ();
+         toScene = new aq.scenes.GameScene ();
       }
 
       cc.director.runScene (toScene);

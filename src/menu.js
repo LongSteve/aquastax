@@ -3,7 +3,6 @@
 var MenuLayer = cc.Layer.extend ({
 
    // panels
-   tmpPanel:null,
    menuPanel:null,
 
    // labels
@@ -13,12 +12,6 @@ var MenuLayer = cc.Layer.extend ({
 
    // buttons
    fullScreenButton:null,
-
-   // grid
-   grid:null,
-
-   // blocks
-   drawNode:null,
 
    ctor: function () {
       var self = this;
@@ -67,170 +60,18 @@ var MenuLayer = cc.Layer.extend ({
       menu.y = self.menuPanel.getContentSize ().height / 2;
       self.menuPanel.addChild (menu);
 
-      var w = 240 * aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR;
-      var h = 320 * aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR;
+      //var gumbler = new cc.Sprite (aq.res.Gumbler);
+      //gumbler.setAnchorPoint (0.5, 0);
+      //gumbler.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
+      //gumbler.x = w / 2;
+      //screenPanel.addChild (gumbler);
 
-      var screenPanel = new cc.LayerColor (cc.color (128,0,0,128), w, h);
-      screenPanel.x = (cc.winSize.width - w) / 2;
-      screenPanel.y = (cc.winSize.height - h) / 2;
-
-      var gumbler = new cc.Sprite (aq.res.Gumbler);
-      gumbler.setAnchorPoint (0.5, 0);
-      gumbler.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
-      gumbler.x = w / 2;
-      screenPanel.addChild (gumbler);
-
-      var block_size = aq.config.BLOCK_SIZE;
-      var grid_width = aq.config.GRID_WIDTH;
-      var border = Math.floor ((screenPanel.width - (block_size * grid_width)) * 0.5);
-
-      var grid_height_pixels = screenPanel.height;
-      var grid_height = Math.floor (grid_height_pixels / block_size);
-
-      var grid_middle = grid_width / 2;
-
-      self.addChild (screenPanel, 10);
-
-      self.grid = new cc.DrawNode ();
-
-      var drawGrid = function () {
-         for (var x = 0; x <= grid_width * block_size; x += block_size) {
-
-            var p1 = cc.p (border + x,0);
-            var p2 = cc.p (border + x, (grid_height * block_size));
-            self.grid.drawSegment (p1, p2, 1, cc.color.white);
-         }
-
-         for (var y = 0; y <= grid_height * block_size; y += block_size) {
-
-            var p1 = cc.p (border, y);
-            var p2 = cc.p (border + (grid_width * block_size), y);
-            self.grid.drawSegment (p1, p2, 1, cc.color.white);
-         }
-      };
-
-      drawGrid ();
-
-      screenPanel.addChild (self.grid);
-
-      self.drawNode = new cc.DrawNode ();
-
-      var drawTri = function (x, y, type) {
-         var triangle;
-         switch (type) {
-         case 0:
-            triangle = [
-               cc.p (x, y),                  // bottom left    |\
-               cc.p (x, y + block_size),     // top left       | \
-               cc.p (x + block_size, y)      // bottom right   |__\
-            ];
-            break;
-         case 1:
-            triangle = [
-               cc.p (x, y),                                 // bottom left    |--/
-               cc.p (x, y + block_size),                    // top left       | /
-               cc.p (x + block_size, y + block_size)        // bottom right   |/
-            ];
-            break;
-         case 2:
-            triangle = [
-               cc.p (x, y + block_size),                       // bottom left    \--|
-               cc.p (x + block_size, y + block_size),          // top left        \ |
-               cc.p (x + block_size, y)                        // bottom right     \|
-            ];
-            break;
-         case 3:
-            triangle = [
-               cc.p (x, y),                                    // bottom left      /|
-               cc.p (x + block_size, y + block_size),          // top left        / |
-               cc.p (x + block_size, y)                        // bottom right   /__|
-            ];
-            break;
-         }
-
-         self.drawNode.drawPoly (triangle, cc.color (0,0,255,128), 4, cc.color (255,255,255,255));
-      };
-
-      var drawBlock = function (x, y) {
-         drawTri (x, y, 3);
-         drawTri (x, y, 1);
-      };
-
-      drawBlock (border, 0);
-
-      self.drawNode.setPosition (0, 0);
-
-      screenPanel.addChild (self.drawNode, 0);
-
-      self.scheduleUpdate ();
 
       cc.view.setResizeCallback (function () {
          self.updateSizeLabels ();
       });
 
-      cc.eventManager.addListener ({
-         event: cc.EventListener.KEYBOARD,
-         onKeyPressed: function (keyCode, event) {
-            self.keyPressed (keyCode);
-         },
-         onKeyReleased: function (keyCode, event){
-            self.keyReleased (keyCode);
-         }
-      }, self);
-
       return true;
-   },
-
-   // array of keys pressed
-   keysPressed: [],
-
-   // delta x and y for block movement
-   dx:0,
-   dy:0,
-
-   keyPressed: function (keyCode) {
-      var self = this;
-      self.keysPressed [keyCode] = true;
-   },
-
-   keyReleased: function (keyCode) {
-      var self = this;
-      self.keysPressed [keyCode] = false;
-   },
-
-   clearKeys: function () {
-      var self = this;
-      self.keysPressed [cc.KEY.up] = false;
-      self.keysPressed [cc.KEY.down] = false;
-      self.keysPressed [cc.KEY.left] = false;
-      self.keysPressed [cc.KEY.right] = false;
-   },
-
-   update: function () {
-       var self = this;
-
-       if (self.keysPressed [cc.KEY.up]) {
-          self.dy = aq.config.BLOCK_SIZE;
-       } else if (self.keysPressed [cc.KEY.down]) {
-          self.dy = -aq.config.BLOCK_SIZE;
-       } else {
-          self.dy = 0;
-       }
-
-       if (self.keysPressed [cc.KEY.left]) {
-          self.dx = -aq.config.BLOCK_SIZE;
-       } else if (self.keysPressed [cc.KEY.right]) {
-          self.dx = aq.config.BLOCK_SIZE;
-       } else {
-          self.dx = 0;
-       }
-
-       var p = self.drawNode.getPosition ();
-       p.x += self.dx;
-       p.y += self.dy;
-       self.drawNode.setPosition (p);
-
-       self.clearKeys ();
    },
 
    onFullscreenButton: function () {
