@@ -36,7 +36,7 @@ var GameLayer = cc.Layer.extend ({
 
       self.block = new aq.Block ();
       self.block.setPosition (w / 2, h);
-      gamePanel.addChild (self.block);
+      gamePanel.addChild (self.block, 3);
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
