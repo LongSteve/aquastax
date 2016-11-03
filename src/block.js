@@ -4,7 +4,7 @@ aq.Block = cc.Node.extend ({
 
    drawNode: null,
 
-   ctor: function (type) {
+   ctor: function () {
       var self = this;
 
       // 1. super init first

@@ -22,17 +22,18 @@ aq.Grid = cc.Node.extend ({
 
       var grid = new cc.DrawNode ();
       var drawGrid = function () {
+         var p1, p2;
          for (var x = 0; x <= self.blocks_wide * block_size; x += block_size) {
 
-            var p1 = cc.p (x,0);
-            var p2 = cc.p (x, (self.blocks_high * block_size));
+            p1 = cc.p (x,0);
+            p2 = cc.p (x, (self.blocks_high * block_size));
             grid.drawSegment (p1, p2, 1, cc.color.white);
          }
 
          for (var y = 0; y <= self.blocks_high * block_size; y += block_size) {
 
-            var p1 = cc.p (0, y);
-            var p2 = cc.p (0 + (self.blocks_wide * block_size), y);
+            p1 = cc.p (0, y);
+            p2 = cc.p (0 + (self.blocks_wide * block_size), y);
             grid.drawSegment (p1, p2, 1, cc.color.white);
          }
       };

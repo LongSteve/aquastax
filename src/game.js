@@ -40,10 +40,10 @@ var GameLayer = cc.Layer.extend ({
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
-         onKeyPressed: function (keyCode, event) {
+         onKeyPressed: function (keyCode) {
             self.keyPressed (keyCode);
          },
-         onKeyReleased: function (keyCode, event){
+         onKeyReleased: function (keyCode){
             self.keyReleased (keyCode);
          }
       }, self);
@@ -96,7 +96,7 @@ var GameLayer = cc.Layer.extend ({
           self.dx = 0;
        }
 
-       if (Math.abs (self.dx) == 1) {
+       if (Math.abs (self.dx) === 1) {
           self.keysPressed [cc.KEY.left] = false;
           self.keysPressed [cc.KEY.right] = false;
        }
