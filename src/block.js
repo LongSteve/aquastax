@@ -53,21 +53,24 @@ aq.Block = cc.Node.extend ({
       var drawTile = function (x, y, n) {
          var tile_data = [
             // ARGB, anchor_x, anchor_y, grid_size, grid_data
-            "#fe3500", 0, 0, 2,    0x04, 0x00, 0x31, 0x00,
-            "#00fedc", 1, 0, 2,    0x03, 0x31, 0x00, 0x31,
-            "#cc00fe", 0, 0, 2,    0x31, 0x31, 0x31, 0x00,
-            "#fef500", -1, -1, 1,  0x31, 0x00, 0x00, 0x00,
-            "#ff6cb5", 1, 1, 2,    0x04, 0x00, 0x31, 0x31,
-            "#4eff00", 0, 1, 2,    0x01, 0x00, 0x31, 0x31,
-            "#5c33ff", 0, 1, 2,    0x01, 0x00, 0x31, 0x00,
-            "#fea03a", -1, -1, 2,  0x00, 0x00, 0x04, 0x01
+            '#fe3500', 0, 0, 2,    0x04, 0x00, 0x31, 0x00,
+            '#00fedc', 1, 0, 2,    0x03, 0x31, 0x00, 0x31,
+            '#cc00fe', 0, 0, 2,    0x31, 0x31, 0x31, 0x00,
+            '#fef500', -1, -1, 1,  0x31, 0x00, 0x00, 0x00,
+            '#ff6cb5', 1, 1, 2,    0x04, 0x00, 0x31, 0x31,
+            '#4eff00', 0, 1, 2,    0x01, 0x00, 0x31, 0x31,
+            '#5c33ff', 0, 1, 2,    0x01, 0x00, 0x31, 0x00,
+            '#fea03a', -1, -1, 2,  0x00, 0x00, 0x04, 0x01
          ];
 
          var dx = 0;
          var dy = 0;
 
-         var anchor_x = tile_data [(n * 8) + 1] * block_size;
-         var anchor_y = tile_data [(n * 8) + 2] * block_size;
+         // Steve Note, after stream on 3rd November 2016
+         // I've looked at the original code and the anchor_x and anchor_y values
+         // are not used in rendering the block, they are used when calculating
+         // the position after a rotation.  So, I've removed them from here.
+
          var grid_size = tile_data [(n * 8) + 3];
          var color = tile_data [(n * 8) + 0];
 
@@ -80,10 +83,10 @@ aq.Block = cc.Node.extend ({
             dx = (i % grid_size) * block_size;
 
             if (t1 !== 0) {
-               drawTri (x + dx + anchor_x, y + dy + anchor_y, t1, color);
+               drawTri (x + dx, y + dy, t1, color);
             }
             if (t2 !== 0) {
-               drawTri (x + dx + anchor_x, y + dy + anchor_y, t2, color);
+               drawTri (x + dx, y + dy, t2, color);
             }
          }
       };
