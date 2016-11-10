@@ -204,7 +204,7 @@ aq.Block = cc.Node.extend ({
          var ax = td.anchors [0][0];
          var ay = td.anchors [0][1];
 
-         if (ax != -1) {
+         if (ax !== -1) {
             var ai = ax;
             var aj = ay;
             for (var i = 0; i < r; i++)
@@ -255,16 +255,23 @@ aq.Block = cc.Node.extend ({
 
        self.drawNodes [new_rotation].setVisible (true);
 
-       var anchor_x = self.tile_data [self.num]['anchors'][old_rotation][0];
-       var anchor_y = self.tile_data [self.num]['anchors'][old_rotation][1];
+       var td = self.tile_data [self.num];
 
-       if (anchor_x != -1) {
+       // Gets the anchor point for the current rotation
+       var anchor_x = td.anchors[old_rotation][0];
+       var anchor_y = td.anchors[old_rotation][1];
 
-          var anchor_i = self.tile_data [self.num]['anchors'][new_rotation][0];
-          var anchor_j = self.tile_data [self.num]['anchors'][new_rotation][1];
+       // -1 in the anchors array means don't bother offsetting by anchors (ie. for the 1x1 tile)
+       if (anchor_x !== -1) {
 
+          // Get the anchor point for the new rotation (which is 90 degrees more than the old rotation)
+          var anchor_i = td.anchors[new_rotation][0];
+          var anchor_j = td.anchors[new_rotation][1];
+
+          // Work out the difference in the positions of the anchor point and offset the tile by
+          // that delta in the x and y.
           var new_x = self.x + ((anchor_x - anchor_i) * aq.config.BLOCK_SIZE);
-          var new_y = self.y - ((anchor_y - anchor_j) * aq.config.BLOCK_SIZE);
+          var new_y = self.y - ((anchor_y - anchor_j) * aq.config.BLOCK_SIZE);   //Why is this - and not + ?
 
           self.setPosition (new_x, new_y);
        }

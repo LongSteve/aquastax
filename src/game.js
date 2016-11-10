@@ -82,12 +82,14 @@ var GameLayer = cc.Layer.extend ({
    update: function () {
        var self = this;
 
+       // Drop the block down quickly
        if (self.keysPressed [cc.KEY.down]) {
           self.fastDrop = true;
        } else {
           self.fastDrop = false;
        }
 
+       // Move left or right
        if (self.keysPressed [cc.KEY.left]) {
           self.dx = -1;
        } else if (self.keysPressed [cc.KEY.right]) {
@@ -96,14 +98,16 @@ var GameLayer = cc.Layer.extend ({
           self.dx = 0;
        }
 
-       if (self.keysPressed [cc.KEY.up]) {
-          self.block.rotate ();
-          self.keysPressed [cc.KEY.up] = false;
-       }
-
+       // Let the keyboard repeat rate handle holding down a key
        if (Math.abs (self.dx) === 1) {
           self.keysPressed [cc.KEY.left] = false;
           self.keysPressed [cc.KEY.right] = false;
+       }
+
+       // Rotate the block through 90 degrees
+       if (self.keysPressed [cc.KEY.up]) {
+          self.block.rotate ();
+          self.keysPressed [cc.KEY.up] = false;
        }
 
        var dy = -aq.config.BLOCK_SIZE / 60;
