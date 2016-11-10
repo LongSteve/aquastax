@@ -4,7 +4,10 @@ aq.Block = cc.Node.extend ({
 
    drawNode: null,
 
-   ctor: function () {
+   num: 0,
+   rot: 0,
+
+   ctor: function (num) {
       var self = this;
 
       // 1. super init first
@@ -12,9 +15,7 @@ aq.Block = cc.Node.extend ({
 
       var block_size = aq.config.BLOCK_SIZE;
 
-      self.drawNode = new cc.DrawNode ();
-
-      var drawTri = function (x, y, type, color) {
+      var drawTri = function (node, x, y, type, color) {
          var triangle;
          switch (type) {
          case 1:
@@ -47,21 +48,81 @@ aq.Block = cc.Node.extend ({
             break;
          }
 
-         self.drawNode.drawPoly (triangle, cc.color (color), 4, cc.color (255,255,255,255));
+         node.drawPoly (triangle, cc.color (color), 4, cc.color (255,255,255,255));
       };
 
-      var drawTile = function (x, y, n) {
-         var tile_data = [
-            // ARGB, anchor_x, anchor_y, grid_size, grid_data
-            '#fe3500', 0, 0, 2,    0x04, 0x00, 0x31, 0x00,
-            '#00fedc', 1, 0, 2,    0x03, 0x31, 0x00, 0x31,
-            '#cc00fe', 0, 0, 2,    0x31, 0x31, 0x31, 0x00,
-            '#fef500', -1, -1, 1,  0x31, 0x00, 0x00, 0x00,
-            '#ff6cb5', 1, 1, 2,    0x04, 0x00, 0x31, 0x31,
-            '#4eff00', 0, 1, 2,    0x01, 0x00, 0x31, 0x31,
-            '#5c33ff', 0, 1, 2,    0x01, 0x00, 0x31, 0x00,
-            '#fea03a', -1, -1, 2,  0x00, 0x00, 0x04, 0x01
-         ];
+      var tile_data = [
+         {
+            'id': 'tile0',
+            'flags': 'active',
+            'color': '#fe3500',
+            'anchors': [[0,0]],
+            'grid_size': 2,
+            'grid_data': [[0x4,0x0,0x31,0x0]]
+         },
+         {
+            'id': 'tile1',
+            'flags': 'active',
+            'color': '#00fedc',
+            'anchors': [[1,0]],
+            'grid_size': 2,
+            'grid_data': [[0x3,0x31,0x0,0x31]]
+         },
+         {
+            'id': 'tile2',
+            'flags': 'active',
+            'color': '#cc00fe',
+            'anchors': [[0,0]],
+            'grid_size': 2,
+            'grid_data': [[0x31,0x31,0x31,0x0]]
+         },
+         {
+            'id': 'tile3',
+            'flags': 'active',
+            'color': '#ef500',
+            'anchors': [[-1,-1]],
+            'grid_size': 1,
+            'grid_data': [[0x31]]
+         },
+         {
+            'id': 'tile4',
+            'flags': 'active',
+            'color': '#ff6cb5',
+            'anchors': [[1,1]],
+            'grid_size': 2,
+            'grid_data': [[0x4,0x0,0x31,0x31]]
+         },
+         {
+            'id': 'tile5',
+            'flags': 'active',
+            'color': '#4eff00',
+            'anchors': [[0,1]],
+            'grid_size': 2,
+            'grid_data': [[0x1,0x0,0x31,0x31]]
+         },
+         {
+            'id': 'tile6',
+            'flags': 'active',
+            'color': '#5c33ff',
+            'anchors': [[0,1]],
+            'grid_size': 2,
+            'grid_data': [[0x1,0x0,0x31,0x0]]
+         },
+         {
+            'id': 'tile7',
+            'flags': 'active',
+            'color': '#fea03a',
+            'anchors': [[-1,-1]],
+            'grid_size': 2,
+            'grid_data': [[0x0,0x0,0x4,0x1]]
+         }
+      ];
+
+      self.tile_data = tile_data;
+
+      var drawTile = function (x, y, n, r) {
+
+         var node = new cc.DrawNode ();
 
          var dx = 0;
          var dy = 0;
@@ -71,31 +132,144 @@ aq.Block = cc.Node.extend ({
          // are not used in rendering the block, they are used when calculating
          // the position after a rotation.  So, I've removed them from here.
 
-         var grid_size = tile_data [(n * 8) + 3];
-         var color = tile_data [(n * 8) + 0];
+         var td = tile_data [n];
 
          for (var i = 0; i < 4; i++) {
-            var tris = tile_data [(n * 8) + 4 + i];
+            var tris = td.grid_data [r][i];
             var t1 = (tris >> 4) & 0xf;
             var t2 = tris & 0xf;
 
-            dy = ((grid_size - 1) - Math.floor (i / grid_size)) * block_size;
-            dx = (i % grid_size) * block_size;
+            dy = ((td.grid_size - 1) - Math.floor (i / td.grid_size)) * block_size;
+            dx = (i % td.grid_size) * block_size;
 
             if (t1 !== 0) {
-               drawTri (x + dx, y + dy, t1, color);
+               drawTri (node, x + dx, y + dy, t1, td.color);
             }
             if (t2 !== 0) {
-               drawTri (x + dx, y + dy, t2, color);
+               drawTri (node, x + dx, y + dy, t2, td.color);
             }
+         }
+
+         return node;
+      };
+
+      var preRotateTile = function (n) {
+
+         var td = tile_data [n];
+
+         var a, x, y, i, j, g;
+
+         // Loop for each rotation
+         for (g = 0; g < 3; g++)
+         {
+            var rot_grid = [];
+            var grid_data = td.grid_data [g];
+
+            for (y = 0; y < td.grid_size; y++)
+            {
+               for (x = 0; x < td.grid_size; x++)
+               {
+                  i = (x * td.grid_size) + (td.grid_size-y-1);
+                  j = (y * td.grid_size) + x;
+                  rot_grid [i] = grid_data [j];
+
+                  if (((rot_grid [i] >> 4) & 0x0f) > 0) {
+                     // Also rotate each grid square triangle piece
+                     a = (rot_grid [i] >> 4) & 0x0f;
+                     if (++a > 4) {
+                        a = 1;
+                     }
+                     rot_grid [i] = (a << 4) | (rot_grid [i] & 0x0f);
+                  }
+
+                  if ((rot_grid [i] & 0x0f) > 0) {
+                     // Also rotate each grid square triangle piece
+                     a = rot_grid [i] & 0x0f;
+                     if (++a > 4) {
+                        a = 1;
+                     }
+                     rot_grid [i] = (rot_grid [i] & 0xf0) | a;
+                  }
+               }
+            }
+
+            td.grid_data [g + 1] = rot_grid;
          }
       };
 
-      for (var x = 0; x < 8; x++) {
-         drawTile (x * 2 * block_size, 0, x);
+      var getTileAnchor = function (n, r) {
+
+         var td = tile_data [n];
+
+         var ax = td.anchors [0][0];
+         var ay = td.anchors [0][1];
+
+         if (ax != -1) {
+            var ai = ax;
+            var aj = ay;
+            for (var i = 0; i < r; i++)
+            {
+               ai = td.grid_size - 1 - ay;
+               aj = ax;
+
+               ax = ai;
+               ay = aj;
+            }
+         }
+
+         td.anchors [r] = [ax,ay];
+      };
+
+      preRotateTile (num);
+
+      for (var i = 1; i < 4; i++) {
+         getTileAnchor (num, i);
       }
 
-      self.addChild (self.drawNode);
+      self.drawNodes = [
+         drawTile (0, 0, num, 0),
+         drawTile (0, 0, num, 1),
+         drawTile (0, 0, num, 2),
+         drawTile (0, 0, num, 3),
+      ];
+
+      self.num = num;
+      self.rot = 0;
+
+      for (var n = 0; n < self.drawNodes.length; n++) {
+         if (n > 0) {
+            self.drawNodes[n].setVisible (false);
+         }
+         self.addChild (self.drawNodes [n]);
+      }
+   },
+
+   rotate: function () {
+       var self = this;
+
+       var old_rotation = self.rot;
+
+       self.drawNodes [old_rotation].setVisible (false);
+
+       var new_rotation = (old_rotation + 1) & 3;
+
+       self.drawNodes [new_rotation].setVisible (true);
+
+       var anchor_x = self.tile_data [self.num]['anchors'][old_rotation][0];
+       var anchor_y = self.tile_data [self.num]['anchors'][old_rotation][1];
+
+       if (anchor_x != -1) {
+
+          var anchor_i = self.tile_data [self.num]['anchors'][new_rotation][0];
+          var anchor_j = self.tile_data [self.num]['anchors'][new_rotation][1];
+
+          var new_x = self.x + ((anchor_x - anchor_i) * aq.config.BLOCK_SIZE);
+          var new_y = self.y - ((anchor_y - anchor_j) * aq.config.BLOCK_SIZE);
+
+          self.setPosition (new_x, new_y);
+       }
+
+       self.rot = new_rotation;
    }
 
 });

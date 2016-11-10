@@ -34,7 +34,7 @@ var GameLayer = cc.Layer.extend ({
       self.grid = new aq.Grid (blocks_wide, blocks_high);
       gamePanel.addChild (self.grid, 2);
 
-      self.block = new aq.Block ();
+      self.block = new aq.Block (2);
       self.block.setPosition (w / 2, h);
       gamePanel.addChild (self.block, 3);
 
@@ -94,6 +94,11 @@ var GameLayer = cc.Layer.extend ({
           self.dx = 1;
        } else {
           self.dx = 0;
+       }
+
+       if (self.keysPressed [cc.KEY.up]) {
+          self.block.rotate ();
+          self.keysPressed [cc.KEY.up] = false;
        }
 
        if (Math.abs (self.dx) === 1) {
