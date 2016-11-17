@@ -1,11 +1,116 @@
 'use strict';
 
+aq.TILE_DATA = [
+   {
+      'id': 'tile0',
+      'flags': 'active',
+      'color': '#fe3500',
+      'anchors': [[0,0]],
+      'grid_size': 2,
+      'grid_data': [[0x4,0x0,0x31,0x0]]
+   },
+   {
+      'id': 'tile1',
+      'flags': 'active',
+      'color': '#00fedc',
+      'anchors': [[1,0]],
+      'grid_size': 2,
+      'grid_data': [[0x3,0x31,0x0,0x31]]
+   },
+   {
+      'id': 'tile2',
+      'flags': 'active',
+      'color': '#cc00fe',
+      'anchors': [[0,0]],
+      'grid_size': 2,
+      'grid_data': [[0x31,0x31,0x31,0x0]]
+   },
+   {
+      'id': 'tile3',
+      'flags': 'active',
+      'color': '#ef500',
+      'anchors': [[-1,-1]],
+      'grid_size': 1,
+      'grid_data': [[0x31]]
+   },
+   {
+      'id': 'tile4',
+      'flags': 'active',
+      'color': '#ff6cb5',
+      'anchors': [[1,1]],
+      'grid_size': 2,
+      'grid_data': [[0x4,0x0,0x31,0x31]]
+   },
+   {
+      'id': 'tile5',
+      'flags': 'active',
+      'color': '#4eff00',
+      'anchors': [[0,1]],
+      'grid_size': 2,
+      'grid_data': [[0x1,0x0,0x31,0x31]]
+   },
+   {
+      'id': 'tile6',
+      'flags': 'active',
+      'color': '#5c33ff',
+      'anchors': [[0,1]],
+      'grid_size': 2,
+      'grid_data': [[0x1,0x0,0x31,0x0]]
+   },
+   {
+      'id': 'tile7',
+      'flags': 'active',
+      'color': '#fea03a',
+      'anchors': [[-1,-1]],
+      'grid_size': 2,
+      'grid_data': [[0x0,0x0,0x4,0x1]]
+   }
+];
+
+
 aq.Block = cc.Node.extend ({
 
    drawNode: null,
 
    num: 0,
    rot: 0,
+
+   drawTri: function (node, x, y, type, color) {
+      var block_size = aq.config.BLOCK_SIZE;
+      var triangle;
+      switch (type) {
+      case 1:
+         triangle = [
+            cc.p (x, y),                  // bottom left    |\
+            cc.p (x, y + block_size),     // top left       | \
+            cc.p (x + block_size, y)      // bottom right   |__\
+         ];
+         break;
+      case 2:
+         triangle = [
+            cc.p (x, y),                                 // bottom left    |--/
+            cc.p (x, y + block_size),                    // top left       | /
+            cc.p (x + block_size, y + block_size)        // bottom right   |/
+         ];
+         break;
+      case 3:
+         triangle = [
+            cc.p (x, y + block_size),                       // bottom left    \--|
+            cc.p (x + block_size, y + block_size),          // top left        \ |
+            cc.p (x + block_size, y)                        // bottom right     \|
+         ];
+         break;
+      case 4:
+         triangle = [
+            cc.p (x, y),                                    // bottom left      /|
+            cc.p (x + block_size, y + block_size),          // top left        / |
+            cc.p (x + block_size, y)                        // bottom right   /__|
+         ];
+         break;
+      }
+
+      node.drawPoly (triangle, cc.color (color), 4, cc.color (255,255,255,255));
+   },
 
    ctor: function (num) {
       var self = this;
@@ -15,110 +120,7 @@ aq.Block = cc.Node.extend ({
 
       var block_size = aq.config.BLOCK_SIZE;
 
-      var drawTri = function (node, x, y, type, color) {
-         var triangle;
-         switch (type) {
-         case 1:
-            triangle = [
-               cc.p (x, y),                  // bottom left    |\
-               cc.p (x, y + block_size),     // top left       | \
-               cc.p (x + block_size, y)      // bottom right   |__\
-            ];
-            break;
-         case 2:
-            triangle = [
-               cc.p (x, y),                                 // bottom left    |--/
-               cc.p (x, y + block_size),                    // top left       | /
-               cc.p (x + block_size, y + block_size)        // bottom right   |/
-            ];
-            break;
-         case 3:
-            triangle = [
-               cc.p (x, y + block_size),                       // bottom left    \--|
-               cc.p (x + block_size, y + block_size),          // top left        \ |
-               cc.p (x + block_size, y)                        // bottom right     \|
-            ];
-            break;
-         case 4:
-            triangle = [
-               cc.p (x, y),                                    // bottom left      /|
-               cc.p (x + block_size, y + block_size),          // top left        / |
-               cc.p (x + block_size, y)                        // bottom right   /__|
-            ];
-            break;
-         }
-
-         node.drawPoly (triangle, cc.color (color), 4, cc.color (255,255,255,255));
-      };
-
-      var tile_data = [
-         {
-            'id': 'tile0',
-            'flags': 'active',
-            'color': '#fe3500',
-            'anchors': [[0,0]],
-            'grid_size': 2,
-            'grid_data': [[0x4,0x0,0x31,0x0]]
-         },
-         {
-            'id': 'tile1',
-            'flags': 'active',
-            'color': '#00fedc',
-            'anchors': [[1,0]],
-            'grid_size': 2,
-            'grid_data': [[0x3,0x31,0x0,0x31]]
-         },
-         {
-            'id': 'tile2',
-            'flags': 'active',
-            'color': '#cc00fe',
-            'anchors': [[0,0]],
-            'grid_size': 2,
-            'grid_data': [[0x31,0x31,0x31,0x0]]
-         },
-         {
-            'id': 'tile3',
-            'flags': 'active',
-            'color': '#ef500',
-            'anchors': [[-1,-1]],
-            'grid_size': 1,
-            'grid_data': [[0x31]]
-         },
-         {
-            'id': 'tile4',
-            'flags': 'active',
-            'color': '#ff6cb5',
-            'anchors': [[1,1]],
-            'grid_size': 2,
-            'grid_data': [[0x4,0x0,0x31,0x31]]
-         },
-         {
-            'id': 'tile5',
-            'flags': 'active',
-            'color': '#4eff00',
-            'anchors': [[0,1]],
-            'grid_size': 2,
-            'grid_data': [[0x1,0x0,0x31,0x31]]
-         },
-         {
-            'id': 'tile6',
-            'flags': 'active',
-            'color': '#5c33ff',
-            'anchors': [[0,1]],
-            'grid_size': 2,
-            'grid_data': [[0x1,0x0,0x31,0x0]]
-         },
-         {
-            'id': 'tile7',
-            'flags': 'active',
-            'color': '#fea03a',
-            'anchors': [[-1,-1]],
-            'grid_size': 2,
-            'grid_data': [[0x0,0x0,0x4,0x1]]
-         }
-      ];
-
-      self.tile_data = tile_data;
+      self.tile_data = aq.TILE_DATA;
 
       var drawTile = function (x, y, n, r) {
 
@@ -132,7 +134,7 @@ aq.Block = cc.Node.extend ({
          // are not used in rendering the block, they are used when calculating
          // the position after a rotation.  So, I've removed them from here.
 
-         var td = tile_data [n];
+         var td = self.tile_data [n];
 
          for (var i = 0; i < 4; i++) {
             var tris = td.grid_data [r][i];
@@ -143,10 +145,10 @@ aq.Block = cc.Node.extend ({
             dx = (i % td.grid_size) * block_size;
 
             if (t1 !== 0) {
-               drawTri (node, x + dx, y + dy, t1, td.color);
+               self.drawTri (node, x + dx, y + dy, t1, td.color);
             }
             if (t2 !== 0) {
-               drawTri (node, x + dx, y + dy, t2, td.color);
+               self.drawTri (node, x + dx, y + dy, t2, td.color);
             }
          }
 
@@ -155,7 +157,7 @@ aq.Block = cc.Node.extend ({
 
       var preRotateTile = function (n) {
 
-         var td = tile_data [n];
+         var td = self.tile_data [n];
 
          var a, x, y, i, j, g;
 
@@ -199,7 +201,7 @@ aq.Block = cc.Node.extend ({
 
       var getTileAnchor = function (n, r) {
 
-         var td = tile_data [n];
+         var td = self.tile_data [n];
 
          var ax = td.anchors [0][0];
          var ay = td.anchors [0][1];
@@ -242,6 +244,11 @@ aq.Block = cc.Node.extend ({
          }
          self.addChild (self.drawNodes [n]);
       }
+   },
+
+   getTileData: function () {
+       var self = this;
+       return self.tile_data [self.num];
    },
 
    rotate: function () {

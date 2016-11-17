@@ -34,9 +34,11 @@ var GameLayer = cc.Layer.extend ({
       self.grid = new aq.Grid (blocks_wide, blocks_high);
       gamePanel.addChild (self.grid, 2);
 
-      self.block = new aq.Block (2);
+      self.block = new aq.Block (5);
       self.block.setPosition (w / 2, h);
       gamePanel.addChild (self.block, 3);
+
+      self.gamePanel = gamePanel;
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -77,6 +79,7 @@ var GameLayer = cc.Layer.extend ({
       self.keysPressed [cc.KEY.down] = false;
       self.keysPressed [cc.KEY.left] = false;
       self.keysPressed [cc.KEY.right] = false;
+      self.keysPressed [cc.KEY.space] = false;
    },
 
    update: function () {
@@ -110,6 +113,12 @@ var GameLayer = cc.Layer.extend ({
           self.keysPressed [cc.KEY.up] = false;
        }
 
+       if (self.keysPressed[cc.KEY.space]) {
+          self.grid.collideBlock (self.block);
+          self.newBlock ();
+          self.keysPressed[cc.KEY.space] = false;
+       }
+
        var dy = -aq.config.BLOCK_SIZE / 60;
 
        if (self.fastDrop) {
@@ -131,6 +140,19 @@ var GameLayer = cc.Layer.extend ({
       }
 
       self.block.setPosition (p);
+   },
+
+   newBlock: function () {
+      var self = this;
+      self.gamePanel.removeChild (self.block);
+
+      var block_size = aq.config.BLOCK_SIZE;
+      var blocks_wide = aq.config.GRID_WIDTH;
+
+      var rnd = Math.floor (Math.random () * aq.TILE_DATA.length);
+      self.block = new aq.Block (rnd);
+      self.block.setPosition (block_size * blocks_wide / 2, cc.winSize.height);
+      self.gamePanel.addChild (self.block, 3);
    }
 
 });
