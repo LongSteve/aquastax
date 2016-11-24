@@ -2,11 +2,22 @@
 
 aq.Grid = cc.Node.extend ({
 
+   // num of cell blocks wide
    blocks_wide: 0,
 
+   // number of cell block high
    blocks_high: 0,
 
+   // The game grid is an single dimensional array of ints, starting at 0 bottom left.
+   // Each entry uses the following bit pattern:
+   //
+   // 31            23            15         7    3    0
+   // | t1 tile num | t2 tile num | flags    | t2 | t1
+   //
    game_grid: null,
+
+   // list of blocks inserted into the grid (using collideBlock)
+   block_list: null,
 
    ctor: function (wide, high) {
       var self = this;
@@ -19,72 +30,40 @@ aq.Grid = cc.Node.extend ({
 
       self.game_grid = new Array (wide * high * 2);
 
-      self.bx = 0;
-      self.by = 0;
+      self.block_list = new Array ();
 
-      var block_size = aq.config.BLOCK_SIZE;
-
-      var grid = new cc.DrawNode ();
-      var drawGrid = function () {
-         var p1, p2;
-         for (var x = 0; x <= self.blocks_wide * block_size; x += block_size) {
-
-            p1 = cc.p (x,0);
-            p2 = cc.p (x, (self.blocks_high * block_size));
-            grid.drawSegment (p1, p2, 1, cc.color.white);
-         }
-
-         for (var y = 0; y <= self.blocks_high * block_size; y += block_size) {
-
-            p1 = cc.p (0, y);
-            p2 = cc.p (0 + (self.blocks_wide * block_size), y);
-            grid.drawSegment (p1, p2, 1, cc.color.white);
-         }
-      };
-
-      drawGrid ();
-
-      self.addChild (grid);
+      // Add the grid outline
+      self.addChild (self.createLineGridNode ());
    },
 
-   drawTri: function (node, x, y, type, color) {
+   // Create a cc.DrawNode for the red grid outline, useful for debug (for now)
+   createLineGridNode: function () {
+      var self = this;
+
       var block_size = aq.config.BLOCK_SIZE;
-      var triangle;
-      switch (type) {
-      case 1:
-         triangle = [
-            cc.p (x, y),                  // bottom left    |\
-            cc.p (x, y + block_size),     // top left       | \
-            cc.p (x + block_size, y)      // bottom right   |__\
-         ];
-         break;
-      case 2:
-         triangle = [
-            cc.p (x, y),                                 // bottom left    |--/
-            cc.p (x, y + block_size),                    // top left       | /
-            cc.p (x + block_size, y + block_size)        // bottom right   |/
-         ];
-         break;
-      case 3:
-         triangle = [
-            cc.p (x, y + block_size),                       // bottom left    \--|
-            cc.p (x + block_size, y + block_size),          // top left        \ |
-            cc.p (x + block_size, y)                        // bottom right     \|
-         ];
-         break;
-      case 4:
-         triangle = [
-            cc.p (x, y),                                    // bottom left      /|
-            cc.p (x + block_size, y + block_size),          // top left        / |
-            cc.p (x + block_size, y)                        // bottom right   /__|
-         ];
-         break;
+
+      var drawNode = new cc.DrawNode ();
+
+      var p1, p2;
+      for (var x = 0; x <= self.blocks_wide * block_size; x += block_size) {
+
+         p1 = cc.p (x,0);
+         p2 = cc.p (x, (self.blocks_high * block_size));
+         drawNode.drawSegment (p1, p2, 1, cc.color.white);
       }
 
-      node.drawPoly (triangle, cc.color (color), 4, cc.color (255,255,255,255));
+      for (var y = 0; y <= self.blocks_high * block_size; y += block_size) {
+
+         p1 = cc.p (0, y);
+         p2 = cc.p (0 + (self.blocks_wide * block_size), y);
+         drawNode.drawSegment (p1, p2, 1, cc.color.white);
+      }
+      return drawNode;
    },
 
-   drawGridBlocks: function () {
+   // Creates a set of cc.DrawNode objects from the game_grid data array.
+   // Adds these nodes to the grid node.  (Not currently used)
+   createGridBlockNodes: function () {
        var self = this;
 
        var block_size = aq.config.BLOCK_SIZE;
@@ -100,25 +79,29 @@ aq.Grid = cc.Node.extend ({
                 node.x = x;
                 node.y = y;
 
-                var tile = aq.TILE_DATA [(d >> 24) & 0xff];
-
                 if ((d & 0x0f) != 0) {
-                   self.drawTri (node, 0, 0, (d & 0x0f), cc.color (tile.color));
+                   var tile = aq.TILE_DATA [(d >> 24) & 0xff];
+                   aq.drawTri (node, 0, 0, (d & 0x0f), cc.color (tile.color));
                 }
 
                 if ((d & 0xf0) != 0) {
-                   self.drawTri (node, 0, 0, ((d >> 4) & 0x0f), cc.color (tile.color));
+                   var tile = aq.TILE_DATA [(d >> 16) & 0xff];
+                   aq.drawTri (node, 0, 0, ((d >> 4) & 0x0f), cc.color (tile.color));
                 }
 
-                self.addChild (node)
+                self.addChild (node);
              }
           }
       }
    },
 
+   // Take a block that's been falling or moving around and insert it's data into the grid.
+   // Also save the block reference in the block_list array.
    collideBlock: function (block) {
 
        var self = this;
+
+       self.block_list.push (block);
 
        var tile_data = block.getTileData ();
        var grid_size = tile_data.grid_size;
@@ -129,8 +112,6 @@ aq.Grid = cc.Node.extend ({
           var i = (y * self.blocks_wide) + x;
           return i;
        };
-
-       console.log (gridIndex (block));
 
        var top_left = gridIndex (block) + ((grid_size - 1) * self.blocks_wide);
 
@@ -153,17 +134,19 @@ aq.Grid = cc.Node.extend ({
 
              var block_grid_pos = tile_data.grid_data [block.rot][block_pos];
 
+             var tile_num = block.getTileNum ();
+
              if (block_grid_pos != 0)
              {
                 if ((block_grid_pos & 0x0f) != 0)
                 {
                    if ((game_grid[grid_pos] & 0x0f) == 0)
                    {
-                      game_grid[grid_pos] = (game_grid[grid_pos]) | (block_grid_pos & 0x0f) | (block.num << 24);
+                      game_grid[grid_pos] = (game_grid[grid_pos]) | (block_grid_pos & 0x0f) | (tile_num << 24);     // insert as t1
                    }
                    else if ((game_grid[grid_pos] & 0xf0) == 0)
                    {
-                      game_grid[grid_pos] = (game_grid[grid_pos]) | ((block_grid_pos<<4) & 0xf0) | (block.num << 24);
+                      game_grid[grid_pos] = (game_grid[grid_pos]) | ((block_grid_pos<<4) & 0xf0) | (tile_num << 16);   // insert as t2
                    }
                 }
 
@@ -171,19 +154,16 @@ aq.Grid = cc.Node.extend ({
                 {
                    if ((game_grid[grid_pos] & 0x0f) == 0)
                    {
-                      game_grid[grid_pos] = (game_grid[grid_pos]) | ((block_grid_pos>>4) & 0x0f) | (block.num << 24);
+                      game_grid[grid_pos] = (game_grid[grid_pos]) | ((block_grid_pos>>4) & 0x0f) | (tile_num << 24);   // insert as t1
                    }
                    else if ((game_grid[grid_pos] & 0xf0) == 0)
                    {
-                      game_grid[grid_pos] = (game_grid[grid_pos]) | (block_grid_pos & 0xf0) | (block.num << 24);
+                      game_grid[grid_pos] = (game_grid[grid_pos]) | (block_grid_pos & 0xf0) | (tile_num << 16);  // insert as t2
                    }
                 }
              }
           }
        }
-
-       // Render the grid now it should have some data in it
-       self.drawGridBlocks ();
    }
 });
 

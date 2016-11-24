@@ -20,6 +20,8 @@ var GameLayer = cc.Layer.extend ({
       var block_size = aq.config.BLOCK_SIZE;
       var blocks_wide = aq.config.GRID_WIDTH;
 
+      aq.initTileData ();
+
       var w = block_size * blocks_wide;
       var h = cc.winSize.height;
 
@@ -109,7 +111,7 @@ var GameLayer = cc.Layer.extend ({
 
        // Rotate the block through 90 degrees
        if (self.keysPressed [cc.KEY.up]) {
-          self.block.rotate ();
+          self.block.rotateRight90 ();
           self.keysPressed [cc.KEY.up] = false;
        }
 
@@ -128,11 +130,12 @@ var GameLayer = cc.Layer.extend ({
        self.moveBlockBy (self.dx * aq.config.BLOCK_SIZE, dy);
    },
 
-   moveBlockBy: function (x, y) {
+   // Move a block by 'delta' x and y pixel values
+   moveBlockBy: function (dx, dy) {
       var self = this;
       var p = self.block.getPosition ();
-      p.x += x;
-      p.y += y;
+      p.x += dx;
+      p.y += dy;
 
       // Prevent drop off the bottom of the screen
       if (p.y < 0) {
@@ -142,9 +145,9 @@ var GameLayer = cc.Layer.extend ({
       self.block.setPosition (p);
    },
 
+   // Create a random new block and add it to the game panel at the top middle
    newBlock: function () {
       var self = this;
-      self.gamePanel.removeChild (self.block);
 
       var block_size = aq.config.BLOCK_SIZE;
       var blocks_wide = aq.config.GRID_WIDTH;
