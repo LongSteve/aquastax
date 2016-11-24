@@ -30,7 +30,7 @@ aq.Grid = cc.Node.extend ({
 
       self.game_grid = new Array (wide * high * 2);
 
-      self.block_list = new Array ();
+      self.block_list = [];
 
       // Add the grid outline
       self.addChild (self.createLineGridNode ());
@@ -68,24 +68,25 @@ aq.Grid = cc.Node.extend ({
 
        var block_size = aq.config.BLOCK_SIZE;
 
-       var p1, p2;
+       var tile;
        var p = 0;
+
        for (var y = 0; y < self.blocks_high * block_size; y += block_size) {
           for (var x = 0; x < self.blocks_wide * block_size; x += block_size, p++) {
              var d = self.game_grid [p];
-             if (d != 0) {
+             if (d !== 0) {
 
                 var node = new cc.DrawNode ();
                 node.x = x;
                 node.y = y;
 
-                if ((d & 0x0f) != 0) {
-                   var tile = aq.TILE_DATA [(d >> 24) & 0xff];
+                if ((d & 0x0f) !== 0) {
+                   tile = aq.TILE_DATA [(d >> 24) & 0xff];
                    aq.drawTri (node, 0, 0, (d & 0x0f), cc.color (tile.color));
                 }
 
-                if ((d & 0xf0) != 0) {
-                   var tile = aq.TILE_DATA [(d >> 16) & 0xff];
+                if ((d & 0xf0) !== 0) {
+                   tile = aq.TILE_DATA [(d >> 16) & 0xff];
                    aq.drawTri (node, 0, 0, ((d >> 4) & 0x0f), cc.color (tile.color));
                 }
 
@@ -136,27 +137,27 @@ aq.Grid = cc.Node.extend ({
 
              var tile_num = block.getTileNum ();
 
-             if (block_grid_pos != 0)
+             if (block_grid_pos !== 0)
              {
-                if ((block_grid_pos & 0x0f) != 0)
+                if ((block_grid_pos & 0x0f) !== 0)
                 {
-                   if ((game_grid[grid_pos] & 0x0f) == 0)
+                   if ((game_grid[grid_pos] & 0x0f) === 0)
                    {
                       game_grid[grid_pos] = (game_grid[grid_pos]) | (block_grid_pos & 0x0f) | (tile_num << 24);     // insert as t1
                    }
-                   else if ((game_grid[grid_pos] & 0xf0) == 0)
+                   else if ((game_grid[grid_pos] & 0xf0) === 0)
                    {
                       game_grid[grid_pos] = (game_grid[grid_pos]) | ((block_grid_pos<<4) & 0xf0) | (tile_num << 16);   // insert as t2
                    }
                 }
 
-                if ((block_grid_pos & 0xf0) != 0)
+                if ((block_grid_pos & 0xf0) !== 0)
                 {
-                   if ((game_grid[grid_pos] & 0x0f) == 0)
+                   if ((game_grid[grid_pos] & 0x0f) === 0)
                    {
                       game_grid[grid_pos] = (game_grid[grid_pos]) | ((block_grid_pos>>4) & 0x0f) | (tile_num << 24);   // insert as t1
                    }
-                   else if ((game_grid[grid_pos] & 0xf0) == 0)
+                   else if ((game_grid[grid_pos] & 0xf0) === 0)
                    {
                       game_grid[grid_pos] = (game_grid[grid_pos]) | (block_grid_pos & 0xf0) | (tile_num << 16);  // insert as t2
                    }
