@@ -46,22 +46,20 @@ aq.Block = cc.Node.extend ({
        return self.tile_num;
    },
 
-   rotateRight90: function () {
+   getNewRotationAndPosition90: function () {
        var self = this;
 
        var old_rotation = self.rot;
 
-       self.drawNodes [old_rotation].setVisible (false);
-
        var new_rotation = (old_rotation + 1) & 3;
-
-       self.drawNodes [new_rotation].setVisible (true);
 
        var td = self.getTileData ();
 
        // Gets the anchor point for the current rotation
        var anchor_x = td.anchors[old_rotation][0];
        var anchor_y = td.anchors[old_rotation][1];
+
+       var position = self.getPosition ();
 
        // -1 in the anchors array means don't bother offsetting by anchors (ie. for the 1x1 tile)
        if (anchor_x !== -1) {
@@ -72,14 +70,25 @@ aq.Block = cc.Node.extend ({
 
           // Work out the difference in the positions of the anchor point and offset the tile by
           // that delta in the x and y.
-          var new_x = self.x + ((anchor_x - anchor_i) * aq.config.BLOCK_SIZE);
-          var new_y = self.y - ((anchor_y - anchor_j) * aq.config.BLOCK_SIZE);   //Why is this - and not + ?
-
-          self.setPosition (new_x, new_y);
+          position.x = self.x + ((anchor_x - anchor_i) * aq.config.BLOCK_SIZE);
+          position.y = self.y - ((anchor_y - anchor_j) * aq.config.BLOCK_SIZE);   //Why is this - and not + ?
        }
 
-       self.rot = new_rotation;
-   }
+       return {
+          position: position,
+          rotation: new_rotation
+       };
+   },
 
+   setNewRotationAndPosition: function (rotationAndRotation) {
+      var self = this;
+
+      self.setPosition (rotationAndRotation.position);
+
+      self.drawNodes [self.rot].setVisible (false);      // hide old rotation
+      self.drawNodes [rotationAndRotation.rotation].setVisible (true);
+
+      self.rot = rotationAndRotation.rotation;
+   }
 });
 

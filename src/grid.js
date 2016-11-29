@@ -8,6 +8,12 @@ aq.Grid = cc.Node.extend ({
    // number of cell block high
    blocks_high: 0,
 
+   // node for highlighting the current falling block position
+   grid_pos_highlight: null,
+
+   // Reference to the currently falling block
+   falling_block: null,
+
    // The game grid is an single dimensional array of ints, starting at 0 bottom left.
    // Each entry uses the following bit pattern:
    //
@@ -34,6 +40,35 @@ aq.Grid = cc.Node.extend ({
 
       // Add the grid outline
       self.addChild (self.createLineGridNode ());
+
+      self.grid_pos_highlight = new cc.DrawNode ();
+
+      var block_size = aq.config.BLOCK_SIZE;
+      var corners = [
+            cc.p (0, 0),
+            cc.p (0, block_size),
+            cc.p (block_size, block_size),
+            cc.p (block_size, 0)
+         ];
+
+      self.grid_pos_highlight.drawPoly (corners, cc.color (255,255,255,255), 4, cc.color (255,255,255,255));
+      self.addChild (self.grid_pos_highlight);
+
+      self.scheduleUpdate ();
+   },
+
+   update: function () {
+      var self = this;
+
+      if (self.falling_block) {
+         var pos = self.getGridPositionForNode (self.falling_block);
+         self.grid_pos_highlight.setPosition (pos);
+      }
+   },
+
+   setFallingBlock: function (node) {
+      var self = this;
+      self.falling_block = node;
    },
 
    // Create a cc.DrawNode for the red grid outline, useful for debug (for now)
@@ -96,6 +131,42 @@ aq.Grid = cc.Node.extend ({
       }
    },
 
+   getGridIndexForNode: function (node) {
+      var self = this;
+      var y = Math.floor (node.y / aq.config.BLOCK_SIZE);
+      var x = Math.floor (node.x / aq.config.BLOCK_SIZE);
+      var i = (y * self.blocks_wide) + x;
+      return i;
+   },
+
+   getGridPositionForNode: function (node) {
+      var self = this;
+      var index = self.getGridIndexForNode (node);
+
+      var bx = index % self.blocks_wide;
+      var by = Math.floor (index / self.blocks_wide);
+
+      var pos = cc.p (bx * aq.config.BLOCK_SIZE, by * aq.config.BLOCK_SIZE);
+
+      return pos;
+   },
+
+   isPositionWithinGrid: function (point) {
+      var self = this;
+
+      if (point.x < 0 || point.x >= self.blocks_wide * aq.config.BLOCK_SIZE) {
+         return false;
+      }
+
+      return true;
+   },
+
+   collideBlockWithGridBounds: function (block) {
+
+       // TODO: Implement this function using aq.getTileBounds
+       // Also see AquaStax.java line 9765
+   },
+
    // Take a block that's been falling or moving around and insert it's data into the grid.
    // Also save the block reference in the block_list array.
    collideBlock: function (block) {
@@ -107,14 +178,7 @@ aq.Grid = cc.Node.extend ({
        var tile_data = block.getTileData ();
        var grid_size = tile_data.grid_size;
 
-       var gridIndex = function (node) {
-          var y = Math.floor (node.y / aq.config.BLOCK_SIZE);
-          var x = Math.floor (node.x / aq.config.BLOCK_SIZE);
-          var i = (y * self.blocks_wide) + x;
-          return i;
-       };
-
-       var top_left = gridIndex (block) + ((grid_size - 1) * self.blocks_wide);
+       var top_left = self.getGridIndexForNode (block) + ((grid_size - 1) * self.blocks_wide);
 
        var x,y;
 

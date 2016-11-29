@@ -148,6 +148,43 @@ aq.initTileData = function () {
    }
 };
 
+aq.getTileBounds = function (n, rotation) {
+
+   var tile = aq.TILE_DATA [n];
+   var grid_size = tile.grid_size;
+
+   var x = 0, y = 0;
+   var lb = 99, rb = 99;
+   var grid_pos;
+
+   for (x = 0; x < grid_size; ++x)
+   {
+      for (y = 0; y < grid_size; ++y)
+      {
+         // Determine left bound
+         if (lb === 99) {
+            grid_pos = (y * grid_size) + x;
+            if (tile.grid_data [rotation][grid_pos] !== 0 ) {
+               lb = x;
+            }
+         }
+
+         // Determine right bound
+         if (rb === 99) {
+            grid_pos = (y * grid_size) + (grid_size - 1 - x);
+            if (tile.grid_data [rotation][grid_pos] !== 0 ) {
+               rb = (grid_size - 1 - x);
+            }
+         }
+      }
+   }
+
+   return {
+      left: lb,
+      right: rb
+   };
+};
+
 /**
  * Create a cc.DrawNode to render a given tile number and rotation.
  *

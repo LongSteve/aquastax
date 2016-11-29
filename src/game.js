@@ -36,11 +36,9 @@ var GameLayer = cc.Layer.extend ({
       self.grid = new aq.Grid (blocks_wide, blocks_high);
       gamePanel.addChild (self.grid, 2);
 
-      self.block = new aq.Block (5);
-      self.block.setPosition (w / 2, h);
-      gamePanel.addChild (self.block, 3);
-
       self.gamePanel = gamePanel;
+
+      self.newBlock (0);
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -111,8 +109,11 @@ var GameLayer = cc.Layer.extend ({
 
        // Rotate the block through 90 degrees
        if (self.keysPressed [cc.KEY.up]) {
-          self.block.rotateRight90 ();
-          self.keysPressed [cc.KEY.up] = false;
+          var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
+          if (self.grid.isPositionWithinGrid (potentialNewRotationAndPosition.position)) {
+             self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
+          }
+          self.keysPressed[cc.KEY.up] = false;
        }
 
        if (self.keysPressed[cc.KEY.space]) {
@@ -142,20 +143,28 @@ var GameLayer = cc.Layer.extend ({
          p.y = 0;
       }
 
-      self.block.setPosition (p);
+      if (self.grid.isPositionWithinGrid (p)) {
+         self.block.setPosition (p);
+      }
    },
 
    // Create a random new block and add it to the game panel at the top middle
-   newBlock: function () {
+   newBlock: function (type) {
       var self = this;
 
       var block_size = aq.config.BLOCK_SIZE;
       var blocks_wide = aq.config.GRID_WIDTH;
 
       var rnd = Math.floor (Math.random () * aq.TILE_DATA.length);
+      if (typeof (type) !== 'undefined' && type >= 0 && type <= aq.TILE_DATA.length) {
+         rnd = type;
+      }
+
       self.block = new aq.Block (rnd);
       self.block.setPosition (block_size * blocks_wide / 2, cc.winSize.height);
       self.gamePanel.addChild (self.block, 3);
+
+      self.grid.setFallingBlock (self.block);
    }
 
 });
