@@ -40,6 +40,11 @@ var GameLayer = cc.Layer.extend ({
 
       self.newBlock (0);
 
+      var testnode = new aq.TestNode ();
+      testnode.x = 100;
+      testnode.y = 100;
+      gamePanel.addChild (testnode, 5);
+
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
          onKeyPressed: function (keyCode) {

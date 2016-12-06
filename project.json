@@ -14,6 +14,7 @@
     "jsList" : [
         "src/resource.js",
         "src/splash.js",
+        "src/testnode.js",
         "src/menu.js",
         "src/tile.js",
         "src/game.js",
