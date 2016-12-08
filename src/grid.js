@@ -52,7 +52,7 @@ aq.Grid = cc.Node.extend ({
          ];
 
       self.grid_pos_highlight.drawPoly (corners, cc.color (255,255,255,255), 4, cc.color (255,255,255,255));
-      //self.addChild (self.grid_pos_highlight);
+      self.addChild (self.grid_pos_highlight);
 
       self.scheduleUpdate ();
    },

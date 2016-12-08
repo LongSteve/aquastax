@@ -16,6 +16,7 @@
   "smarttabs": true,
   "globals": {
     "cc": true,
-    "aq": true
+    "aq": true,
+    "gl": true
   }
 }

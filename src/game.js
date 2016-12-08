@@ -38,23 +38,15 @@ var GameLayer = cc.Layer.extend ({
 
       self.gamePanel = gamePanel;
 
-      //self.newBlock (0);
+      self.newBlock (0);
 
       var testnode = new aq.TestNode ();
-      testnode.x = 2 * aq.config.BLOCK_SIZE;
-      testnode.y = 2 * aq.config.BLOCK_SIZE;
+      testnode.x = 1 * aq.config.BLOCK_SIZE;
+      testnode.y = 1 * aq.config.BLOCK_SIZE;
       testnode.width = aq.config.BLOCK_SIZE;
       testnode.height = aq.config.BLOCK_SIZE;
 
       gamePanel.addChild (testnode, 5);
-
-      /*
-      var drawnode = new cc.DrawNode();
-      drawnode.drawRect (cc.p (0,0), cc.p (aq.config.BLOCK_SIZE, aq.config.BLOCK_SIZE), cc.color (255,0,255,128));
-      drawnode.x = 0;
-      drawnode.y = 0;
-      gamePanel.addChild (drawnode, 10);
-      */
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -66,7 +58,7 @@ var GameLayer = cc.Layer.extend ({
          }
       }, self);
 
-      //self.scheduleUpdate ();
+      self.scheduleUpdate ();
    },
 
    // array of keys pressed
