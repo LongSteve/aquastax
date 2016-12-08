@@ -1,3 +1,110 @@
+aq.TestNode = cc.Node.extend(/** @lends cc.DrawNode# */{
+});
+
+(function(){
+
+   if (cc._renderType === cc.game.RENDER_TYPE_CANVAS) {
+
+       cc.extend(aq.TestNode.prototype, {
+           _className:"TestNodeCanvas",
+
+           ctor: function () {
+               cc.Node.prototype.ctor.call(this);
+               this.init();
+           },
+
+           _createRenderCmd: function () {
+               return new aq.TestNode.CanvasRenderCmd(this);
+           }
+       });
+   } else if (cc._renderType === cc.game.RENDER_TYPE_WEBGL) {
+
+      cc.extend(cc.DrawNode.prototype, {
+          _squareVertexPositionBuffer:null,
+          _squareVertexColorBuffer:null,
+
+          _className:"TestNodeWebGL",
+
+          ctor:function () {
+              cc.Node.prototype.ctor.call(this);
+              this.init();
+          },
+
+          init:function () {
+              if (cc.Node.prototype.init.call(this)) {
+                  this.shaderProgram = cc.shaderCache.programForKey(cc.SHADER_POSITION_LENGTHTEXTURECOLOR);
+                  return true;
+              }
+              return false;
+          },
+
+          _createRenderCmd: function () {
+              return new aq.TestNode.WebGLRenderCmd(this);
+          }
+
+      });
+   }
+
+    aq.TestNode.CanvasRenderCmd = function(renderableObject){
+        cc.Node.CanvasRenderCmd.call(this, renderableObject);
+        this._needDraw = true;
+    };
+
+    aq.TestNode.CanvasRenderCmd.prototype = Object.create(cc.Node.CanvasRenderCmd.prototype);
+    aq.TestNode.CanvasRenderCmd.prototype.constructor = aq.TestNode.CanvasRenderCmd;
+
+    cc.extend( aq.TestNode.CanvasRenderCmd.prototype, {
+        rendering: function (ctx, scaleX, scaleY) {
+            var wrapper = ctx || cc._renderContext, context = wrapper.getContext(), node = this._node;
+            var alpha = node._displayedOpacity / 255;
+            if (alpha === 0)
+                return;
+
+            wrapper.setTransform(this._worldTransform, scaleX, scaleY);
+
+            context.save ();
+            context.fillStyle = "#00FF00";
+
+            var nx = node.x;
+            var ny = node.y;
+            var nh = node.height;
+            var nw = node.width;
+
+            //context.fillRect (nx,-(ny + nh),nw, nh);
+
+            // TODO: Figure put how the coordinates map from Cocos2d-JS nodes to html5 canvas.
+
+            // Test out where I think the position of the node should be by drawing a dot
+            context.beginPath();
+            context.arc(nx, -(ny + nh), 5 , 0, Math.PI * 2, false);
+            context.closePath();
+            context.fill();
+
+            //context.fillRect (0, 0, nw, nh);
+            //context.fillRect (0,-(ny + nh),nw, nh);
+
+            // line code taken from CCDrawNode, which does work, and draws the polygon/rect in the correct place.
+            /*
+            context.lineWidth = 3 * scaleX;
+            context.beginPath();
+            context.moveTo (node.x , -node.y);
+            context.lineTo (node.x + aq.config.BLOCK_SIZE, -node.y);
+            context.lineTo (node.x + aq.config.BLOCK_SIZE, -(node.y + aq.config.BLOCK_SIZE));
+            context.lineTo (node.x, -(node.y + aq.config.BLOCK_SIZE));
+
+            context.closePath();
+            //context.fill();
+            context.stroke();
+            */
+
+            context.restore ();
+        }
+    });
+})();
+
+
+
+/*
 aq.TestNode = cc.Node.extend({
     ctor:function(){
         this._super();
@@ -11,20 +118,14 @@ aq.TestNode = cc.Node.extend({
 
         if (cc._renderType === cc.game.RENDER_TYPE_CANVAS) {
 
-           self._renderCmd.rendering = function(ctx){
-              // Draw the node
-              var canvas = ctx.getContext ();
-              canvas.save ();
+           self._renderCmd.rendering = function(ctx, scaleX, scaleY){
 
-              // Save the canvas transform.  Setting to identity puts the rectangle at 0,0 (top left)
-              //var savedTransform = canvas.currentTransform;
-              //canvas.setTransform(1,0,0,1,0,0);
+              var wrapper = ctx || cc._renderContext, context = wrapper.getContext(), node = this._node;
 
-              canvas.fillStyle = "#0000FF";
-              canvas.fillRect (0,0,aq.config.BLOCK_SIZE, aq.config.BLOCK_SIZE);
-              canvas.restore ();
+              wrapper.setTransform(this._worldTransform, scaleX, scaleY);
 
-              //canvas.currentTransform = savedTransform;
+              context.fillStyle = "#0000FF";
+              context.fillRect (node.x,-node.y,aq.config.BLOCK_SIZE, aq.config.BLOCK_SIZE);
            }
         } else {
            // WebGL Support Code
@@ -89,4 +190,4 @@ aq.TestNode = cc.Node.extend({
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 });
-
+*/
