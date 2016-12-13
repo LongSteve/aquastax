@@ -40,14 +40,6 @@ var GameLayer = cc.Layer.extend ({
 
       self.newBlock (0);
 
-      var testnode = new aq.TestNode ();
-      testnode.x = 1 * aq.config.BLOCK_SIZE;
-      testnode.y = 1 * aq.config.BLOCK_SIZE;
-      testnode.width = aq.config.BLOCK_SIZE;
-      testnode.height = aq.config.BLOCK_SIZE;
-
-      gamePanel.addChild (testnode, 5);
-
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
          onKeyPressed: function (keyCode) {
@@ -118,7 +110,9 @@ var GameLayer = cc.Layer.extend ({
        // Rotate the block through 90 degrees
        if (self.keysPressed [cc.KEY.up]) {
           var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
-          if (self.grid.isPositionWithinGrid (potentialNewRotationAndPosition.position)) {
+          if (!self.grid.collideBlockWithGridBounds (self.block,
+                                                     potentialNewRotationAndPosition.position,
+                                                     potentialNewRotationAndPosition.rotation)) {
              self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
           }
           self.keysPressed[cc.KEY.up] = false;
@@ -151,7 +145,7 @@ var GameLayer = cc.Layer.extend ({
          p.y = 0;
       }
 
-      if (self.grid.isPositionWithinGrid (p)) {
+      if (!self.grid.collideBlockWithGridBounds (self.block, p)) {
          self.block.setPosition (p);
       }
    },

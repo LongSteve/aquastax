@@ -43,15 +43,6 @@ aq.Grid = cc.Node.extend ({
 
       self.grid_pos_highlight = new cc.DrawNode ();
 
-      var block_size = aq.config.BLOCK_SIZE;
-      var corners = [
-            cc.p (0, 0),
-            cc.p (0, block_size),
-            cc.p (block_size, block_size),
-            cc.p (block_size, 0)
-         ];
-
-      self.grid_pos_highlight.drawPoly (corners, cc.color (255,255,255,255), 4, cc.color (255,255,255,255));
       self.addChild (self.grid_pos_highlight);
 
       self.scheduleUpdate ();
@@ -61,6 +52,47 @@ aq.Grid = cc.Node.extend ({
       var self = this;
 
       if (self.falling_block) {
+
+         var tile_num = self.falling_block.getTileNum ();
+         var tile_rotation = self.falling_block.getRotation ();
+         var grid_size = aq.TILE_DATA [tile_num].grid_size;
+         var bounds = aq.getTileBounds (tile_num, tile_rotation);
+
+         var block_size = aq.config.BLOCK_SIZE;
+
+         // clear the drawnode
+         self.grid_pos_highlight.clear ();
+
+         // Add in the geometry for a rectangle to highlight the block grid position
+         self.grid_pos_highlight.drawRect (cc.p (0,0), cc.p (block_size * grid_size, block_size * grid_size),
+                                           null, // fillcolor
+                                           2,    // line width
+                                           cc.color (0,255,0,255));
+
+         // render the tile boundaries
+         var lx = bounds.left * block_size;
+         self.grid_pos_highlight.drawRect (cc.p(lx,0),cc.p(lx,block_size*grid_size),
+                                           null, // fill color
+                                           4,
+                                           cc.color (0,0,255,255));
+
+         var rx = bounds.right * block_size;
+         self.grid_pos_highlight.drawRect (cc.p(rx,0),cc.p(rx,block_size*grid_size),
+                                           null, // fill color
+                                           4,
+                                           cc.color (0,128,128,255));
+
+         /*
+         var corners = [
+               cc.p (0, 0),
+               cc.p (0, block_size),
+               cc.p (block_size, block_size),
+               cc.p (block_size, 0)
+            ];
+
+         self.grid_pos_highlight.drawPoly (corners, cc.color (255,255,255,255), 4, cc.color (255,255,255,255));
+         */
+
          var pos = self.getGridPositionForNode (self.falling_block);
          self.grid_pos_highlight.setPosition (pos);
       }
@@ -161,10 +193,38 @@ aq.Grid = cc.Node.extend ({
       return true;
    },
 
-   collideBlockWithGridBounds: function (block) {
+   /**
+    * Test if the given block, at the new position, will collide with the grid boundary.
+    * @return true if collision occurs, false otherwise
+    */
+   collideBlockWithGridBounds: function (block, new_pos, new_rot) {
+       var self = this;
+
+       if (!new_pos) {
+          new_pos = block.getPosition ();
+       }
+
+       if (typeof (new_rot) === 'undefined') {
+          new_rot = block.getRotation ();
+       }
 
        // TODO: Implement this function using aq.getTileBounds
        // Also see AquaStax.java line 9765
+
+       var tile_num = block.getTileNum ();
+       var bounds = aq.getTileBounds (tile_num, new_rot);
+
+       var block_size = aq.config.BLOCK_SIZE;
+
+       if (new_pos.x + (bounds.left * block_size) < 0) {
+          return true;
+       }
+
+       if (new_pos.x + (bounds.right * block_size) > (self.blocks_wide * block_size)) {
+          return true;
+       }
+
+       return false;
    },
 
    // Take a block that's been falling or moving around and insert it's data into the grid.

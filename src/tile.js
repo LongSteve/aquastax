@@ -173,7 +173,7 @@ aq.getTileBounds = function (n, rotation) {
          if (rb === 99) {
             grid_pos = (y * grid_size) + (grid_size - 1 - x);
             if (tile.grid_data [rotation][grid_pos] !== 0 ) {
-               rb = (grid_size - 1 - x);
+               rb = (grid_size - x);
             }
          }
       }
@@ -202,8 +202,9 @@ aq.createTileNodeAtRotation = function (x, y, n, r) {
    var dy = 0;
 
    var td = aq.TILE_DATA [n];
+   var m = td.grid_size * td.grid_size;
 
-   for (var i = 0; i < 4; i++) {
+   for (var i = 0; i < m; i++) {
       var tris = td.grid_data [r][i];
       var t1 = (tris >> 4) & 0xf;
       var t2 = tris & 0xf;

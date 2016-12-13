@@ -46,6 +46,11 @@ aq.Block = cc.Node.extend ({
        return self.tile_num;
    },
 
+   getRotation: function () {
+       var self = this;
+       return self.rot;
+   },
+
    getNewRotationAndPosition90: function () {
        var self = this;
 
