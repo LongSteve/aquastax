@@ -110,16 +110,16 @@ var GameLayer = cc.Layer.extend ({
        // Rotate the block through 90 degrees
        if (self.keysPressed [cc.KEY.up]) {
           var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
-          if (!self.grid.collideBlockWithGridBounds (self.block,
-                                                     potentialNewRotationAndPosition.position,
-                                                     potentialNewRotationAndPosition.rotation)) {
+          if (!self.grid.collideBlock (self.block,
+                                       potentialNewRotationAndPosition.position,
+                                       potentialNewRotationAndPosition.rotation)) {
              self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
           }
           self.keysPressed[cc.KEY.up] = false;
        }
 
        if (self.keysPressed[cc.KEY.space]) {
-          self.grid.collideBlock (self.block);
+          self.grid.insertBlockIntoGrid (self.block);
           self.newBlock ();
           self.keysPressed[cc.KEY.space] = false;
        }
@@ -140,12 +140,7 @@ var GameLayer = cc.Layer.extend ({
       p.x += dx;
       p.y += dy;
 
-      // Prevent drop off the bottom of the screen
-      if (p.y < 0) {
-         p.y = 0;
-      }
-
-      if (!self.grid.collideBlockWithGridBounds (self.block, p)) {
+      if (!self.grid.collideBlock (self.block, p)) {
          self.block.setPosition (p);
       }
    },

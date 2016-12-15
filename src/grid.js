@@ -70,6 +70,7 @@ aq.Grid = cc.Node.extend ({
                                            cc.color (0,255,0,255));
 
          // render the tile boundaries
+         /*
          var lx = bounds.left * block_size;
          self.grid_pos_highlight.drawRect (cc.p(lx,0),cc.p(lx,block_size*grid_size),
                                            null, // fill color
@@ -81,6 +82,13 @@ aq.Grid = cc.Node.extend ({
                                            null, // fill color
                                            4,
                                            cc.color (0,128,128,255));
+
+         var bx = bounds.bottom * block_size;
+         self.grid_pos_highlight.drawRect (cc.p(0,bx),cc.p(block_size*grid_size,bx),
+                                           null, // fill color
+                                           4,
+                                           cc.color (128,128,0,255));
+         */
 
          /*
          var corners = [
@@ -163,24 +171,61 @@ aq.Grid = cc.Node.extend ({
       }
    },
 
+   getGridIndexPostionsForBlockCollision: function (block, pos, rot) {
+      var self = this;
+
+      var x, y;
+      var bottom_left_index = self.getGridIndexForPoint (pos);
+
+      var tile_num = block.getTileNum ();
+      var bounds = aq.getTileBounds (tile_num, rot);
+      var block_size = aq.config.BLOCK_SIZE;
+
+      var indexes = [];
+
+      var tile = aq.TILE_DATA [tile_num];
+      var grid_size = tile.grid_size;
+
+      for (y = 0; y < grid_size; ++y)
+      {
+         for (x = 0; x < grid_size; ++x)
+         {
+            var new_index = (bottom_left_index + x) + (y * self.blocks_wide);
+            indexes.push (new_index);
+         }
+      }
+
+      return indexes;
+   },
+
+   getGridIndexForPoint: function (p) {
+       var self = this;
+       var y = Math.floor (p.y / aq.config.BLOCK_SIZE);
+       var x = Math.floor (p.x / aq.config.BLOCK_SIZE);
+       var i = (y * self.blocks_wide) + x;
+       return i;
+   },
+
    getGridIndexForNode: function (node) {
       var self = this;
-      var y = Math.floor (node.y / aq.config.BLOCK_SIZE);
-      var x = Math.floor (node.x / aq.config.BLOCK_SIZE);
-      var i = (y * self.blocks_wide) + x;
-      return i;
+      return self.getGridIndexForPoint (node.getPosition ());
+   },
+
+   getGridPositionForPoint: function (p) {
+       var self = this;
+       var index = self.getGridIndexForPoint (p);
+
+       var bx = index % self.blocks_wide;
+       var by = Math.floor (index / self.blocks_wide);
+
+       var pos = cc.p (bx * aq.config.BLOCK_SIZE, by * aq.config.BLOCK_SIZE);
+
+       return pos;
    },
 
    getGridPositionForNode: function (node) {
       var self = this;
-      var index = self.getGridIndexForNode (node);
-
-      var bx = index % self.blocks_wide;
-      var by = Math.floor (index / self.blocks_wide);
-
-      var pos = cc.p (bx * aq.config.BLOCK_SIZE, by * aq.config.BLOCK_SIZE);
-
-      return pos;
+      return self.getGridPositionForPoint (node.getPosition ());
    },
 
    isPositionWithinGrid: function (point) {
@@ -200,17 +245,6 @@ aq.Grid = cc.Node.extend ({
    collideBlockWithGridBounds: function (block, new_pos, new_rot) {
        var self = this;
 
-       if (!new_pos) {
-          new_pos = block.getPosition ();
-       }
-
-       if (typeof (new_rot) === 'undefined') {
-          new_rot = block.getRotation ();
-       }
-
-       // TODO: Implement this function using aq.getTileBounds
-       // Also see AquaStax.java line 9765
-
        var tile_num = block.getTileNum ();
        var bounds = aq.getTileBounds (tile_num, new_rot);
 
@@ -224,12 +258,53 @@ aq.Grid = cc.Node.extend ({
           return true;
        }
 
+       if (new_pos.y + (bounds.bottom * block_size) < 0) {
+          return true;
+       }
+
        return false;
+   },
+
+   collideBlockWithGridData: function (block, new_pos, new_rot) {
+      var self = this;
+
+      var indexes = self.getGridIndexPostionsForBlockCollision (block, new_pos, new_rot);
+
+      for (var i = 0; i < indexes.length; i++) {
+         var grid_pos = self.game_grid[indexes [i]];
+         if ((typeof (grid_pos) === 'number') && (grid_pos !== 0)) {
+            return true;
+         }
+      }
+
+      return false;
+   },
+
+   collideBlock: function (block, new_pos, new_rot) {
+      var self = this;
+
+      if (!new_pos) {
+         new_pos = block.getPosition ();
+      }
+
+      if (typeof (new_rot) === 'undefined') {
+         new_rot = block.getRotation ();
+      }
+
+      if (self.collideBlockWithGridBounds (block, new_pos, new_rot)) {
+         return true;
+      }
+
+      if (self.collideBlockWithGridData (block, new_pos, new_rot)) {
+         return true;
+      }
+
+      return false;
    },
 
    // Take a block that's been falling or moving around and insert it's data into the grid.
    // Also save the block reference in the block_list array.
-   collideBlock: function (block) {
+   insertBlockIntoGrid: function (block) {
 
        var self = this;
 

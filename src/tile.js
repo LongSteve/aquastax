@@ -148,13 +148,44 @@ aq.initTileData = function () {
    }
 };
 
+/**
+ * Work out the number of grid cells from the bottom left that are empty
+ * of filled tile triangles.  eg.
+ *
+ * |----|----|
+ * | 04 |    |
+ * |----|----|
+ * | 31 |    |
+ * |----|----|
+ *
+ * bounds information = {
+ *    left: 0,
+ *    right: 1,
+ *    bottom:0
+ * }
+ *
+ * but if rotated to:
+ *
+ * |----|----|
+ * | 42 | 01 |
+ * |----|----|
+ * |    |    |
+ * |----|----|
+ *
+ * bounds information = {
+ *    left: 0,
+ *    right: 2,
+ *    bottom:1
+ * }
+ *
+ */
 aq.getTileBounds = function (n, rotation) {
 
    var tile = aq.TILE_DATA [n];
    var grid_size = tile.grid_size;
 
    var x = 0, y = 0;
-   var lb = 99, rb = 99;
+   var lb = 99, rb = 99, bb = 99;
    var grid_pos;
 
    for (x = 0; x < grid_size; ++x)
@@ -164,7 +195,7 @@ aq.getTileBounds = function (n, rotation) {
          // Determine left bound
          if (lb === 99) {
             grid_pos = (y * grid_size) + x;
-            if (tile.grid_data [rotation][grid_pos] !== 0 ) {
+            if (tile.grid_data [rotation][grid_pos] !== 0) {
                lb = x;
             }
          }
@@ -172,16 +203,23 @@ aq.getTileBounds = function (n, rotation) {
          // Determine right bound
          if (rb === 99) {
             grid_pos = (y * grid_size) + (grid_size - 1 - x);
-            if (tile.grid_data [rotation][grid_pos] !== 0 ) {
+            if (tile.grid_data [rotation][grid_pos] !== 0) {
                rb = (grid_size - x);
             }
+         }
+
+         // Determine 'bottom' or lower bound
+         grid_pos = ((grid_size - 1 - y) * grid_size) + x;
+         if (tile.grid_data [rotation][grid_pos] !== 0 && y < bb) {
+            bb = y;
          }
       }
    }
 
    return {
       left: lb,
-      right: rb
+      right: rb,
+      bottom: bb
    };
 };
 
