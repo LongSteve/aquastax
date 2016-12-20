@@ -110,9 +110,17 @@ var GameLayer = cc.Layer.extend ({
        // Rotate the block through 90 degrees
        if (self.keysPressed [cc.KEY.up]) {
           var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
-          if (!self.grid.collideBlock (self.block,
+          var collision = self.grid.collideBlock (self.block,
                                        potentialNewRotationAndPosition.position,
-                                       potentialNewRotationAndPosition.rotation)) {
+                                       potentialNewRotationAndPosition.rotation);
+
+          while (collision === -1 || collision === 1) {
+             potentialNewRotationAndPosition.position.x += (collision * aq.config.BLOCK_SIZE);
+             collision = self.grid.collideBlock (self.block,
+                                                 potentialNewRotationAndPosition.position,
+                                                 potentialNewRotationAndPosition.rotation);
+          }
+          if (collision === 0) {
              self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
           }
           self.keysPressed[cc.KEY.up] = false;
@@ -124,24 +132,33 @@ var GameLayer = cc.Layer.extend ({
           self.keysPressed[cc.KEY.space] = false;
        }
 
+       // dx,dy are the point (pixels) difference to move the block in one game update
+       var dx = self.dx * aq.config.BLOCK_SIZE;
        var dy = -aq.config.BLOCK_SIZE / 60;
 
+       var current_block_position = self.block.getPosition ();
+
        if (self.fastDrop) {
-          dy *= 20;
+          var fast_dy = dy * 20;
+          var new_block_position = cc.p (current_block_position.x + dx, current_block_position.y + fast_dy);
+          if (!self.grid.collideBlock (self.block, new_block_position)) {
+             dy = fast_dy;
+          }
        }
 
-       self.moveBlockBy (self.dx * aq.config.BLOCK_SIZE, dy);
+       self.moveBlockBy (dx, dy);
    },
 
    // Move a block by 'delta' x and y pixel values
    moveBlockBy: function (dx, dy) {
       var self = this;
-      var p = self.block.getPosition ();
-      p.x += dx;
-      p.y += dy;
 
-      if (!self.grid.collideBlock (self.block, p)) {
-         self.block.setPosition (p);
+      var new_block_position = self.block.getPosition ();
+      new_block_position.x += dx;
+      new_block_position.y += dy;
+
+      if (!self.grid.collideBlock (self.block, new_block_position)) {
+         self.block.setPosition (new_block_position);
       }
    },
 

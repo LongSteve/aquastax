@@ -11,6 +11,9 @@ aq.Grid = cc.Node.extend ({
    // node for highlighting the current falling block position
    grid_pos_highlight: null,
 
+   // node for collision testing visualisation
+   grid_collision_squares: null,
+
    // Reference to the currently falling block
    falling_block: null,
 
@@ -42,8 +45,10 @@ aq.Grid = cc.Node.extend ({
       self.addChild (self.createLineGridNode ());
 
       self.grid_pos_highlight = new cc.DrawNode ();
+      self.grid_collision_squares = new cc.DrawNode ();
 
       self.addChild (self.grid_pos_highlight);
+      self.addChild (self.grid_collision_squares);
 
       self.scheduleUpdate ();
    },
@@ -70,7 +75,6 @@ aq.Grid = cc.Node.extend ({
                                            cc.color (0,255,0,255));
 
          // render the tile boundaries
-         /*
          var lx = bounds.left * block_size;
          self.grid_pos_highlight.drawRect (cc.p(lx,0),cc.p(lx,block_size*grid_size),
                                            null, // fill color
@@ -88,7 +92,6 @@ aq.Grid = cc.Node.extend ({
                                            null, // fill color
                                            4,
                                            cc.color (128,128,0,255));
-         */
 
          /*
          var corners = [
@@ -190,8 +193,19 @@ aq.Grid = cc.Node.extend ({
       {
          for (x = 0; x < grid_size; ++x)
          {
-            var new_index = (bottom_left_index + x) + (y * self.blocks_wide);
-            indexes.push (new_index);
+            var block_cell = x + ((grid_size - y - 1) * grid_size);
+            if (tile.grid_data[rot][block_cell] !== 0) {
+               // push the index directly
+               var new_index = (bottom_left_index + x) + (y * self.blocks_wide);
+               indexes.push (new_index);
+               // And one above and below
+               if (new_index - self.blocks_wide >= 0) {
+                  indexes.push (new_index - self.blocks_wide);
+               }
+               if (new_index + self.blocks_wide < self.game_grid.length) {
+                  indexes.push (new_index + self.blocks_wide);
+               }
+            }
          }
       }
 
@@ -211,9 +225,8 @@ aq.Grid = cc.Node.extend ({
       return self.getGridIndexForPoint (node.getPosition ());
    },
 
-   getGridPositionForPoint: function (p) {
+   getGridPositionForIndex: function (index) {
        var self = this;
-       var index = self.getGridIndexForPoint (p);
 
        var bx = index % self.blocks_wide;
        var by = Math.floor (index / self.blocks_wide);
@@ -221,6 +234,12 @@ aq.Grid = cc.Node.extend ({
        var pos = cc.p (bx * aq.config.BLOCK_SIZE, by * aq.config.BLOCK_SIZE);
 
        return pos;
+   },
+
+   getGridPositionForPoint: function (p) {
+       var self = this;
+       var index = self.getGridIndexForPoint (p);
+       return self.getGridPositionForIndex (index);
    },
 
    getGridPositionForNode: function (node) {
@@ -239,8 +258,8 @@ aq.Grid = cc.Node.extend ({
    },
 
    /**
-    * Test if the given block, at the new position, will collide with the grid boundary.
-    * @return true if collision occurs, false otherwise
+    * Test if the given block, at the new position, will collide with the grid left or right boundaries.
+    * @return 0 for no collision, 1 for left boundary collision, -1 for right boundary collision, 2 for bottom
     */
    collideBlockWithGridBounds: function (block, new_pos, new_rot) {
        var self = this;
@@ -251,35 +270,57 @@ aq.Grid = cc.Node.extend ({
        var block_size = aq.config.BLOCK_SIZE;
 
        if (new_pos.x + (bounds.left * block_size) < 0) {
-          return true;
+          return 1;
        }
 
        if (new_pos.x + (bounds.right * block_size) > (self.blocks_wide * block_size)) {
-          return true;
+          return -1;
        }
 
        if (new_pos.y + (bounds.bottom * block_size) < 0) {
-          return true;
+          return 2;
        }
 
-       return false;
+       return 0;
    },
 
+   /**
+    * Test if the given block, at the new position, will collide with tile/blocks already in
+    * the grid.
+    * @return 0 for no collision
+    *         99 for a collision (other numbers will mean something else in the future)
+    */
    collideBlockWithGridData: function (block, new_pos, new_rot) {
       var self = this;
 
+      var block_size = aq.config.BLOCK_SIZE;
       var indexes = self.getGridIndexPostionsForBlockCollision (block, new_pos, new_rot);
+
+      self.grid_collision_squares.clear ();
+      for (var n = 0; n < indexes.length; n++) {
+         var p = self.getGridPositionForIndex (indexes [n]);
+         self.grid_collision_squares.drawRect (p, cc.p (p.x + block_size, p.y + block_size),
+                                               cc.color (128,0,0,128));
+      }
 
       for (var i = 0; i < indexes.length; i++) {
          var grid_pos = self.game_grid[indexes [i]];
          if ((typeof (grid_pos) === 'number') && (grid_pos !== 0)) {
-            return true;
+            return 99;
          }
       }
 
-      return false;
+      return 0;
    },
 
+   /**
+    * Tests for the general collision case.  Will be expanded to account for all sorts of collisions.
+    * @return 0 for no collision.
+    *         1 for a left boundary collision
+    *         -1 for a right boundry collision
+    *         2 for a bottom boundary (game grid baseline)
+    *         99 for a collision with an existing block in the grid
+    */
    collideBlock: function (block, new_pos, new_rot) {
       var self = this;
 
@@ -291,15 +332,17 @@ aq.Grid = cc.Node.extend ({
          new_rot = block.getRotation ();
       }
 
-      if (self.collideBlockWithGridBounds (block, new_pos, new_rot)) {
-         return true;
+      var bounds_collision = self.collideBlockWithGridBounds (block, new_pos, new_rot);
+      if (bounds_collision !== 0) {
+         return bounds_collision;
       }
 
-      if (self.collideBlockWithGridData (block, new_pos, new_rot)) {
-         return true;
+      var grid_data_collision = self.collideBlockWithGridData (block, new_pos, new_rot);
+      if (grid_data_collision !== 0) {
+         return grid_data_collision;
       }
 
-      return false;
+      return 0;
    },
 
    // Take a block that's been falling or moving around and insert it's data into the grid.
