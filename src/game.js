@@ -126,11 +126,14 @@ var GameLayer = cc.Layer.extend ({
           self.keysPressed[cc.KEY.up] = false;
        }
 
+       // manually trigger a new block
+       /*
        if (self.keysPressed[cc.KEY.space]) {
           self.grid.insertBlockIntoGrid (self.block);
           self.newBlock ();
           self.keysPressed[cc.KEY.space] = false;
        }
+       */
 
        // dx,dy are the point (pixels) difference to move the block in one game update
        var dx = self.dx * aq.config.BLOCK_SIZE;
@@ -146,10 +149,17 @@ var GameLayer = cc.Layer.extend ({
           }
        }
 
-       self.moveBlockBy (dx, dy);
+       // Tentative test for a new block, if the falling one has stopped moving
+       // This doesn't work too well though, since you can stop a block at the edge of the grid.
+       if (!self.moveBlockBy (dx, dy)) {
+          self.grid.insertBlockIntoGrid (self.block);
+          self.newBlock ();
+          self.keysPressed[cc.KEY.space] = false;
+       }
    },
 
    // Move a block by 'delta' x and y pixel values
+   // Return false if the block is not actually moved
    moveBlockBy: function (dx, dy) {
       var self = this;
 
@@ -159,7 +169,10 @@ var GameLayer = cc.Layer.extend ({
 
       if (!self.grid.collideBlock (self.block, new_block_position)) {
          self.block.setPosition (new_block_position);
+         return true;
       }
+
+      return false;
    },
 
    // Create a random new block and add it to the game panel at the top middle

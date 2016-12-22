@@ -1,5 +1,13 @@
 'use strict';
 
+//
+// Reminder for triangle types
+//
+// Triangle Type 1 |\     Type 2  |--/  Type 3  \--|  Type 4    /|
+//                 | \            | /            \ |           / |
+//                 |__\           |/              \|          /__|
+//
+
 aq.TILE_DATA = [
    {
       'id': 'tile0',
@@ -146,6 +154,32 @@ aq.initTileData = function () {
    for (var i = 0; i < aq.TILE_DATA.length; i++) {
       preRotateTile (i);
    }
+};
+
+
+/**
+ * Test 2 triangle types to see if they would overlap within a single grid cell
+ *
+ * @param t1 first triangle, from the falling block
+ * @param t2 second triangle, from the grid
+ * @return true if the two triangles would overlap
+ *         false if they slot over each other exactly
+ */
+aq.checkForCellTriangleOverlap = function (t1, t2) {
+
+   if (t1 === 0 || t2 === 0) {
+      return false;
+   }
+
+   if ((t1 === 1 && t2 === 3) || (t1 === 3 && t2 === 1)) {
+      return false;
+   }
+
+   if ((t1 === 2 && t2 === 4) || (t1 === 4 && t2 === 2)) {
+      return false;
+   }
+
+   return true;
 };
 
 /**

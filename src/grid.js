@@ -195,15 +195,20 @@ aq.Grid = cc.Node.extend ({
          {
             var block_cell = x + ((grid_size - y - 1) * grid_size);
             if (tile.grid_data[rot][block_cell] !== 0) {
+
                // push the index directly
                var new_index = (bottom_left_index + x) + (y * self.blocks_wide);
-               indexes.push (new_index);
-               // And one above and below
-               if (new_index - self.blocks_wide >= 0) {
-                  indexes.push (new_index - self.blocks_wide);
-               }
+               indexes.push ( {
+                  block_cell: block_cell,
+                  grid_index: new_index
+               });
+
+               // And one above to cover the block dropping between grid rows
                if (new_index + self.blocks_wide < self.game_grid.length) {
-                  indexes.push (new_index + self.blocks_wide);
+                  indexes.push ({
+                     block_cell: block_cell,
+                     grid_index: new_index + self.blocks_wide
+                  });
                }
             }
          }
@@ -296,16 +301,64 @@ aq.Grid = cc.Node.extend ({
       var block_size = aq.config.BLOCK_SIZE;
       var indexes = self.getGridIndexPostionsForBlockCollision (block, new_pos, new_rot);
 
+      // Show the grid squares that collision will be tested for
       self.grid_collision_squares.clear ();
       for (var n = 0; n < indexes.length; n++) {
-         var p = self.getGridPositionForIndex (indexes [n]);
+         var p = self.getGridPositionForIndex (indexes [n].grid_index);
          self.grid_collision_squares.drawRect (p, cc.p (p.x + block_size, p.y + block_size),
                                                cc.color (128,0,0,128));
       }
 
+      var tile = aq.TILE_DATA [block.tile_num];
+      var tile_grid_data = tile.grid_data [block.rot];
+
       for (var i = 0; i < indexes.length; i++) {
-         var grid_pos = self.game_grid[indexes [i]];
-         if ((typeof (grid_pos) === 'number') && (grid_pos !== 0)) {
+         var grid_index = indexes [i].grid_index;
+         var block_cell = indexes [i].block_cell;
+
+         if (grid_index < 0 || grid_index >= self.game_grid.length) {
+            continue;
+         }
+
+         // cell data within the grid to collision test
+         var grid_block_data = self.game_grid [grid_index];
+
+         if (typeof (grid_block_data) !== 'number') {
+            continue;
+         }
+
+         var isSquareCell = function (c) {
+            return (((c & 0xff) === 0x31) || ((c & 0xff) === 0x13) || ((c & 0xff) === 0x24) || ((c & 0xff) === 0x42));
+         };
+
+         // cell data within the falling block at the position overlapping the grid cell
+         var falling_block_cell_data = tile_grid_data [block_cell];
+
+         if (isSquareCell (falling_block_cell_data) && isSquareCell (grid_block_data)) {
+            return 99;
+         }
+
+         var t1 = (falling_block_cell_data & 0x0f);
+         var t2 = (grid_block_data & 0x0f);
+         if (aq.checkForCellTriangleOverlap (t1, t2)) {
+            return 99;
+         }
+
+         t1 = (falling_block_cell_data & 0xf0) >> 4;
+         t2 = (grid_block_data & 0xf0) >> 4;
+         if (aq.checkForCellTriangleOverlap (t1, t2)) {
+            return 99;
+         }
+
+         t1 = (falling_block_cell_data & 0x0f);
+         t2 = (grid_block_data & 0xf0) >> 4;
+         if (aq.checkForCellTriangleOverlap (t1, t2)) {
+            return 99;
+         }
+
+         t1 = (falling_block_cell_data & 0xf0) >> 4;
+         t2 = (grid_block_data & 0x0f);
+         if (aq.checkForCellTriangleOverlap (t1, t2)) {
             return 99;
          }
       }
