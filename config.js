@@ -46,6 +46,12 @@ aq.config.BLOCK_SIZE = 50;
 aq.config.GRID_WIDTH = 14;
 
 /**
+ * aq.config.MOUSE_MOVE_BLOCK is a test parameter to use mouse movements to drag
+ * the falling block around
+ */
+aq.config.MOUSE_MOVE_BLOCK = true;
+
+/**
  * Freeze the aq.config object so we don't go adding to it all over the code
  */
 Object.freeze (aq.config);
