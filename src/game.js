@@ -11,6 +11,9 @@ var GameLayer = cc.Layer.extend ({
    // blocks
    block: null,
 
+   // collision test indicator
+   collisionTest: null,
+
    ctor: function () {
       var self = this;
 
@@ -38,7 +41,9 @@ var GameLayer = cc.Layer.extend ({
 
       self.gamePanel = gamePanel;
 
-      self.newBlock (0);
+      if (!aq.config.MOUSE_MOVE_BLOCK) {
+         self.newBlock (0, blocks_wide / 2, blocks_high);
+      }
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -65,13 +70,22 @@ var GameLayer = cc.Layer.extend ({
          }, self);
 
          var block_size = aq.config.BLOCK_SIZE;
-         self.mouseHighlight = new cc.DrawNode ();
-         self.mouseHighlight.drawRect (cc.p (0,0), cc.p (block_size, block_size),
-                                           cc.color (0,255,0,128), // fillcolor
-                                           1,    // line width
-                                           cc.color (0,255,0,255));
+      }
 
-         self.gamePanel.addChild (self.mouseHighlight, 100);
+      if (aq.config.MOUSE_MOVE_BLOCK) {
+         var blocks_to_start_with = 2;
+         for (var tmp = 0; tmp < blocks_to_start_with; tmp++) {
+            self.newBlock (3, tmp + (blocks_wide / 2), blocks_high - 10);
+            if (tmp < blocks_to_start_with - 1) {
+               self.grid.insertBlockIntoGrid (self.block);
+            }
+         }
+
+         self.collisionTest = new cc.DrawNode ();
+         self.collisionTest.drawRect (cc.p (0,0), cc.p (block_size, block_size), cc.color (255,0,255,200));
+         self.collisionTest.setVisible (false);
+         self.gamePanel.addChild (self.collisionTest, 100);
+
       }
 
       self.scheduleUpdate ();
@@ -86,9 +100,6 @@ var GameLayer = cc.Layer.extend ({
 
    // Current Mouse Position within the grid
    mouseGridPos: null,
-
-   // Mouse position highlight
-   mouseHighlight: null,
 
    // Function called when a mouse button is pressed or released
    mouseAction: function (event, pressed) {
@@ -139,19 +150,8 @@ var GameLayer = cc.Layer.extend ({
        if (aq.config.MOUSE_MOVE_BLOCK) {
           try {
 
-             // Test if the mouse moves over the falling block
-             // TODO: Complete this logic properly.
-
-             var gridPos = self.grid.getGridPositionForPoint (self.mouseGridPos);
-
-             // Get the grid position of the falling block
-             var blockPos = self.grid.getGridPositionForPoint (self.block.getPosition ());
-
-             if (blockPos.x === gridPos.x && blockPos.y === gridPos.y) {
-                self.mouseHighlight.setPosition (gridPos);
-                self.mouseHighlight.setVisible (true);
-             } else {
-                self.mouseHighlight.setVisible (false);
+             if (self.mousePressed [cc.EventMouse.BUTTON_LEFT]) {
+                self.block.setPosition (self.mouseGridPos);
              }
           } catch (ex) {
              // ignore
@@ -229,11 +229,44 @@ var GameLayer = cc.Layer.extend ({
        new_block_position.y += dy;
        if (self.grid.collideBlock (self.block, new_block_position)) {
           // If the falling block cannot move down, lock it in place
-          self.grid.insertBlockIntoGrid (self.block);
-          self.newBlock ();
+          if (!aq.config.MOUSE_MOVE_BLOCK) {
+             self.grid.insertBlockIntoGrid (self.block);
+             self.newBlock ();
+          }
        } else {
           // otherwise, move it
           self.moveBlockBy (dx, dy);
+       }
+
+       // Collision testing code
+       if (aq.config.MOUSE_MOVE_BLOCK) {
+
+          var moving_obj = self.block.getObjectData ();
+          var moving_pos = self.block.getPosition ();
+
+          var grid_indexes = self.grid.getGridIndexPostionsForBlockCollision (
+             self.block,
+             self.block.getPosition (),
+             self.block.getRotation ());
+
+          var collision = 0;
+          for (var i = 0; i < grid_indexes.length; i++) {
+
+             var grid_block_pos = self.grid.getGridPositionForIndex (grid_indexes [i].grid_index);
+             var grid_block_obj = (self.grid.getGridDataForIndex (grid_indexes [i].grid_index) & 0xff);
+
+             collision |= self.grid.collideObjects (
+                             moving_obj, moving_pos.x, moving_pos.y,
+                             grid_block_obj, grid_block_pos.x, grid_block_pos.y);
+          }
+
+          if (collision !== 0)
+          {
+             self.collisionTest.setPosition (moving_pos);
+             self.collisionTest.setVisible (true);
+          } else {
+             self.collisionTest.setVisible (false);
+          }
        }
    },
 
@@ -252,21 +285,27 @@ var GameLayer = cc.Layer.extend ({
    },
 
    // Create a random new block and add it to the game panel at the top middle
-   newBlock: function (type) {
+   newBlock: function (type, grid_x, grid_y) {
       var self = this;
 
       var block_size = aq.config.BLOCK_SIZE;
       var blocks_wide = aq.config.GRID_WIDTH;
+
+      if (typeof (grid_x) !== 'number') {
+         grid_x = blocks_wide / 2;
+      }
+
+      if (typeof (grid_y) !== 'number') {
+         grid_y = cc.winSize.height / block_size;
+      }
 
       var rnd = Math.floor (Math.random () * aq.TILE_DATA.length);
       if (typeof (type) !== 'undefined' && type >= 0 && type <= aq.TILE_DATA.length) {
          rnd = type;
       }
 
-      var spawn_y = aq.config.MOUSE_MOVE_BLOCK ? cc.winSize.height - (block_size * 3) : cc.winSize.height;
-
       self.block = new aq.Block (rnd);
-      self.block.setPosition (block_size * blocks_wide / 2, spawn_y);
+      self.block.setPosition (block_size * grid_x, grid_y * block_size);
       self.gamePanel.addChild (self.block, 3);
 
       self.grid.setFallingBlock (self.block);

@@ -189,9 +189,15 @@ aq.Grid = cc.Node.extend ({
       var tile = aq.TILE_DATA [tile_num];
       var grid_size = tile.grid_size;
 
+      // add 1 to the width to cover the block overlapping grid cells horizontally
+      var grid_dx = grid_size;
+      if (pos.x % block_size !== 0) {
+         grid_dx += 1;
+      }
+
       for (y = 0; y < grid_size; ++y)
       {
-         for (x = 0; x < grid_size; ++x)
+         for (x = 0; x < grid_dx; ++x)
          {
             var block_cell = x + ((grid_size - y - 1) * grid_size);
             if (tile.grid_data[rot][block_cell] !== 0) {
@@ -228,6 +234,11 @@ aq.Grid = cc.Node.extend ({
    getGridIndexForNode: function (node) {
       var self = this;
       return self.getGridIndexForPoint (node.getPosition ());
+   },
+
+   getGridDataForIndex: function (index) {
+      var self = this;
+      return self.game_grid [index];
    },
 
    getGridPositionForIndex: function (index) {
@@ -397,6 +408,107 @@ aq.Grid = cc.Node.extend ({
 
       return 0;
    },
+
+   /**
+    * A rewrite of my old CollideObjects function, that takes two single grid cell sized
+    * objects (blocks) and performs the collision testing.
+    */
+   collideObjects: function (moving_obj, moving_pos_x, moving_pos_y,
+                             grid_obj, grid_pos_x, grid_pos_y) {
+
+       var half_block_size = (aq.config.BLOCK_SIZE / 2);
+
+       var collision = 0;
+
+       var AXIS_COLLISION          = (1 << 8);
+       var SLOPE_COLLISION         = (1 << 9);
+
+       var abs = function abs (x) {
+          return x < 0 ? -x : x;
+       };
+
+       // Boundary box checking first
+       var tx = grid_pos_x;
+       var ty = grid_pos_y;
+       var txw = half_block_size;
+       var tyw = half_block_size;
+
+       var dx = moving_pos_x - tx;                        // tile->obj delta
+       var px = (txw + half_block_size + 0.5) - abs (dx); // penetration depth in x
+
+       if(0 < px)
+       {
+          var dy = moving_pos_y - ty;                    // tile->obj delta
+          var py = (tyw + half_block_size) - abs (dy);   // pen depth in y
+
+          if(0 < py)
+          {
+             // object may be colliding with tile; call the shape specific collision function
+             // calculate projection vectors
+             if(px < py)
+             {
+                // project in x
+                if(dx < 0)
+                {
+                   // project to the left
+                   px *= -1;
+                   py = 0;
+                }
+                else
+                {
+                   // proj to right
+                   py = 0;
+                }
+             }
+             else
+             {
+                // project in y
+                if(dy < 0)
+                {
+                   // project up
+                   px = 0;
+                   py *= -1;
+                }
+                else
+                {
+                   // project down
+                   px = 0;
+                }
+             }
+
+             var square = function (c) {
+                return (((c & 0xff) === 0x31) || ((c & 0xff) === 0x13) || ((c & 0xff) === 0x24) || ((c & 0xff) === 0x42));
+             };
+
+             if (square (moving_obj) && square (grid_obj))
+             {
+                //
+                // Handle 2 squares colliding
+                //
+
+                collision = AXIS_COLLISION;
+             }
+             else
+             {
+                if(square(moving_obj))
+                {
+                   //collision = collideSquareWithTriangle(px8,py8,grid_obj,grid_pos_x8,grid_pos_y8,moving_pos_x8,moving_pos_y8);
+                }
+                else if(square(grid_obj))
+                {
+                   //collision = collideTriangleWithSquare(px8,py8,moving_obj,moving_pos_x8,moving_pos_y8,grid_pos_x8,grid_pos_y8);
+                }
+                else
+                {
+                   //collision = collideTriangleWithTriangle(px8,py8,moving_obj,moving_pos_x8,moving_pos_y8,grid_obj,grid_pos_x8,grid_pos_y8);
+                }
+             }
+          }
+       }
+
+       return collision;
+   },
+
 
    // Take a block that's been falling or moving around and insert it's data into the grid.
    // Also save the block reference in the block_list array.

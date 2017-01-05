@@ -51,6 +51,11 @@ aq.Block = cc.Node.extend ({
        return self.rot;
    },
 
+   getObjectData: function () {
+       var self = this;
+       return aq.TILE_DATA [self.tile_num].grid_data [self.rot];
+   },
+
    getNewRotationAndPosition90: function () {
        var self = this;
 
