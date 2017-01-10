@@ -68,15 +68,13 @@ var GameLayer = cc.Layer.extend ({
                self.mouseMoved (event);
             }
          }, self);
-
-         var block_size = aq.config.BLOCK_SIZE;
       }
 
       if (aq.config.MOUSE_MOVE_BLOCK) {
-         var blocks_to_start_with = 2;
-         for (var tmp = 0; tmp < blocks_to_start_with; tmp++) {
-            self.newBlock (3, tmp + (blocks_wide / 2), blocks_high - 10);
-            if (tmp < blocks_to_start_with - 1) {
+         var blocks_to_start_with = [3, 8];     // x, y, where x is fixed, y is moving
+         for (var tmp = 0; tmp < blocks_to_start_with.length; tmp++) {
+            self.newBlock (blocks_to_start_with [tmp], tmp + (blocks_wide / 2), blocks_high - 10);
+            if (tmp < blocks_to_start_with.length - 1) {
                self.grid.insertBlockIntoGrid (self.block);
             }
          }
@@ -147,6 +145,8 @@ var GameLayer = cc.Layer.extend ({
    update: function () {
        var self = this;
 
+       var collision = 0;
+
        if (aq.config.MOUSE_MOVE_BLOCK) {
           try {
 
@@ -183,9 +183,9 @@ var GameLayer = cc.Layer.extend ({
        // Rotate the block through 90 degrees
        if (self.keysPressed [cc.KEY.up]) {
           var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
-          var collision = self.grid.collideBlock (self.block,
-                                       potentialNewRotationAndPosition.position,
-                                       potentialNewRotationAndPosition.rotation);
+          collision = self.grid.collideBlock (self.block,
+                                              potentialNewRotationAndPosition.position,
+                                              potentialNewRotationAndPosition.rotation);
 
           while (collision === -1 || collision === 1) {
              potentialNewRotationAndPosition.position.x += (collision * aq.config.BLOCK_SIZE);
@@ -217,7 +217,7 @@ var GameLayer = cc.Layer.extend ({
        }
 
        // Test to see if the falling block can move sideways
-       var new_block_position = self.block.getPosition ();
+       new_block_position = self.block.getPosition ();
        new_block_position.x += dx;
        if (self.grid.collideBlock (self.block, new_block_position)) {
           // If collision would occur, don't attempt the sideways move
@@ -225,7 +225,7 @@ var GameLayer = cc.Layer.extend ({
        }
 
        // Test to see if the falling block can move down.
-       var new_block_position = self.block.getPosition ();
+       new_block_position = self.block.getPosition ();
        new_block_position.y += dy;
        if (self.grid.collideBlock (self.block, new_block_position)) {
           // If the falling block cannot move down, lock it in place
@@ -249,7 +249,7 @@ var GameLayer = cc.Layer.extend ({
              self.block.getPosition (),
              self.block.getRotation ());
 
-          var collision = 0;
+          collision = 0;
           for (var i = 0; i < grid_indexes.length; i++) {
 
              var grid_block_pos = self.grid.getGridPositionForIndex (grid_indexes [i].grid_index);
@@ -262,6 +262,14 @@ var GameLayer = cc.Layer.extend ({
 
           if (collision !== 0)
           {
+             var block_size = aq.config.BLOCK_SIZE;
+             if ((collision & AXIS_COLLISION) != 0) {
+                self.collisionTest.clear ();
+                self.collisionTest.drawRect (cc.p (0,0), cc.p (block_size, block_size), cc.color (255,0,255,200));
+             } else if ((collision & SLOPE_COLLISION) != 0) {
+                self.collisionTest.clear ();
+                self.collisionTest.drawRect (cc.p (0,0), cc.p (block_size, block_size), cc.color (0,255,0,200));
+             }
              self.collisionTest.setPosition (moving_pos);
              self.collisionTest.setVisible (true);
           } else {

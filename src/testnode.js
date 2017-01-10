@@ -67,6 +67,7 @@ aq.TestNode = cc.Node.extend({
 
    cc.extend( aq.TestNode.CanvasRenderCmd.prototype, {
       rendering: function (ctx, scaleX, scaleY) {
+         // jshint unused:false
          var wrapper = ctx || cc._renderContext, context = wrapper.getContext(), node = this._node;
          var alpha = this._displayedOpacity / 255;
          if (alpha === 0) {
@@ -126,6 +127,7 @@ aq.TestNode = cc.Node.extend({
 
    cc.extend( aq.TestNode.WebGLRenderCmd.prototype, {
       rendering: function (ctx, scaleX, scaleY) {
+         // jshint unused:false
          var wt = this._worldTransform;
          this._matrix.mat[0] = wt.a;
          this._matrix.mat[4] = wt.c;

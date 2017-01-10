@@ -72,6 +72,15 @@ aq.TILE_DATA = [
       'anchors': [[-1,-1]],
       'grid_size': 2,
       'grid_data': [[0x0,0x0,0x4,0x1]]
+   },
+   // Test file for the collision testing
+   {
+      'id': 'tile8',
+      'flags': 'active',
+      'color': '#ef5000',
+      'anchors': [[-1,-1]],
+      'grid_size': 1,
+      'grid_data': [[0x01]]
    }
 ];
 

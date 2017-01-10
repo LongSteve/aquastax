@@ -1,5 +1,20 @@
 'use strict';
 
+var AXIS_COLLISION          = (1 << 8);
+var SLOPE_COLLISION         = (1 << 9);
+
+var half_block_size = (aq.config.BLOCK_SIZE / 2);
+
+var triangle_signs = [
+   // signx, signy
+      1,    1,
+      1,    -1,
+      -1,   -1,
+      -1,   1,
+];
+
+var ONE_OVER_SQRT2 = 1.0 / 1.4142135623;
+
 aq.Grid = cc.Node.extend ({
 
    // num of cell blocks wide
@@ -181,7 +196,6 @@ aq.Grid = cc.Node.extend ({
       var bottom_left_index = self.getGridIndexForPoint (pos);
 
       var tile_num = block.getTileNum ();
-      var bounds = aq.getTileBounds (tile_num, rot);
       var block_size = aq.config.BLOCK_SIZE;
 
       var indexes = [];
@@ -416,12 +430,13 @@ aq.Grid = cc.Node.extend ({
    collideObjects: function (moving_obj, moving_pos_x, moving_pos_y,
                              grid_obj, grid_pos_x, grid_pos_y) {
 
-       var half_block_size = (aq.config.BLOCK_SIZE / 2);
+       var self = this;
 
        var collision = 0;
 
-       var AXIS_COLLISION          = (1 << 8);
-       var SLOPE_COLLISION         = (1 << 9);
+       if (grid_obj === 0) {
+          return collision;
+       }
 
        var abs = function abs (x) {
           return x < 0 ? -x : x;
@@ -441,14 +456,14 @@ aq.Grid = cc.Node.extend ({
           var dy = moving_pos_y - ty;                    // tile->obj delta
           var py = (tyw + half_block_size) - abs (dy);   // pen depth in y
 
-          if(0 < py)
+          if (0 < py)
           {
              // object may be colliding with tile; call the shape specific collision function
              // calculate projection vectors
-             if(px < py)
+             if (px < py)
              {
                 // project in x
-                if(dx < 0)
+                if (dx < 0)
                 {
                    // project to the left
                    px *= -1;
@@ -463,7 +478,7 @@ aq.Grid = cc.Node.extend ({
              else
              {
                 // project in y
-                if(dy < 0)
+                if (dy < 0)
                 {
                    // project up
                    px = 0;
@@ -490,17 +505,21 @@ aq.Grid = cc.Node.extend ({
              }
              else
              {
-                if(square(moving_obj))
+                //
+                // Handle triangle collision
+
+                if (square (moving_obj))
                 {
-                   //collision = collideSquareWithTriangle(px8,py8,grid_obj,grid_pos_x8,grid_pos_y8,moving_pos_x8,moving_pos_y8);
+                   collision = self.collideSquareWithTriangle (px, py, grid_obj, grid_pos_x, grid_pos_y, moving_pos_x, moving_pos_y);
                 }
-                else if(square(grid_obj))
+                else if (square(grid_obj))
                 {
-                   //collision = collideTriangleWithSquare(px8,py8,moving_obj,moving_pos_x8,moving_pos_y8,grid_pos_x8,grid_pos_y8);
+                   collision = self.collideSquareWithTriangle (px, py, moving_obj, moving_pos_x, moving_pos_y, grid_pos_x, grid_pos_y);
                 }
                 else
                 {
-                   //collision = collideTriangleWithTriangle(px8,py8,moving_obj,moving_pos_x8,moving_pos_y8,grid_obj,grid_pos_x8,grid_pos_y8);
+                   collision = self.collideTriangleWithTriangle(px, py, moving_obj, moving_pos_x, moving_pos_y,
+                                                                        grid_obj, grid_pos_x, grid_pos_y);
                 }
              }
           }
@@ -509,6 +528,149 @@ aq.Grid = cc.Node.extend ({
        return collision;
    },
 
+   collideSquareWithTriangle: function (x, y, fixed_triangle, triangle_x, triangle_y, square_x, square_y) {
+
+       var self = this;
+
+       var ox, oy;
+
+       var triangle_type = (((fixed_triangle >> 4) & 0xf) != 0) ? ((fixed_triangle >> 4) & 0xf) : (fixed_triangle & 0xf);
+       var triangle_signx = triangle_signs[(triangle_type-1)<<1];
+       var triangle_signy = triangle_signs[((triangle_type-1)<<1) + 1];
+       var triangle_sx = triangle_signx * ONE_OVER_SQRT2;
+       var triangle_sy = triangle_signy * ONE_OVER_SQRT2;
+
+       var xw = half_block_size;
+       var yw = half_block_size;
+
+       ox = (square_x - (triangle_signx * xw)) - triangle_x;   // triangle gives us the coordinates of the innermost
+       oy = (square_y - (triangle_signy * yw)) - triangle_y;   // point on the AABB, relative to the tile center
+
+       var dp = (ox * triangle_sx) + (oy * triangle_sy);
+
+       // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+       // and we need to project it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+
+       if (dp < 0)
+       {
+          var isx, isy;
+
+          isx = -(triangle_sx * -dp);
+          isy = -(triangle_sy * -dp);
+
+          var lenN = (isx * isx) + (isy * isy);
+          var lenP = (x * x) + (y * y);
+
+          if (lenP < lenN)
+          {
+             return AXIS_COLLISION;
+          }
+          else
+          {
+             return SLOPE_COLLISION;
+          }
+       }
+
+       return 0;
+   },
+
+   collideTriangleWithTriangle: function (x, y, moving_triangle, moving_triangle_x, moving_triangle_y,
+                                                fixed_triangle, fixed_triangle_x, fixed_triangle_y)
+   {
+      var moving_triangle_type = (((moving_triangle >> 4) & 0xf) != 0) ? ((moving_triangle >> 4) & 0xf) : (moving_triangle & 0xf);
+      var moving_triangle_signx = triangle_signs[(moving_triangle_type-1)<<1];
+      var moving_triangle_signy = triangle_signs[((moving_triangle_type-1)<<1) + 1];
+      var moving_triangle_sx = moving_triangle_signx * ONE_OVER_SQRT2;
+      var moving_triangle_sy = moving_triangle_signy * ONE_OVER_SQRT2;
+
+      var fixed_triangle_type = (((fixed_triangle >> 4) & 0xf) != 0) ? ((fixed_triangle >> 4) & 0xf) : (fixed_triangle & 0xf);
+      var fixed_triangle_signx = triangle_signs[(fixed_triangle_type-1)<<1];
+      var fixed_triangle_signy = triangle_signs[((fixed_triangle_type-1)<<1) + 1];
+      var fixed_triangle_sx = fixed_triangle_signx * ONE_OVER_SQRT2;
+      var fixed_triangle_sy = fixed_triangle_signy * ONE_OVER_SQRT2;
+
+      var xw = half_block_size;
+      var yw = half_block_size;
+
+      var ox, oy;
+
+      if (fixed_triangle_signx === -moving_triangle_signx && fixed_triangle_signy === -moving_triangle_signy)
+      {
+         // The the two triangles are orientated the opposite ways, we test from the center
+         ox = fixed_triangle_x - moving_triangle_x;
+         oy = fixed_triangle_y - moving_triangle_y;
+      }
+      else
+      {
+         ox = (fixed_triangle_x - (moving_triangle_signx * xw)) - moving_triangle_x;  // this gives us the coordinates of the innermost
+         oy = (fixed_triangle_y - (moving_triangle_signy * yw)) - moving_triangle_y;  // point on the AABB, relative to the tile center
+      }
+
+      var dp = (ox * moving_triangle_sx) + (oy * moving_triangle_sy);
+
+      // if the dotprod of (ox,oy) and (sx,sy) is negative, the corner is in the slope
+      // and we need to project it out by the magnitude of the projection of (ox,oy) onto (sx,sy)
+
+      if (dp < 0)
+      {
+
+         if (fixed_triangle_signx === -moving_triangle_signx && fixed_triangle_signy === -moving_triangle_signy)
+         {
+            // The the two triangles are orientated the opposite ways, we test from the center
+            ox = moving_triangle_x - fixed_triangle_x;
+            oy = moving_triangle_y - fixed_triangle_y;
+         }
+         else
+         {
+            ox = (moving_triangle_x - (fixed_triangle_signx * xw)) - fixed_triangle_x;   // this gives us the coordinates of the innermost
+            oy = (moving_triangle_y - (fixed_triangle_signy * yw)) - fixed_triangle_y;   // point on the AABB, relative to the tile center
+         }
+
+         var dp1 = (ox * fixed_triangle_sx) + (oy * fixed_triangle_sy);
+
+         if (dp1 < 0)
+         {
+            var isxa, isya, isxb, isyb, isx, isy;
+
+            // Pick the shorter of the two projection vectors
+            isxa = (moving_triangle_sx * -dp);
+            isya = (moving_triangle_sy * -dp);
+
+            isxb = (fixed_triangle_sx * -dp1);
+            isyb = (fixed_triangle_sy * -dp1);
+
+            var lenA = (isxa * isxa) + (isya * isya);
+            var lenB = (isxb * isxb) + (isyb * isyb);
+
+            // collision; project delta onto slope and use this to displace the object
+            if (lenA < lenB)
+            {
+               // if the vector is our own, negate it for the other object
+               isx = -isxa;
+               isy = -isya;
+            }
+            else
+            {
+               isx = isxb;
+               isy = isyb;
+            }
+
+            var lenN = (isx * isx) + (isy * isy);
+            var lenP = (x * x) + (y * y);
+
+            if (lenP < lenN)
+            {
+               return AXIS_COLLISION;
+            }
+            else
+            {
+               return SLOPE_COLLISION;
+            }
+         }
+      }
+
+      return 0;
+   },
 
    // Take a block that's been falling or moving around and insert it's data into the grid.
    // Also save the block reference in the block_list array.
