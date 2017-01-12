@@ -189,13 +189,22 @@ aq.Grid = cc.Node.extend ({
       }
    },
 
-   getGridIndexPostionsForBlockCollision: function (block, pos, rot) {
+   getGridIndexPositionsForBlockCollision: function (block, pos, rot) {
+
       var self = this;
+      var tile_num = block.getTileNum ();
+
+      return self.getGridIndexPositionsForTileAndRotation (tile_num, rot, pos);
+   },
+
+   getGridIndexPositionsForTileAndRotation: function (tile_num, rot, pos) {
+      var self = this;
+
+      var tile_bounds = aq.getTileBounds (tile_num, rot);
 
       var x, y;
       var bottom_left_index = self.getGridIndexForPoint (pos);
 
-      var tile_num = block.getTileNum ();
       var block_size = aq.config.BLOCK_SIZE;
 
       var indexes = [];
@@ -203,18 +212,16 @@ aq.Grid = cc.Node.extend ({
       var tile = aq.TILE_DATA [tile_num];
       var grid_size = tile.grid_size;
 
-      // add 1 to the width to cover the block overlapping grid cells horizontally
-      var grid_dx = grid_size;
-      if (pos.x % block_size !== 0) {
-         grid_dx += 1;
-      }
+      var tile_cells_wide = tile_bounds.right - tile_bounds.left;
+      var grid_dx = tile_cells_wide + 1 + tile_bounds.left;
 
+      // add 1 to the width to cover the block overlapping grid cells horizontally
       for (y = 0; y < grid_size; ++y)
       {
          for (x = 0; x < grid_dx; ++x)
          {
             var block_cell = x + ((grid_size - y - 1) * grid_size);
-            if (tile.grid_data[rot][block_cell] !== 0) {
+            //if (tile.grid_data[rot][block_cell] !== 0) {
 
                // push the index directly
                var new_index = (bottom_left_index + x) + (y * self.blocks_wide);
@@ -230,7 +237,7 @@ aq.Grid = cc.Node.extend ({
                      grid_index: new_index + self.blocks_wide
                   });
                }
-            }
+            //}
          }
       }
 
@@ -324,7 +331,7 @@ aq.Grid = cc.Node.extend ({
       var self = this;
 
       var block_size = aq.config.BLOCK_SIZE;
-      var indexes = self.getGridIndexPostionsForBlockCollision (block, new_pos, new_rot);
+      var indexes = self.getGridIndexPositionsForBlockCollision (block, new_pos, new_rot);
 
       // Show the grid squares that collision will be tested for
       self.grid_collision_squares.clear ();
@@ -534,7 +541,7 @@ aq.Grid = cc.Node.extend ({
 
        var ox, oy;
 
-       var triangle_type = (((fixed_triangle >> 4) & 0xf) != 0) ? ((fixed_triangle >> 4) & 0xf) : (fixed_triangle & 0xf);
+       var triangle_type = (((fixed_triangle >> 4) & 0xf) !== 0) ? ((fixed_triangle >> 4) & 0xf) : (fixed_triangle & 0xf);
        var triangle_signx = triangle_signs[(triangle_type-1)<<1];
        var triangle_signy = triangle_signs[((triangle_type-1)<<1) + 1];
        var triangle_sx = triangle_signx * ONE_OVER_SQRT2;
@@ -577,13 +584,13 @@ aq.Grid = cc.Node.extend ({
    collideTriangleWithTriangle: function (x, y, moving_triangle, moving_triangle_x, moving_triangle_y,
                                                 fixed_triangle, fixed_triangle_x, fixed_triangle_y)
    {
-      var moving_triangle_type = (((moving_triangle >> 4) & 0xf) != 0) ? ((moving_triangle >> 4) & 0xf) : (moving_triangle & 0xf);
+      var moving_triangle_type = (((moving_triangle >> 4) & 0xf) !== 0) ? ((moving_triangle >> 4) & 0xf) : (moving_triangle & 0xf);
       var moving_triangle_signx = triangle_signs[(moving_triangle_type-1)<<1];
       var moving_triangle_signy = triangle_signs[((moving_triangle_type-1)<<1) + 1];
       var moving_triangle_sx = moving_triangle_signx * ONE_OVER_SQRT2;
       var moving_triangle_sy = moving_triangle_signy * ONE_OVER_SQRT2;
 
-      var fixed_triangle_type = (((fixed_triangle >> 4) & 0xf) != 0) ? ((fixed_triangle >> 4) & 0xf) : (fixed_triangle & 0xf);
+      var fixed_triangle_type = (((fixed_triangle >> 4) & 0xf) !== 0) ? ((fixed_triangle >> 4) & 0xf) : (fixed_triangle & 0xf);
       var fixed_triangle_signx = triangle_signs[(fixed_triangle_type-1)<<1];
       var fixed_triangle_signy = triangle_signs[((fixed_triangle_type-1)<<1) + 1];
       var fixed_triangle_sx = fixed_triangle_signx * ONE_OVER_SQRT2;

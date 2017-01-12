@@ -80,8 +80,18 @@ aq.TILE_DATA = [
       'color': '#ef5000',
       'anchors': [[-1,-1]],
       'grid_size': 1,
-      'grid_data': [[0x01]]
+      'grid_data': [[0x04]]
+   },
+   /*
+   {
+      'id': 'tile8',
+      'flags': 'active',
+      'color': '#ef5000',
+      'anchors': [[-1,-1]],
+      'grid_size': 3,
+      'grid_data': [[0x04,0x31,0x01,0x31,0x31,0x31,0x31,0x31,0x31]]
    }
+   */
 ];
 
 /**
@@ -228,7 +238,7 @@ aq.getTileBounds = function (n, rotation) {
    var grid_size = tile.grid_size;
 
    var x = 0, y = 0;
-   var lb = 99, rb = 99, bb = 99;
+   var lb = 99, rb = 99, bb = 99, tb = 99;
    var grid_pos;
 
    for (x = 0; x < grid_size; ++x)
@@ -252,9 +262,19 @@ aq.getTileBounds = function (n, rotation) {
          }
 
          // Determine 'bottom' or lower bound
-         grid_pos = ((grid_size - 1 - y) * grid_size) + x;
-         if (tile.grid_data [rotation][grid_pos] !== 0 && y < bb) {
-            bb = y;
+         if (bb === 99) {
+            grid_pos = ((grid_size - 1 - y) * grid_size) + x;
+            if (tile.grid_data [rotation][grid_pos] !== 0 && y < bb) {
+               bb = y;
+            }
+         }
+
+         // Determine 'top' or upper bound
+         if (tb === 99) {
+            grid_pos = (y * grid_size) + x;
+            if (tile.grid_data [rotation][grid_pos] !== 0 && y < tb) {
+               tb = y;
+            }
          }
       }
    }
@@ -262,9 +282,42 @@ aq.getTileBounds = function (n, rotation) {
    return {
       left: lb,
       right: rb,
-      bottom: bb
+      bottom: bb,
+      top: tb
    };
 };
+
+/**
+ * Return a list of tile cells with position offsets.
+ */
+aq.getTileCells = function (n, rotation, include_empty) {
+
+   var tile = aq.TILE_DATA [n];
+   var grid_size = tile.grid_size;
+
+   var x = 0, y = 0;
+   var grid_pos, tile_cell;
+
+   var cell_list = [];
+
+   for (x = 0; x < grid_size; ++x)
+   {
+      for (y = 0; y < grid_size; ++y)
+      {
+         grid_pos = (y * grid_size) + x;
+         tile_cell = tile.grid_data [rotation][grid_pos];
+         if (include_empty || tile_cell !== 0) {
+            cell_list.push ({
+               tile_cell: tile_cell,
+               x: x,
+               y: y
+            });
+         }
+      }
+   }
+
+   return cell_list;
+}
 
 /**
  * Create a cc.DrawNode to render a given tile number and rotation.

@@ -71,7 +71,7 @@ var GameLayer = cc.Layer.extend ({
       }
 
       if (aq.config.MOUSE_MOVE_BLOCK) {
-         var blocks_to_start_with = [3, 8];     // x, y, where x is fixed, y is moving
+         var blocks_to_start_with = [7, 0];     // x, y, where x is fixed, y is moving
          for (var tmp = 0; tmp < blocks_to_start_with.length; tmp++) {
             self.newBlock (blocks_to_start_with [tmp], tmp + (blocks_wide / 2), blocks_high - 10);
             if (tmp < blocks_to_start_with.length - 1) {
@@ -241,32 +241,40 @@ var GameLayer = cc.Layer.extend ({
        // Collision testing code
        if (aq.config.MOUSE_MOVE_BLOCK) {
 
+          var moving_obj_cells = aq.getTileCells (self.block.getTileNum (), self.block.getRotation ());
+
           var moving_obj = self.block.getObjectData ();
           var moving_pos = self.block.getPosition ();
 
-          var grid_indexes = self.grid.getGridIndexPostionsForBlockCollision (
-             self.block,
-             self.block.getPosition (),
-             self.block.getRotation ());
-
           collision = 0;
-          for (var i = 0; i < grid_indexes.length; i++) {
 
-             var grid_block_pos = self.grid.getGridPositionForIndex (grid_indexes [i].grid_index);
-             var grid_block_obj = (self.grid.getGridDataForIndex (grid_indexes [i].grid_index) & 0xff);
+          // TODO: Figure out why the collision seems to be off by one on the vertical in some cases.
 
-             collision |= self.grid.collideObjects (
-                             moving_obj, moving_pos.x, moving_pos.y,
-                             grid_block_obj, grid_block_pos.x, grid_block_pos.y);
+          for (var t = 0; t < moving_obj_cells.length; t++) {
+             var cell = moving_obj_cells [t];
+
+             var cell_obj = cell.tile_cell;
+             var cell_pos = cc.p (moving_pos.x + (cell.x * aq.config.BLOCK_SIZE), moving_pos.y + (cell.y * aq.config.BLOCK_SIZE));
+             var grid_indexes = self.grid.getGridIndexPositionsForTileAndRotation (3, 0, cell_pos);
+
+             for (var i = 0; i < grid_indexes.length; i++) {
+
+                var grid_block_pos = self.grid.getGridPositionForIndex (grid_indexes [i].grid_index);
+                var grid_block_obj = (self.grid.getGridDataForIndex (grid_indexes [i].grid_index) & 0xff);
+
+                collision |= self.grid.collideObjects (
+                                cell_obj, cell_pos.x, cell_pos.y,
+                                grid_block_obj, grid_block_pos.x, grid_block_pos.y);
+             }
           }
 
           if (collision !== 0)
           {
              var block_size = aq.config.BLOCK_SIZE;
-             if ((collision & AXIS_COLLISION) != 0) {
+             if ((collision & AXIS_COLLISION) !== 0) {
                 self.collisionTest.clear ();
                 self.collisionTest.drawRect (cc.p (0,0), cc.p (block_size, block_size), cc.color (255,0,255,200));
-             } else if ((collision & SLOPE_COLLISION) != 0) {
+             } else if ((collision & SLOPE_COLLISION) !== 0) {
                 self.collisionTest.clear ();
                 self.collisionTest.drawRect (cc.p (0,0), cc.p (block_size, block_size), cc.color (0,255,0,200));
              }
