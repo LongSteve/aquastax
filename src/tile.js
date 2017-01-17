@@ -72,26 +72,7 @@ aq.TILE_DATA = [
       'anchors': [[-1,-1]],
       'grid_size': 2,
       'grid_data': [[0x0,0x0,0x4,0x1]]
-   },
-   // Test file for the collision testing
-   {
-      'id': 'tile8',
-      'flags': 'active',
-      'color': '#ef5000',
-      'anchors': [[-1,-1]],
-      'grid_size': 1,
-      'grid_data': [[0x04]]
-   },
-   /*
-   {
-      'id': 'tile8',
-      'flags': 'active',
-      'color': '#ef5000',
-      'anchors': [[-1,-1]],
-      'grid_size': 3,
-      'grid_data': [[0x04,0x31,0x01,0x31,0x31,0x31,0x31,0x31,0x31]]
    }
-   */
 ];
 
 /**
@@ -310,7 +291,7 @@ aq.getTileCells = function (n, rotation, include_empty) {
             cell_list.push ({
                tile_cell: tile_cell,
                x: x,
-               y: y
+               y: grid_size - 1 -y
             });
          }
       }

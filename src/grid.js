@@ -221,6 +221,8 @@ aq.Grid = cc.Node.extend ({
          for (x = 0; x < grid_dx; ++x)
          {
             var block_cell = x + ((grid_size - y - 1) * grid_size);
+
+            // TODO Determine the overlapping cells properly.  This doesn't quite work yet
             //if (tile.grid_data[rot][block_cell] !== 0) {
 
                // push the index directly
@@ -442,6 +444,10 @@ aq.Grid = cc.Node.extend ({
        var collision = 0;
 
        if (grid_obj === 0) {
+          return collision;
+       }
+
+       if (moving_obj === 0) {
           return collision;
        }
 

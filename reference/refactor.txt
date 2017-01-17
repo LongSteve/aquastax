@@ -1,0 +1,49 @@
+17th January 2017
+
+1st major refactoring and code structure rethink
+
+TO REFACTOR
+1) Move the Tile functions into Block
+2) Decide best place to handle collision
+
+---
+
+Game
+ - keyboard handling
+ - update
+   - dropping block
+     - sideways movement
+       - collision test
+     - rotation
+       - collision test
+     - fast drop
+       - collision test
+ - create new block
+
+Grid
+ - collideBlock()
+   - collideBlockWithGridBounds()
+   - collideBlockWithGridData() *redundant* should be replaced by collideObjects
+ - collideObjects()
+   - collideSquareWithTriangle()
+   - collideTriangleWithTriangle()
+
+ - getGridIndexPositionsForTileAndRotation()
+ - getGridIndexPositionsForBlockCollision()
+
+ - insertBlockIntoGrid()
+
+Tile
+ - aq.TILE_DATA structure
+ - aq.initTileData()
+ - aq.checkForCellTriangleOverlap() *redundant*
+ - aq.getTileBounds()
+ - aq.getTileCells()
+ - aq.createTileNodeAtRotation()
+ - aq.drawTri()
+
+Block
+ - new constructor
+ - getters for block data
+ - getNewRotationAndPosition90()
+ - setNewRotationAndPosition()
