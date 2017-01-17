@@ -73,10 +73,9 @@ aq.Grid = cc.Node.extend ({
 
       if (self.falling_block) {
 
-         var tile_num = self.falling_block.getTileNum ();
-         var tile_rotation = self.falling_block.getRotation ();
-         var grid_size = aq.TILE_DATA [tile_num].grid_size;
-         var bounds = aq.getTileBounds (tile_num, tile_rotation);
+         var bounds = self.falling_block.getTileBounds ();
+
+         var grid_size = self.falling_block.getGridSize ();
 
          var block_size = aq.config.BLOCK_SIZE;
 
@@ -194,13 +193,7 @@ aq.Grid = cc.Node.extend ({
       var self = this;
       var tile_num = block.getTileNum ();
 
-      return self.getGridIndexPositionsForTileAndRotation (tile_num, rot, pos);
-   },
-
-   getGridIndexPositionsForTileAndRotation: function (tile_num, rot, pos) {
-      var self = this;
-
-      var tile_bounds = aq.getTileBounds (tile_num, rot);
+      var tile_bounds = block.getTileBounds (rot);
 
       var x, y;
       var bottom_left_index = self.getGridIndexForPoint (pos);
@@ -303,8 +296,7 @@ aq.Grid = cc.Node.extend ({
    collideBlockWithGridBounds: function (block, new_pos, new_rot) {
        var self = this;
 
-       var tile_num = block.getTileNum ();
-       var bounds = aq.getTileBounds (tile_num, new_rot);
+       var bounds = block.getTileBounds (new_rot);
 
        var block_size = aq.config.BLOCK_SIZE;
 
@@ -331,6 +323,23 @@ aq.Grid = cc.Node.extend ({
     */
    collideBlockWithGridData: function (block, new_pos, new_rot) {
       var self = this;
+
+      var checkForCellTriangleOverlap = function (t1, t2) {
+
+         if (t1 === 0 || t2 === 0) {
+            return false;
+         }
+
+         if ((t1 === 1 && t2 === 3) || (t1 === 3 && t2 === 1)) {
+            return false;
+         }
+
+         if ((t1 === 2 && t2 === 4) || (t1 === 4 && t2 === 2)) {
+            return false;
+         }
+
+         return true;
+      };
 
       var block_size = aq.config.BLOCK_SIZE;
       var indexes = self.getGridIndexPositionsForBlockCollision (block, new_pos, new_rot);
@@ -374,25 +383,25 @@ aq.Grid = cc.Node.extend ({
 
          var t1 = (falling_block_cell_data & 0x0f);
          var t2 = (grid_block_data & 0x0f);
-         if (aq.checkForCellTriangleOverlap (t1, t2)) {
+         if (checkForCellTriangleOverlap (t1, t2)) {
             return 99;
          }
 
          t1 = (falling_block_cell_data & 0xf0) >> 4;
          t2 = (grid_block_data & 0xf0) >> 4;
-         if (aq.checkForCellTriangleOverlap (t1, t2)) {
+         if (checkForCellTriangleOverlap (t1, t2)) {
             return 99;
          }
 
          t1 = (falling_block_cell_data & 0x0f);
          t2 = (grid_block_data & 0xf0) >> 4;
-         if (aq.checkForCellTriangleOverlap (t1, t2)) {
+         if (checkForCellTriangleOverlap (t1, t2)) {
             return 99;
          }
 
          t1 = (falling_block_cell_data & 0xf0) >> 4;
          t2 = (grid_block_data & 0x0f);
-         if (aq.checkForCellTriangleOverlap (t1, t2)) {
+         if (checkForCellTriangleOverlap (t1, t2)) {
             return 99;
          }
       }

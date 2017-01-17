@@ -14,6 +14,9 @@ var GameLayer = cc.Layer.extend ({
    // collision test indicator
    collisionTest: null,
 
+   // tmp 1 cell block for collision testing
+   tmpBlock: null,
+
    ctor: function () {
       var self = this;
 
@@ -85,6 +88,8 @@ var GameLayer = cc.Layer.extend ({
          self.gamePanel.addChild (self.collisionTest, 100);
 
       }
+
+      self.tmpBlock = new aq.Block (3);
 
       self.scheduleUpdate ();
    },
@@ -241,7 +246,7 @@ var GameLayer = cc.Layer.extend ({
        // Collision testing code
        if (aq.config.MOUSE_MOVE_BLOCK) {
 
-          var moving_obj_cells = aq.getTileCells (self.block.getTileNum (), self.block.getRotation ());
+          var moving_obj_cells = self.block.getTileCells ();
 
           var moving_obj = self.block.getObjectData ();
           var moving_pos = self.block.getPosition ();
@@ -255,7 +260,8 @@ var GameLayer = cc.Layer.extend ({
 
              var cell_obj = cell.tile_cell;
              var cell_pos = cc.p (moving_pos.x + (cell.x * aq.config.BLOCK_SIZE), moving_pos.y + (cell.y * aq.config.BLOCK_SIZE));
-             var grid_indexes = self.grid.getGridIndexPositionsForTileAndRotation (3, 0, cell_pos);
+             self.tmpBlock.setPosition (cell_pos);
+             var grid_indexes = self.grid.getGridIndexPositionsForBlockCollision (self.tmpBlock, cell_pos, 0);
 
              for (var i = 0; i < grid_indexes.length; i++) {
 

@@ -3,7 +3,7 @@
 1st major refactoring and code structure rethink
 
 TO REFACTOR
-1) Move the Tile functions into Block
+1) Move the Tile functions into Block.  2 functions to go, mainly rendering related
 2) Decide best place to handle collision
 
 ---
