@@ -1,6 +1,11 @@
 'use strict';
 
 /**
+ * Global (at least in the aq. namespace) methods are defined here.  Can be utilities, or
+ * anything that doesn't fit with any of the other modules.
+ */
+
+/**
  * Given a cc.DrawNode, add the geometry to render a triangle of the given type (0-3) and color, with
  * a white outline.  Uses the drawPoly method of cc.DrawNode.
  *

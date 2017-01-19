@@ -26,8 +26,6 @@ var GameLayer = cc.Layer.extend ({
       var block_size = aq.config.BLOCK_SIZE;
       var blocks_wide = aq.config.GRID_WIDTH;
 
-      aq.initTileData ();
-
       var w = block_size * blocks_wide;
       var h = cc.winSize.height;
 
@@ -87,9 +85,8 @@ var GameLayer = cc.Layer.extend ({
          self.collisionTest.setVisible (false);
          self.gamePanel.addChild (self.collisionTest, 100);
 
+         self.tmpBlock = new aq.Block (3);
       }
-
-      self.tmpBlock = new aq.Block (3);
 
       self.scheduleUpdate ();
    },
@@ -236,7 +233,7 @@ var GameLayer = cc.Layer.extend ({
           // If the falling block cannot move down, lock it in place
           if (!aq.config.MOUSE_MOVE_BLOCK) {
              self.grid.insertBlockIntoGrid (self.block);
-             self.newBlock ();
+             self.newRandomBlock ();
           }
        } else {
           // otherwise, move it
@@ -306,30 +303,26 @@ var GameLayer = cc.Layer.extend ({
       }
    },
 
-   // Create a random new block and add it to the game panel at the top middle
+   // Create a new random block, at the top middle of the game panel
+   newRandomBlock: function () {
+       var self = this;
+
+       var grid_x = aq.config.GRID_WIDTH / 2;
+       var grid_y = cc.winSize.height / aq.config.BLOCK_SIZE;
+       var rnd_tile_num = aq.Block.getRandomTileNumber ();
+
+       self.newBlock (rnd_tile_num, grid_x, grid_y);
+   },
+
+   // Create a new block and add it to the game panel at the specified position
+   // Also calls setFallingBlock as a side effect
    newBlock: function (type, grid_x, grid_y) {
       var self = this;
 
-      var block_size = aq.config.BLOCK_SIZE;
-      var blocks_wide = aq.config.GRID_WIDTH;
+      self.block = new aq.Block (type);
+      self.block.setPosition (aq.config.BLOCK_SIZE * grid_x, grid_y * aq.config.BLOCK_SIZE);
 
-      if (typeof (grid_x) !== 'number') {
-         grid_x = blocks_wide / 2;
-      }
-
-      if (typeof (grid_y) !== 'number') {
-         grid_y = cc.winSize.height / block_size;
-      }
-
-      var rnd = Math.floor (Math.random () * aq.TILE_DATA.length);
-      if (typeof (type) !== 'undefined' && type >= 0 && type <= aq.TILE_DATA.length) {
-         rnd = type;
-      }
-
-      self.block = new aq.Block (rnd);
-      self.block.setPosition (block_size * grid_x, grid_y * block_size);
       self.gamePanel.addChild (self.block, 3);
-
       self.grid.setFallingBlock (self.block);
    }
 

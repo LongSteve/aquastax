@@ -173,12 +173,12 @@ aq.Grid = cc.Node.extend ({
                 node.y = y;
 
                 if ((d & 0x0f) !== 0) {
-                   tile = aq.TILE_DATA [(d >> 24) & 0xff];
+                   tile = aq.Block.TILE_DATA [(d >> 24) & 0xff];
                    aq.drawTri (node, 0, 0, (d & 0x0f), cc.color (tile.color));
                 }
 
                 if ((d & 0xf0) !== 0) {
-                   tile = aq.TILE_DATA [(d >> 16) & 0xff];
+                   tile = aq.Block.TILE_DATA [(d >> 16) & 0xff];
                    aq.drawTri (node, 0, 0, ((d >> 4) & 0x0f), cc.color (tile.color));
                 }
 
@@ -202,7 +202,7 @@ aq.Grid = cc.Node.extend ({
 
       var indexes = [];
 
-      var tile = aq.TILE_DATA [tile_num];
+      var tile = aq.Block.getTileDataForNum (tile_num);
       var grid_size = tile.grid_size;
 
       var tile_cells_wide = tile_bounds.right - tile_bounds.left;
@@ -352,7 +352,7 @@ aq.Grid = cc.Node.extend ({
                                                cc.color (128,0,0,128));
       }
 
-      var tile = aq.TILE_DATA [block.tile_num];
+      var tile = aq.Block.getTileDataForNum (block.tile_num);
       var tile_grid_data = tile.grid_data [block.rot];
 
       for (var i = 0; i < indexes.length; i++) {

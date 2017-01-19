@@ -1,162 +1,5 @@
 'use strict';
 
-//
-// Reminder for triangle types
-//
-// Triangle Type 1 |\     Type 2  |--/  Type 3  \--|  Type 4    /|
-//                 | \            | /            \ |           / |
-//                 |__\           |/              \|          /__|
-//
-
-aq.TILE_DATA = [
-   {
-      'id': 'tile0',
-      'flags': 'active',
-      'color': '#fe3500',
-      'anchors': [[0,0]],
-      'grid_size': 2,
-      'grid_data': [[0x4,0x0,0x31,0x0]]
-   },
-   {
-      'id': 'tile1',
-      'flags': 'active',
-      'color': '#00fedc',
-      'anchors': [[1,0]],
-      'grid_size': 2,
-      'grid_data': [[0x3,0x31,0x0,0x31]]
-   },
-   {
-      'id': 'tile2',
-      'flags': 'active',
-      'color': '#cc00fe',
-      'anchors': [[0,0]],
-      'grid_size': 2,
-      'grid_data': [[0x31,0x31,0x31,0x0]]
-   },
-   {
-      'id': 'tile3',
-      'flags': 'active',
-      'color': '#ef5000',
-      'anchors': [[-1,-1]],
-      'grid_size': 1,
-      'grid_data': [[0x31]]
-   },
-   {
-      'id': 'tile4',
-      'flags': 'active',
-      'color': '#ff6cb5',
-      'anchors': [[1,1]],
-      'grid_size': 2,
-      'grid_data': [[0x4,0x0,0x31,0x31]]
-   },
-   {
-      'id': 'tile5',
-      'flags': 'active',
-      'color': '#4eff00',
-      'anchors': [[0,1]],
-      'grid_size': 2,
-      'grid_data': [[0x1,0x0,0x31,0x31]]
-   },
-   {
-      'id': 'tile6',
-      'flags': 'active',
-      'color': '#5c33ff',
-      'anchors': [[0,1]],
-      'grid_size': 2,
-      'grid_data': [[0x1,0x0,0x31,0x0]]
-   },
-   {
-      'id': 'tile7',
-      'flags': 'active',
-      'color': '#fea03a',
-      'anchors': [[-1,-1]],
-      'grid_size': 2,
-      'grid_data': [[0x0,0x0,0x4,0x1]]
-   }
-];
-
-/**
- * initTileData function, needs to be called at game startup.  It initialises the TILE_DATA array
- * with the additional tile rotations.
- *
- */
-aq.initTileData = function () {
-
-   var preRotateTile = function (n) {
-
-      var td = aq.TILE_DATA [n];
-
-      var a, x, y, i, j, g;
-
-      // Loop for each rotation
-      for (g = 0; g < 3; g++)
-      {
-         var rot_grid = [];
-         var grid_data = td.grid_data [g];
-
-         for (y = 0; y < td.grid_size; y++)
-         {
-            for (x = 0; x < td.grid_size; x++)
-            {
-               i = (x * td.grid_size) + (td.grid_size-y-1);
-               j = (y * td.grid_size) + x;
-               rot_grid [i] = grid_data [j];
-
-               if (((rot_grid [i] >> 4) & 0x0f) > 0) {
-                  // Also rotate each grid square triangle piece
-                  a = (rot_grid [i] >> 4) & 0x0f;
-                  if (++a > 4) {
-                     a = 1;
-                  }
-                  rot_grid [i] = (a << 4) | (rot_grid [i] & 0x0f);
-               }
-
-               if ((rot_grid [i] & 0x0f) > 0) {
-                  // Also rotate each grid square triangle piece
-                  a = rot_grid [i] & 0x0f;
-                  if (++a > 4) {
-                     a = 1;
-                  }
-                  rot_grid [i] = (rot_grid [i] & 0xf0) | a;
-               }
-            }
-         }
-
-         td.grid_data [g + 1] = rot_grid;
-
-         getTileAnchor (n, g + 1);
-      }
-   };
-
-   var getTileAnchor = function (n, r) {
-
-      var td = aq.TILE_DATA [n];
-
-      var ax = td.anchors [0][0];
-      var ay = td.anchors [0][1];
-
-      if (ax !== -1) {
-         var ai = ax;
-         var aj = ay;
-         for (var i = 0; i < r; i++)
-         {
-            ai = td.grid_size - 1 - ay;
-            aj = ax;
-
-            ax = ai;
-            ay = aj;
-         }
-      }
-
-      td.anchors [r] = [ax,ay];
-   };
-
-   for (var i = 0; i < aq.TILE_DATA.length; i++) {
-      preRotateTile (i);
-   }
-};
-
-
 aq.Block = cc.Node.extend ({
 
    // a list of cc.DrawNode objects representing this block at the 4 rotations
@@ -198,7 +41,7 @@ aq.Block = cc.Node.extend ({
     *
     * @param x position
     * @param y position
-    * @param n tile number (0 - aq.TILE_DATA.length)
+    * @param n tile number (0 - aq.Block.TILE_DATA.length)
     * @param r rotation (0 - 3)
     * @return a cc.DrawNode to add to the scene
     */
@@ -209,7 +52,7 @@ aq.Block = cc.Node.extend ({
       var dx = 0;
       var dy = 0;
 
-      var td = aq.TILE_DATA [n];
+      var td = aq.Block.TILE_DATA [n];
       var m = td.grid_size * td.grid_size;
 
       for (var i = 0; i < m; i++) {
@@ -233,7 +76,7 @@ aq.Block = cc.Node.extend ({
 
    getTileData: function () {
        var self = this;
-       return aq.TILE_DATA [self.tile_num];
+       return aq.Block.TILE_DATA [self.tile_num];
    },
 
    getTileNum: function () {
@@ -248,12 +91,12 @@ aq.Block = cc.Node.extend ({
 
    getGridSize: function () {
        var self = this;
-       return aq.TILE_DATA [self.tile_num].grid_size;
+       return aq.Block.TILE_DATA [self.tile_num].grid_size;
    },
 
    getObjectData: function () {
        var self = this;
-       return aq.TILE_DATA [self.tile_num].grid_data [self.rot];
+       return aq.Block.TILE_DATA [self.tile_num].grid_data [self.rot];
    },
 
    getNewRotationAndPosition90: function () {
@@ -340,8 +183,7 @@ aq.Block = cc.Node.extend ({
       }
 
       // TODO: Calculate this once at startup and cache the values
-
-      var tile = aq.TILE_DATA [self.tile_num];
+      var tile = aq.Block.TILE_DATA [self.tile_num];
       var grid_size = tile.grid_size;
 
       var x = 0, y = 0;
@@ -401,7 +243,7 @@ aq.Block = cc.Node.extend ({
 
       var self = this;
 
-      var tile = aq.TILE_DATA [self.tile_num];
+      var tile = aq.Block.TILE_DATA [self.tile_num];
       var grid_size = tile.grid_size;
 
       var x = 0, y = 0;
@@ -429,4 +271,179 @@ aq.Block = cc.Node.extend ({
    }
 
 });
+
+//
+// Some 'static' tile data, used when creating blocks, and other constructs
+//
+// Reminder for triangle types
+//
+// Triangle Type 1 |\     Type 2  |--/  Type 3  \--|  Type 4    /|
+//                 | \            | /            \ |           / |
+//                 |__\           |/              \|          /__|
+//
+
+aq.Block.TILE_DATA = [
+   {
+      'id': 'tile0',
+      'flags': 'active',
+      'color': '#fe3500',
+      'anchors': [[0,0]],
+      'grid_size': 2,
+      'grid_data': [[0x4,0x0,0x31,0x0]]
+   },
+   {
+      'id': 'tile1',
+      'flags': 'active',
+      'color': '#00fedc',
+      'anchors': [[1,0]],
+      'grid_size': 2,
+      'grid_data': [[0x3,0x31,0x0,0x31]]
+   },
+   {
+      'id': 'tile2',
+      'flags': 'active',
+      'color': '#cc00fe',
+      'anchors': [[0,0]],
+      'grid_size': 2,
+      'grid_data': [[0x31,0x31,0x31,0x0]]
+   },
+   {
+      'id': 'tile3',
+      'flags': 'active',
+      'color': '#ef5000',
+      'anchors': [[-1,-1]],
+      'grid_size': 1,
+      'grid_data': [[0x31]]
+   },
+   {
+      'id': 'tile4',
+      'flags': 'active',
+      'color': '#ff6cb5',
+      'anchors': [[1,1]],
+      'grid_size': 2,
+      'grid_data': [[0x4,0x0,0x31,0x31]]
+   },
+   {
+      'id': 'tile5',
+      'flags': 'active',
+      'color': '#4eff00',
+      'anchors': [[0,1]],
+      'grid_size': 2,
+      'grid_data': [[0x1,0x0,0x31,0x31]]
+   },
+   {
+      'id': 'tile6',
+      'flags': 'active',
+      'color': '#5c33ff',
+      'anchors': [[0,1]],
+      'grid_size': 2,
+      'grid_data': [[0x1,0x0,0x31,0x0]]
+   },
+   {
+      'id': 'tile7',
+      'flags': 'active',
+      'color': '#fea03a',
+      'anchors': [[-1,-1]],
+      'grid_size': 2,
+      'grid_data': [[0x0,0x0,0x4,0x1]]
+   }
+];
+
+// Static block function to get the number of tiles defined
+aq.Block.getTileCount = function () {
+   return aq.Block.TILE_DATA.length;
+};
+
+// Static Block method to just return a random tile number
+aq.Block.getRandomTileNumber = function () {
+   var rnd_tile_num = Math.floor (Math.random () * aq.Block.TILE_DATA.length);
+   return rnd_tile_num;
+};
+
+// Static Block method to get the tile data for a given number
+aq.Block.getTileDataForNum = function (tile_num) {
+   return aq.Block.TILE_DATA [tile_num];
+};
+
+/**
+ * initTileData function, needs to be called at game startup, so is called as an Immediately Executed Function.
+ * It initialises the TILE_DATA array with the additional tile rotations.
+ *
+ */
+(function () {
+
+   var preRotateTile = function (n) {
+
+      var td = aq.Block.TILE_DATA [n];
+
+      var a, x, y, i, j, g;
+
+      // Loop for each rotation
+      for (g = 0; g < 3; g++)
+      {
+         var rot_grid = [];
+         var grid_data = td.grid_data [g];
+
+         for (y = 0; y < td.grid_size; y++)
+         {
+            for (x = 0; x < td.grid_size; x++)
+            {
+               i = (x * td.grid_size) + (td.grid_size-y-1);
+               j = (y * td.grid_size) + x;
+               rot_grid [i] = grid_data [j];
+
+               if (((rot_grid [i] >> 4) & 0x0f) > 0) {
+                  // Also rotate each grid square triangle piece
+                  a = (rot_grid [i] >> 4) & 0x0f;
+                  if (++a > 4) {
+                     a = 1;
+                  }
+                  rot_grid [i] = (a << 4) | (rot_grid [i] & 0x0f);
+               }
+
+               if ((rot_grid [i] & 0x0f) > 0) {
+                  // Also rotate each grid square triangle piece
+                  a = rot_grid [i] & 0x0f;
+                  if (++a > 4) {
+                     a = 1;
+                  }
+                  rot_grid [i] = (rot_grid [i] & 0xf0) | a;
+               }
+            }
+         }
+
+         td.grid_data [g + 1] = rot_grid;
+
+         getTileAnchor (n, g + 1);
+      }
+   };
+
+   var getTileAnchor = function (n, r) {
+
+      var td = aq.Block.TILE_DATA [n];
+
+      var ax = td.anchors [0][0];
+      var ay = td.anchors [0][1];
+
+      if (ax !== -1) {
+         var ai = ax;
+         var aj = ay;
+         for (var i = 0; i < r; i++)
+         {
+            ai = td.grid_size - 1 - ay;
+            aj = ax;
+
+            ax = ai;
+            ay = aj;
+         }
+      }
+
+      td.anchors [r] = [ax,ay];
+   };
+
+   for (var i = 0; i < aq.Block.TILE_DATA.length; i++) {
+      preRotateTile (i);
+   }
+
+})();
 
