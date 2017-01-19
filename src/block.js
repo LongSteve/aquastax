@@ -176,10 +176,10 @@ aq.Block = cc.Node.extend ({
 
       // Make the set of drawNodes corresponding to each rotation
       self.drawNodes = [
-         aq.createTileNodeAtRotation (0, 0, tile_num, 0),
-         aq.createTileNodeAtRotation (0, 0, tile_num, 1),
-         aq.createTileNodeAtRotation (0, 0, tile_num, 2),
-         aq.createTileNodeAtRotation (0, 0, tile_num, 3),
+         self.createTileNodeAtRotation (0, 0, tile_num, 0),
+         self.createTileNodeAtRotation (0, 0, tile_num, 1),
+         self.createTileNodeAtRotation (0, 0, tile_num, 2),
+         self.createTileNodeAtRotation (0, 0, tile_num, 3),
       ];
 
       self.tile_num = tile_num;
@@ -191,6 +191,44 @@ aq.Block = cc.Node.extend ({
          }
          self.addChild (self.drawNodes [n]);
       }
+   },
+
+   /**
+    * Create a cc.DrawNode to render a given tile number and rotation.
+    *
+    * @param x position
+    * @param y position
+    * @param n tile number (0 - aq.TILE_DATA.length)
+    * @param r rotation (0 - 3)
+    * @return a cc.DrawNode to add to the scene
+    */
+   createTileNodeAtRotation: function (x, y, n, r) {
+
+      var node = new cc.DrawNode ();
+
+      var dx = 0;
+      var dy = 0;
+
+      var td = aq.TILE_DATA [n];
+      var m = td.grid_size * td.grid_size;
+
+      for (var i = 0; i < m; i++) {
+         var tris = td.grid_data [r][i];
+         var t1 = (tris >> 4) & 0xf;
+         var t2 = tris & 0xf;
+
+         dy = ((td.grid_size - 1) - Math.floor (i / td.grid_size)) * aq.config.BLOCK_SIZE;
+         dx = (i % td.grid_size) * aq.config.BLOCK_SIZE;
+
+         if (t1 !== 0) {
+            aq.drawTri (node, x + dx, y + dy, t1, td.color);
+         }
+         if (t2 !== 0) {
+            aq.drawTri (node, x + dx, y + dy, t2, td.color);
+         }
+      }
+
+      return node;
    },
 
    getTileData: function () {
