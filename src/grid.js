@@ -206,12 +206,16 @@ aq.Grid = cc.Node.extend ({
       var grid_size = tile.grid_size;
 
       var tile_cells_wide = tile_bounds.right - tile_bounds.left;
-      var grid_dx = tile_cells_wide + 1 + tile_bounds.left;
+      var grid_dx = tile_cells_wide;
+
+      if (pos.x % block_size !== 0) {
+         grid_dx += 1;
+      }
 
       // add 1 to the width to cover the block overlapping grid cells horizontally
       for (y = 0; y < grid_size; ++y)
       {
-         for (x = 0; x < grid_dx; ++x)
+         for (x = tile_bounds.left; x < tile_bounds.left + grid_dx; ++x)
          {
             var block_cell = x + ((grid_size - y - 1) * grid_size);
 

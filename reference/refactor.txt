@@ -1,12 +1,16 @@
-19th January 2017
+24th January 2017
 
 1st major refactoring and code structure rethink
 
 TO REFACTOR
 1) Decide best place to handle collision
 
-THINGS NOTICED
+TO INVESTIGATE
+1) Correct grid index values in getGridIndexPositionsForBlockCollision, relating to exact grid positioning
+
+THINGS HOPEFULLY FIXED
 1) Dropping blocks sometimes stick when they're not supposed to
+2) 2x2 blocks can sometimes fall into the bottom of the grid
 
 ---
 

@@ -74,7 +74,7 @@ var GameLayer = cc.Layer.extend ({
       if (aq.config.MOUSE_MOVE_BLOCK) {
          var blocks_to_start_with = [1, 1];     // x, y, where x is fixed, y is moving
          for (var tmp = 0; tmp < blocks_to_start_with.length; tmp++) {
-            self.newBlock (blocks_to_start_with [tmp], tmp + (blocks_wide / 2), blocks_high - 10);
+            self.newBlock (blocks_to_start_with [tmp], (tmp * 3) + (blocks_wide / 2), blocks_high - 10);
             if (tmp < blocks_to_start_with.length - 1) {
                self.grid.insertBlockIntoGrid (self.block);
             }
@@ -320,7 +320,7 @@ var GameLayer = cc.Layer.extend ({
       var self = this;
 
       self.block = new aq.Block (type);
-      self.block.setPosition (aq.config.BLOCK_SIZE * grid_x, grid_y * aq.config.BLOCK_SIZE);
+      self.block.setPosition (grid_x * aq.config.BLOCK_SIZE, grid_y * aq.config.BLOCK_SIZE);
 
       self.gamePanel.addChild (self.block, 3);
       self.grid.setFallingBlock (self.block);

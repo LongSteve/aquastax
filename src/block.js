@@ -209,7 +209,13 @@ aq.Block = cc.Node.extend ({
                   rb = (grid_size - x);
                }
             }
+         }
+      }
 
+      for (y = 0; y < grid_size; ++y)
+      {
+         for (x = 0; x < grid_size; ++x)
+         {
             // Determine 'bottom' or lower bound
             if (bb === 99) {
                grid_pos = ((grid_size - 1 - y) * grid_size) + x;
@@ -222,7 +228,7 @@ aq.Block = cc.Node.extend ({
             if (tb === 99) {
                grid_pos = (y * grid_size) + x;
                if (tile.grid_data [rotation][grid_pos] !== 0 && y < tb) {
-                  tb = y;
+                  tb = grid_size - y;
                }
             }
          }
@@ -289,7 +295,8 @@ aq.Block.TILE_DATA = [
       'color': '#fe3500',
       'anchors': [[0,0]],
       'grid_size': 2,
-      'grid_data': [[0x4,0x0,0x31,0x0]]
+      'grid_data': [[0x4,0x0,
+                     0x31,0x0]]
    },
    {
       'id': 'tile1',
@@ -297,7 +304,8 @@ aq.Block.TILE_DATA = [
       'color': '#00fedc',
       'anchors': [[1,0]],
       'grid_size': 2,
-      'grid_data': [[0x3,0x31,0x0,0x31]]
+      'grid_data': [[0x3,0x31,
+                     0x0,0x31]]
    },
    {
       'id': 'tile2',
@@ -305,7 +313,8 @@ aq.Block.TILE_DATA = [
       'color': '#cc00fe',
       'anchors': [[0,0]],
       'grid_size': 2,
-      'grid_data': [[0x31,0x31,0x31,0x0]]
+      'grid_data': [[0x31,0x31,
+                     0x31,0x0]]
    },
    {
       'id': 'tile3',
@@ -321,7 +330,8 @@ aq.Block.TILE_DATA = [
       'color': '#ff6cb5',
       'anchors': [[1,1]],
       'grid_size': 2,
-      'grid_data': [[0x4,0x0,0x31,0x31]]
+      'grid_data': [[0x4,0x0,
+                     0x31,0x31]]
    },
    {
       'id': 'tile5',
@@ -329,7 +339,8 @@ aq.Block.TILE_DATA = [
       'color': '#4eff00',
       'anchors': [[0,1]],
       'grid_size': 2,
-      'grid_data': [[0x1,0x0,0x31,0x31]]
+      'grid_data': [[0x1,0x0,
+                     0x31,0x31]]
    },
    {
       'id': 'tile6',
@@ -337,7 +348,8 @@ aq.Block.TILE_DATA = [
       'color': '#5c33ff',
       'anchors': [[0,1]],
       'grid_size': 2,
-      'grid_data': [[0x1,0x0,0x31,0x0]]
+      'grid_data': [[0x1,0x0,
+                     0x31,0x0]]
    },
    {
       'id': 'tile7',
@@ -345,7 +357,8 @@ aq.Block.TILE_DATA = [
       'color': '#fea03a',
       'anchors': [[-1,-1]],
       'grid_size': 2,
-      'grid_data': [[0x0,0x0,0x4,0x1]]
+      'grid_data': [[0x0,0x0,
+                     0x4,0x1]]
    }
 ];
 
