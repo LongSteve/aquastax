@@ -13,9 +13,9 @@
 
     "jsList" : [
         "src/resource.js",
+        "src/globals.js",
         "src/splash.js",
         "src/menu.js",
-        "src/tile.js",
         "src/game.js",
         "src/grid.js",
         "src/block.js"
