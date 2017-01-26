@@ -1,53 +1,9 @@
-24th January 2017
+26th January 2017
 
-1st major refactoring and code structure rethink
+ONGOING
+Slope handling and collision testing/response
 
 TO REFACTOR
-1) Decide best place to handle collision
+1) Rename block or grid functions that only operate on single cells (that is, the 50x50 grid cell sized elements)
 
-TO INVESTIGATE
-1) Correct grid index values in getGridIndexPositionsForBlockCollision, relating to exact grid positioning
 
-THINGS HOPEFULLY FIXED
-1) Dropping blocks sometimes stick when they're not supposed to
-2) 2x2 blocks can sometimes fall into the bottom of the grid
-
----
-
-Globals
- - aq.drawTri()
-
-Game
- - keyboard handling
- - update
-   - dropping block
-     - sideways movement
-       - collision test
-     - rotation
-       - collision test
-     - fast drop
-       - collision test
- - create new block functions
-
-Grid
- - collideBlock()
-   - collideBlockWithGridBounds()
-   - collideBlockWithGridData() *redundant* should be replaced by collideObjects
- - collideObjects()
-   - collideSquareWithTriangle()
-   - collideTriangleWithTriangle()
-
- - getGridIndexPositionsForTileAndRotation()
- - getGridIndexPositionsForBlockCollision()
-
- - insertBlockIntoGrid()
-
-Block
- - static Block.TILE_DATA structure
- - static getters for tile data
- - new constructor for block objects
- - getters for block data
- - getNewRotationAndPosition90()
- - setNewRotationAndPosition()
- - getTileBounds()
- - getTileCells()

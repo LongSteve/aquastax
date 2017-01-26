@@ -43,6 +43,9 @@ aq.Grid = cc.Node.extend ({
    // list of blocks inserted into the grid (using collideBlock)
    block_list: null,
 
+   // tmp 1 cell block for collision testing
+   tmpBlock: null,
+
    ctor: function (wide, high) {
       var self = this;
 
@@ -55,6 +58,8 @@ aq.Grid = cc.Node.extend ({
       self.game_grid = new Array (wide * high * 2);
 
       self.block_list = [];
+
+      self.tmpBlock = new aq.Block (3);
 
       // Add the grid outline
       self.addChild (self.createLineGridNode ());
@@ -208,35 +213,31 @@ aq.Grid = cc.Node.extend ({
       var tile_cells_wide = tile_bounds.right - tile_bounds.left;
       var grid_dx = tile_cells_wide;
 
+      var tile_cells_high = tile_bounds.top - tile_bounds.bottom;
+      var grid_dy = tile_cells_high;
+
+      // add 1 to the width and height to cover the block overlapping grid cells horizontally
+      // and vertically in the event the block isn't aligned exactly with the grid
       if (pos.x % block_size !== 0) {
          grid_dx += 1;
       }
 
-      // add 1 to the width to cover the block overlapping grid cells horizontally
-      for (y = 0; y < grid_size; ++y)
+      if (pos.y % block_size !== 0) {
+         grid_dy += 1;
+      }
+
+      for (y = tile_bounds.bottom; y < tile_bounds.bottom + grid_dy; ++y)
       {
          for (x = tile_bounds.left; x < tile_bounds.left + grid_dx; ++x)
          {
             var block_cell = x + ((grid_size - y - 1) * grid_size);
 
-            // TODO Determine the overlapping cells properly.  This doesn't quite work yet
-            //if (tile.grid_data[rot][block_cell] !== 0) {
-
-               // push the index directly
-               var new_index = (bottom_left_index + x) + (y * self.blocks_wide);
-               indexes.push ( {
-                  block_cell: block_cell,
-                  grid_index: new_index
-               });
-
-               // And one above to cover the block dropping between grid rows
-               if (new_index + self.blocks_wide < self.game_grid.length) {
-                  indexes.push ({
-                     block_cell: block_cell,
-                     grid_index: new_index + self.blocks_wide
-                  });
-               }
-            //}
+            // push the index directly
+            var new_index = (bottom_left_index + x) + (y * self.blocks_wide);
+            indexes.push ( {
+               block_cell: block_cell,
+               grid_index: new_index
+            });
          }
       }
 
@@ -293,9 +294,24 @@ aq.Grid = cc.Node.extend ({
       return true;
    },
 
+   highlightBlockCells: function (block) {
+       var self = this;
+
+       var block_size = aq.config.BLOCK_SIZE;
+       var indexes = self.getGridIndexPositionsForBlockCollision (block, block.getPosition (), block.getRotation ());
+
+       // Show the grid squares that collision will be tested for
+       self.grid_collision_squares.clear ();
+       for (var n = 0; n < indexes.length; n++) {
+          var p = self.getGridPositionForIndex (indexes [n].grid_index);
+          self.grid_collision_squares.drawRect (p, cc.p (p.x + block_size, p.y + block_size),
+                                                cc.color (128,0,0,128));
+       }
+   },
+
    /**
     * Test if the given block, at the new position, will collide with the grid left or right boundaries.
-    * @return 0 for no collision, 1 for left boundary collision, -1 for right boundary collision, 2 for bottom
+    * @return 0 for no collision, 1 for left boundary collision, 2 for right boundary collision, 3 for bottom
     */
    collideBlockWithGridBounds: function (block, new_pos, new_rot) {
        var self = this;
@@ -309,11 +325,11 @@ aq.Grid = cc.Node.extend ({
        }
 
        if (new_pos.x + (bounds.right * block_size) > (self.blocks_wide * block_size)) {
-          return -1;
+          return 2;
        }
 
        if (new_pos.y + (bounds.bottom * block_size) < 0) {
-          return 2;
+          return 3;
        }
 
        return 0;
@@ -328,89 +344,35 @@ aq.Grid = cc.Node.extend ({
    collideBlockWithGridData: function (block, new_pos, new_rot) {
       var self = this;
 
-      var checkForCellTriangleOverlap = function (t1, t2) {
+      var moving_obj_cells = block.getTileCells (new_rot);
+      var moving_obj = block.getObjectData (new_rot);
+      var moving_pos = new_pos;
 
-         if (t1 === 0 || t2 === 0) {
-            return false;
-         }
+      var collision = 0;
 
-         if ((t1 === 1 && t2 === 3) || (t1 === 3 && t2 === 1)) {
-            return false;
-         }
+      // In here, when a collision occurs, we want to augment the input block object
+      // with data about where the collision occured, and what type it is
 
-         if ((t1 === 2 && t2 === 4) || (t1 === 4 && t2 === 2)) {
-            return false;
-         }
+      for (var t = 0; t < moving_obj_cells.length; t++) {
+         var cell = moving_obj_cells [t];
 
-         return true;
-      };
+         var cell_obj = cell.tile_cell;
+         var cell_pos = cc.p (moving_pos.x + (cell.x * aq.config.BLOCK_SIZE), moving_pos.y + (cell.y * aq.config.BLOCK_SIZE));
+         self.tmpBlock.setPosition (cell_pos);
+         var grid_indexes = self.getGridIndexPositionsForBlockCollision (self.tmpBlock, cell_pos, 0);
 
-      var block_size = aq.config.BLOCK_SIZE;
-      var indexes = self.getGridIndexPositionsForBlockCollision (block, new_pos, new_rot);
+         for (var i = 0; i < grid_indexes.length; i++) {
 
-      // Show the grid squares that collision will be tested for
-      self.grid_collision_squares.clear ();
-      for (var n = 0; n < indexes.length; n++) {
-         var p = self.getGridPositionForIndex (indexes [n].grid_index);
-         self.grid_collision_squares.drawRect (p, cc.p (p.x + block_size, p.y + block_size),
-                                               cc.color (128,0,0,128));
-      }
+            var grid_block_pos = self.getGridPositionForIndex (grid_indexes [i].grid_index);
+            var grid_block_obj = (self.getGridDataForIndex (grid_indexes [i].grid_index) & 0xff);
 
-      var tile = aq.Block.getTileDataForNum (block.tile_num);
-      var tile_grid_data = tile.grid_data [block.rot];
-
-      for (var i = 0; i < indexes.length; i++) {
-         var grid_index = indexes [i].grid_index;
-         var block_cell = indexes [i].block_cell;
-
-         if (grid_index < 0 || grid_index >= self.game_grid.length) {
-            continue;
-         }
-
-         // cell data within the grid to collision test
-         var grid_block_data = self.game_grid [grid_index];
-
-         if (typeof (grid_block_data) !== 'number') {
-            continue;
-         }
-
-         var isSquareCell = function (c) {
-            return (((c & 0xff) === 0x31) || ((c & 0xff) === 0x13) || ((c & 0xff) === 0x24) || ((c & 0xff) === 0x42));
-         };
-
-         // cell data within the falling block at the position overlapping the grid cell
-         var falling_block_cell_data = tile_grid_data [block_cell];
-
-         if (isSquareCell (falling_block_cell_data) && isSquareCell (grid_block_data)) {
-            return 99;
-         }
-
-         var t1 = (falling_block_cell_data & 0x0f);
-         var t2 = (grid_block_data & 0x0f);
-         if (checkForCellTriangleOverlap (t1, t2)) {
-            return 99;
-         }
-
-         t1 = (falling_block_cell_data & 0xf0) >> 4;
-         t2 = (grid_block_data & 0xf0) >> 4;
-         if (checkForCellTriangleOverlap (t1, t2)) {
-            return 99;
-         }
-
-         t1 = (falling_block_cell_data & 0x0f);
-         t2 = (grid_block_data & 0xf0) >> 4;
-         if (checkForCellTriangleOverlap (t1, t2)) {
-            return 99;
-         }
-
-         t1 = (falling_block_cell_data & 0xf0) >> 4;
-         t2 = (grid_block_data & 0x0f);
-         if (checkForCellTriangleOverlap (t1, t2)) {
-            return 99;
+            collision |= self.collideObjects (
+                            cell_obj, cell_pos.x, cell_pos.y,
+                            grid_block_obj, grid_block_pos.x, grid_block_pos.y);
          }
       }
 
-      return 0;
+      return collision;
    },
 
    /**

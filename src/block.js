@@ -94,9 +94,13 @@ aq.Block = cc.Node.extend ({
        return aq.Block.TILE_DATA [self.tile_num].grid_size;
    },
 
-   getObjectData: function () {
+   getObjectData: function (rotation) {
        var self = this;
-       return aq.Block.TILE_DATA [self.tile_num].grid_data [self.rot];
+       if (typeof (rotation) === 'undefined') {
+          rotation = self.rot;
+       }
+
+       return aq.Block.TILE_DATA[self.tile_num].grid_data[rotation];
    },
 
    getNewRotationAndPosition90: function () {
@@ -245,9 +249,13 @@ aq.Block = cc.Node.extend ({
    /**
     * Return a list of tile cells with position offsets.
     */
-   getTileCells: function (include_empty) {
+   getTileCells: function (include_empty, rotation) {
 
       var self = this;
+
+      if (typeof (rotation) === 'undefined') {
+         rotation = self.rot;
+      }
 
       var tile = aq.Block.TILE_DATA [self.tile_num];
       var grid_size = tile.grid_size;
@@ -262,7 +270,7 @@ aq.Block = cc.Node.extend ({
          for (y = 0; y < grid_size; ++y)
          {
             grid_pos = (y * grid_size) + x;
-            tile_cell = tile.grid_data [self.rot][grid_pos];
+            tile_cell = tile.grid_data [rotation][grid_pos];
             if (include_empty || tile_cell !== 0) {
                cell_list.push ({
                   tile_cell: tile_cell,
