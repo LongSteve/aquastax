@@ -193,6 +193,14 @@ aq.Grid = cc.Node.extend ({
       }
    },
 
+   getBlockAlignedGridPosition: function (block) {
+      var self = this;
+
+      var bottom_left_index = self.getGridIndexForPoint (block.getPosition ());
+      var grid_pos = self.getGridPositionForIndex (bottom_left_index);
+      return grid_pos;
+   },
+
    getGridIndexPositionsForBlockCollision: function (block, pos, rot) {
 
       var self = this;
@@ -350,6 +358,9 @@ aq.Grid = cc.Node.extend ({
 
       var collision = 0;
 
+      // Save any collision points
+      var collision_points = [];
+
       // In here, when a collision occurs, we want to augment the input block object
       // with data about where the collision occured, and what type it is
 
@@ -366,10 +377,27 @@ aq.Grid = cc.Node.extend ({
             var grid_block_pos = self.getGridPositionForIndex (grid_indexes [i].grid_index);
             var grid_block_obj = (self.getGridDataForIndex (grid_indexes [i].grid_index) & 0xff);
 
-            collision |= self.collideObjects (
-                            cell_obj, cell_pos.x, cell_pos.y,
-                            grid_block_obj, grid_block_pos.x, grid_block_pos.y);
+            var cell_collision = self.collideCell (
+                                    cell_obj, cell_pos.x, cell_pos.y,
+                                    grid_block_obj, grid_block_pos.x, grid_block_pos.y);
+
+            if (cell_collision != 0) {
+               var c = {};
+               c.cell = cc.clone (cell);
+               c.collision = cell_collision;
+               c.grid_block_pos = grid_block_pos;
+               c.grid_block_obj = grid_block_obj;
+               collision_points.push (c);
+            }
+
+            collision |= cell_collision;
          }
+      }
+
+      if (collision_points.length > 0) {
+         block.collision_points = collision_points;
+      } else {
+         block.collision_points = null;
       }
 
       return collision;
@@ -409,9 +437,9 @@ aq.Grid = cc.Node.extend ({
 
    /**
     * A rewrite of my old CollideObjects function, that takes two single grid cell sized
-    * objects (blocks) and performs the collision testing.
+    * objects and performs the collision testing.
     */
-   collideObjects: function (moving_obj, moving_pos_x, moving_pos_y,
+   collideCell: function (moving_obj, moving_pos_x, moving_pos_y,
                              grid_obj, grid_pos_x, grid_pos_y) {
 
        var self = this;

@@ -11,8 +11,8 @@ var GameLayer = cc.Layer.extend ({
    // blocks
    block: null,
 
-   // collision test indicator
-   collisionTest: null,
+   // collision test indicators
+   collisionPoints: null,
 
    ctor: function () {
       var self = this;
@@ -50,12 +50,6 @@ var GameLayer = cc.Layer.extend ({
             self.keyAction (keyCode, false);
          }
       }, self);
-
-      // Visualise the collisions with a drawnode
-      self.collisionTest = new cc.DrawNode ();
-      self.collisionTest.drawRect (cc.p (0,0), cc.p (block_size, block_size), cc.color (255,0,255,200));
-      self.collisionTest.setVisible (false);
-      self.gamePanel.addChild (self.collisionTest, 100);
 
       self.scheduleUpdate ();
    },
@@ -164,27 +158,32 @@ var GameLayer = cc.Layer.extend ({
        // TODO: Implement this properly
        //
 
-       // Handle a sliding block
-       if (self.block.isSliding && (dx === 0)) {
-          // based on the direction of slide, add a value to dx
+       // Test to see if the falling block can move straight down.
+       new_block_position = self.block.getPosition ();
+       new_block_position.y += dy;
 
-       } else {
+       collision = 0;
+       collision = self.grid.collideBlock (self.block, new_block_position);
 
-          // Test to see if the falling block can move straight down.
-          new_block_position = self.block.getPosition ();
-          new_block_position.y += dy;
+       if (collision) {
 
-          collision = 0;
-          collision = self.grid.collideBlock (self.block, new_block_position);
+          // Highlight the collision that just occured
+          self.highlightCollision (self.block);
 
-          if (collision) {
+          var wasSliding = self.block.isSliding;
 
-             // Highlight the collision that just occured
-             self.highlightCollision (collision);
+          if (self.testForSliding (self.block, collision)) {
 
-             if (self.testForSliding (self.block, collision)) {
+             // TODO: Handle moving the block left or right, depending upon self.block.slideDirection
+             dx = -dy * self.block.slideX;
+             self.moveBlockBy (dx, dy);
 
-                // TODO: Handle moving the block left or right, depending upon self.block.slideDirection
+          } else {
+
+             if (wasSliding) {
+                // Make sure a block that's not sliding is aligned exactly with the grid
+                var gp = self.grid.getBlockAlignedGridPosition (self.block);
+                self.block.x = gp.x;
 
              } else {
 
@@ -194,11 +193,11 @@ var GameLayer = cc.Layer.extend ({
                 // Allocate a new block for falling
                 self.newRandomBlock ();
              }
-
-          } else {
-             // otherwise, move it
-             self.moveBlockBy (dx, dy);
           }
+
+       } else {
+          // otherwise, move it
+          self.moveBlockBy (dx, dy);
        }
    },
 
@@ -208,31 +207,97 @@ var GameLayer = cc.Layer.extend ({
    // Return false if no sliding can occur
    testForSliding: function (block, collision) {
 
+       // No slide by default
+       block.isSliding = false;
+       block.slideX = 0;
+
+       // Any axis collisions will cause the block to sit where it is
+       if ((collision & AXIS_COLLISION) !== 0) {
+          return false;
+       }
+
        //
        // TODO: Implement this properly
        //
 
-       block.isSliding = false;
+       // slope to the left, causing a -ve x movement
+       var isLeftSlope = function (c) {
+          return (((c & 0xff) === 0x02) || ((c & 0xff) === 0x20) || ((c & 0xff) === 0x04) || ((c & 0xff) === 0x40));
+       };
+
+       // slope to the right, causing a +ve x movement
+       var isRightSlope = function (c) {
+          return (((c & 0xff) === 0x01) || ((c & 0xff) === 0x10) || ((c & 0xff) === 0x03) || ((c & 0xff) === 0x30));
+       };
+
+       var isSlope = function (c) {
+          return (isLeftSlope (c) || isRightSlope (c));
+       };
+
+       // Check the collision_points data
+       if (block.collision_points && block.collision_points.length > 0) {
+          for (var i = 0; i < block.collision_points.length; i++) {
+             var cp = block.collision_points [i];
+
+             var grid_cell = cp.grid_block_obj;
+             var block_cell = cp.cell.tile_cell;
+
+             if (isLeftSlope (block_cell) && isRightSlope (block_cell)) {
+                // pointy block falling, handle this later
+             } else if (isLeftSlope (grid_cell) && isRightSlope (grid_cell)) {
+                // pointy block in the grid
+             } else {
+               if (isLeftSlope (block_cell) || isLeftSlope (grid_cell)) {
+                  block.isSliding = true;
+                  block.slideX = -1;
+               } else if (isRightSlope (block_cell) || isRightSlope (grid_cell)) {
+                  block.isSliding = true;
+                  block.slideX = 1;
+               }
+            }
+          }
+       }
+
        return block.isSliding;
    },
 
    // highlight a collision
-   highlightCollision: function (collision) {
+   highlightCollision: function (block) {
+
       var self = this;
-      if (collision !== 0)
-      {
-         var block_size = aq.config.BLOCK_SIZE;
-         if ((collision & AXIS_COLLISION) !== 0) {
-            self.collisionTest.clear ();
-            self.collisionTest.drawRect (cc.p (0,0), cc.p (block_size, block_size), cc.color (255,0,255,200));
-         } else if ((collision & SLOPE_COLLISION) !== 0) {
-            self.collisionTest.clear ();
-            self.collisionTest.drawRect (cc.p (0,0), cc.p (block_size, block_size), cc.color (0,255,0,200));
+
+      var i;
+
+      if (self.collisionPoints) {
+         for (i = 0; i < self.collisionPoints.length; i++) {
+            self.collisionPoints [i].removeFromParent ();
          }
-         self.collisionTest.setPosition (self.block.getPosition ());
-         self.collisionTest.setVisible (true);
-      } else {
-         self.collisionTest.setVisible (false);
+         self.collisionPoints = null;
+      }
+
+      var half_block = aq.config.BLOCK_SIZE / 2;
+      var block_pos = block.getPosition ();
+
+      if (block.collision_points && block.collision_points.length > 0)
+      {
+         self.collisionPoints = [];
+
+         for (i = 0; i < block.collision_points.length; i++) {
+            var cp = block.collision_points [i];
+
+            var color = ((cp.collision & AXIS_COLLISION) !== 0) ? cc.color (255,0,0,255) : cc.color (0,0,255,255);
+
+            // draw a line between the centers of the two cells that have collided
+            var grid_pos = cc.p (cp.grid_block_pos.x + half_block, cp.grid_block_pos.y + half_block);
+            var b_pos = cc.p (block_pos.x + (cp.cell.x * aq.config.BLOCK_SIZE) + half_block, block_pos.y + (cp.cell.y * aq.config.BLOCK_SIZE) + half_block);
+
+            var hl = new cc.DrawNode ();
+            hl.drawSegment (grid_pos, b_pos, 3, color);
+            hl.setPosition (cc.p (0, 0));
+            hl.setVisible (true);
+            self.collisionPoints.push (hl);
+            self.gamePanel.addChild (hl, 200);
+         }
       }
    },
 

@@ -35,7 +35,7 @@ aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR = 3.0;
 
 /**
  * aq.config.BLOCK_SIZE block size in pixels.  A single square block will
- * be drawn with 2 triangles.
+ * be drawn with 2 triangles.  This is also known as a 'cell'.
  */
 aq.config.BLOCK_SIZE = 50;
 
