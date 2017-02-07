@@ -175,12 +175,16 @@ var GameLayer = cc.Layer.extend ({
        };
 
 
+       // Highlight the collision that just occured
+       self.highlightCollision (self.block);
+
        if (self.block.isSliding) {
 
           // If the player has pressed the left or right button
           if (dx !== 0) {
              // Shift the block to the next grid aligned column, out of the slide
              dx = self.block.isSliding.can_move_to.x - self.block.x;
+             // Take the block out of 'sliding' mode
              self.block.isSliding = null;
           } else {
              // Otherwise handle the slope movement
@@ -191,27 +195,32 @@ var GameLayer = cc.Layer.extend ({
              }
           }
 
+          // Update the position
           self.moveBlockBy (dx, dy);
 
+          // if the block is still sliding (might have been a left/right move to stop it sliding)
           if (self.block.isSliding) {
              if (self.block.isSliding.can_move_left) {
+                // it was going left
                 if (self.block.x <= self.block.isSliding.can_move_to.x) {
+                   // fix to the exact position
                    self.block.setPosition (self.block.isSliding.can_move_to);
+                   // stop the 'sliding' mode
                    self.block.isSliding = null;
                 }
              } else if (self.block.isSliding.can_move_right) {
+                // or if it was going right
                 if (self.block.x >= self.block.isSliding.can_move_to.x) {
+                   // fix to the exact position and stop the slide
                    self.block.setPosition (self.block.isSliding.can_move_to);
                    self.block.isSliding = null;
                 }
              }
           }
+
        } else {
 
           if (collision) {
-
-             // Highlight the collision that just occured
-             self.highlightCollision (self.block);
 
              if ((collision & SLOPE_COLLISION) !== 0) {
 
@@ -225,7 +234,18 @@ var GameLayer = cc.Layer.extend ({
                 //
                 if (slide.can_move_left || slide.can_move_right) {
                    self.block.isSliding = slide;
+
+                   // Align the block to the grid at the current position, to make sure
+                   // that sliding moves correctly
+                   var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
+                   //self.block.setPosition (aligned_pos);
+                   self.block.x = aligned_pos.x;
+                   if (aligned_pos.y < self.block.y) {
+                      self.block.y = aligned_pos.y;
+                   }
+
                 } else {
+
                    //
                    // Otherwise, the only case here is that the slide code determined that it actually
                    // couldn't slide the block.  This could be because it's stuck in place between
@@ -244,11 +264,13 @@ var GameLayer = cc.Layer.extend ({
                 }
 
              } else if ((collision & AXIS_COLLISION) !== 0) {
+                // axis collision means no sliding or breaking, so stick the block in place
                 stickBlock ();
              }
 
           } else {
-             // otherwise, move it
+
+             // otherwise, no collision, so move it
              self.moveBlockBy (dx, dy);
           }
        }

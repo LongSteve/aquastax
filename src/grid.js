@@ -439,6 +439,12 @@ aq.Grid = cc.Node.extend ({
           can_move_to = p2;
        }
 
+       // Make sure the position the block is moving to is grid aligned
+       if (can_move_to) {
+          can_move_to.x = Math.floor (can_move_to.x / aq.config.BLOCK_SIZE) * aq.config.BLOCK_SIZE;
+          can_move_to.y = Math.floor (can_move_to.y / aq.config.BLOCK_SIZE) * aq.config.BLOCK_SIZE;
+       }
+
        return {
           can_move_left: can_move_left,
           can_move_right: can_move_right,
