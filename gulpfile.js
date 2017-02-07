@@ -79,7 +79,7 @@ gulp.task ('watch', ['static', 'default'], function () {
 
    livereload ({ start: true });
 
-   gulp.watch (['./main.js', '**/*.js'], { interval: 750 }, ['jshint']).on ('change', function (evt) {
+   gulp.watch (['./main.js', 'src/*.js', 'res/*.js'], { interval: 2000 }, ['jshint']).on ('change', function (evt) {
       if (evt.type !== 'changed') {
          gulp.start ('index');         // wish I could remember why I needed to do this!
       }

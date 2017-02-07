@@ -141,7 +141,8 @@ var GameLayer = cc.Layer.extend ({
        if (self.fastDrop) {
           var fast_dy = dy * 20;
           new_block_position = cc.p (current_block_position.x + dx, current_block_position.y + fast_dy);
-          if (!self.grid.collideBlock (self.block, new_block_position)) {
+          var fast_drop_collision = self.grid.collideBlock (self.block, new_block_position);
+          if ((fast_drop_collision & AXIS_COLLISION) == 0) {
              dy = fast_dy;
           }
        }
@@ -154,10 +155,6 @@ var GameLayer = cc.Layer.extend ({
           dx = 0;
        }
 
-       //
-       // TODO: Implement this properly
-       //
-
        // Test to see if the falling block can move straight down.
        new_block_position = self.block.getPosition ();
        new_block_position.y += dy;
@@ -165,100 +162,96 @@ var GameLayer = cc.Layer.extend ({
        collision = 0;
        collision = self.grid.collideBlock (self.block, new_block_position);
 
-       if (collision) {
+       //
+       // stick block in place
+       //
+       var stickBlock = function () {
 
-          // Highlight the collision that just occured
-          self.highlightCollision (self.block);
+          // If the falling block cannot move down (or slide), lock it in place
+          self.grid.insertBlockIntoGrid (self.block);
 
-          var wasSliding = self.block.isSliding;
+          // Allocate a new block for falling
+          self.newRandomBlock ();
+       };
 
-          if (self.testForSliding (self.block, collision)) {
 
-             // TODO: Handle moving the block left or right, depending upon self.block.slideDirection
-             dx = -dy * self.block.slideX;
-             self.moveBlockBy (dx, dy);
+       if (self.block.isSliding) {
 
+          // If the player has pressed the left or right button
+          if (dx !== 0) {
+             // Shift the block to the next grid aligned column, out of the slide
+             dx = self.block.isSliding.can_move_to.x - self.block.x;
+             self.block.isSliding = null;
           } else {
-
-             if (wasSliding) {
-                // Make sure a block that's not sliding is aligned exactly with the grid
-                var gp = self.grid.getBlockAlignedGridPosition (self.block);
-                self.block.x = gp.x;
-
-             } else {
-
-                // If the falling block cannot move down (or slide), lock it in place
-                self.grid.insertBlockIntoGrid (self.block);
-
-                // Allocate a new block for falling
-                self.newRandomBlock ();
+             // Otherwise handle the slope movement
+             if (self.block.isSliding.can_move_left) {
+                dx = dy;
+             } else if (self.block.isSliding.can_move_right) {
+                dx = -dy;
              }
           }
 
-       } else {
-          // otherwise, move it
           self.moveBlockBy (dx, dy);
-       }
-   },
 
-   // Return true if the block will slide.  In this case, also set block.isSliding and
-   // block.slideDirection.
-   //
-   // Return false if no sliding can occur
-   testForSliding: function (block, collision) {
+          if (self.block.isSliding) {
+             if (self.block.isSliding.can_move_left) {
+                if (self.block.x <= self.block.isSliding.can_move_to.x) {
+                   self.block.setPosition (self.block.isSliding.can_move_to);
+                   self.block.isSliding = null;
+                }
+             } else if (self.block.isSliding.can_move_right) {
+                if (self.block.x >= self.block.isSliding.can_move_to.x) {
+                   self.block.setPosition (self.block.isSliding.can_move_to);
+                   self.block.isSliding = null;
+                }
+             }
+          }
+       } else {
 
-       // No slide by default
-       block.isSliding = false;
-       block.slideX = 0;
+          if (collision) {
 
-       // Any axis collisions will cause the block to sit where it is
-       if ((collision & AXIS_COLLISION) !== 0) {
-          return false;
-       }
+             // Highlight the collision that just occured
+             self.highlightCollision (self.block);
 
-       //
-       // TODO: Implement this properly
-       //
+             if ((collision & SLOPE_COLLISION) !== 0) {
 
-       // slope to the left, causing a -ve x movement
-       var isLeftSlope = function (c) {
-          return (((c & 0xff) === 0x02) || ((c & 0xff) === 0x20) || ((c & 0xff) === 0x04) || ((c & 0xff) === 0x40));
-       };
+                //
+                // Handle sliding the block calculations
+                //
+                var slide = self.grid.slideBlock (self.block);
 
-       // slope to the right, causing a +ve x movement
-       var isRightSlope = function (c) {
-          return (((c & 0xff) === 0x01) || ((c & 0xff) === 0x10) || ((c & 0xff) === 0x03) || ((c & 0xff) === 0x30));
-       };
+                //
+                // If the block can slide left or right, then send it off
+                //
+                if (slide.can_move_left || slide.can_move_right) {
+                   self.block.isSliding = slide;
+                } else {
+                   //
+                   // Otherwise, the only case here is that the slide code determined that it actually
+                   // couldn't slide the block.  This could be because it's stuck in place between
+                   // two slopes, or that this is a point collision which should cause a break
+                   //
+                   var breaking = self.grid.breakBlock (self.block, new_block_position);
 
-       var isSlope = function (c) {
-          return (isLeftSlope (c) || isRightSlope (c));
-       };
+                   if (breaking) {
+                      //
+                      // Handle the block breaking
+                      //
+                   } else {
+                      // stick block in place
+                      stickBlock ();
+                   }
+                }
 
-       // Check the collision_points data
-       if (block.collision_points && block.collision_points.length > 0) {
-          for (var i = 0; i < block.collision_points.length; i++) {
-             var cp = block.collision_points [i];
+             } else if ((collision & AXIS_COLLISION) !== 0) {
+                stickBlock ();
+             }
 
-             var grid_cell = cp.grid_block_obj;
-             var block_cell = cp.cell.tile_cell;
-
-             if (isLeftSlope (block_cell) && isRightSlope (block_cell)) {
-                // pointy block falling, handle this later
-             } else if (isLeftSlope (grid_cell) && isRightSlope (grid_cell)) {
-                // pointy block in the grid
-             } else {
-               if (isLeftSlope (block_cell) || isLeftSlope (grid_cell)) {
-                  block.isSliding = true;
-                  block.slideX = -1;
-               } else if (isRightSlope (block_cell) || isRightSlope (grid_cell)) {
-                  block.isSliding = true;
-                  block.slideX = 1;
-               }
-            }
+          } else {
+             // otherwise, move it
+             self.moveBlockBy (dx, dy);
           }
        }
-
-       return block.isSliding;
    },
 
    // highlight a collision

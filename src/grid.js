@@ -196,9 +196,11 @@ aq.Grid = cc.Node.extend ({
    getBlockAlignedGridPosition: function (block) {
       var self = this;
 
-      var bottom_left_index = self.getGridIndexForPoint (block.getPosition ());
-      var grid_pos = self.getGridPositionForIndex (bottom_left_index);
-      return grid_pos;
+      var pos = block.getPosition ();
+      var x = Math.floor (pos.x / aq.config.BLOCK_SIZE) * aq.config.BLOCK_SIZE;
+      var y = Math.floor (pos.y / aq.config.BLOCK_SIZE) * aq.config.BLOCK_SIZE;
+
+      return cc.p (x,y);
    },
 
    getGridIndexPositionsForBlockCollision: function (block, pos, rot) {
@@ -329,15 +331,15 @@ aq.Grid = cc.Node.extend ({
        var block_size = aq.config.BLOCK_SIZE;
 
        if (new_pos.x + (bounds.left * block_size) < 0) {
-          return 1;
+          return (1 | AXIS_COLLISION);
        }
 
        if (new_pos.x + (bounds.right * block_size) > (self.blocks_wide * block_size)) {
-          return 2;
+          return (2 | AXIS_COLLISION);
        }
 
        if (new_pos.y + (bounds.bottom * block_size) < 0) {
-          return 3;
+          return (3 | AXIS_COLLISION);
        }
 
        return 0;
@@ -381,7 +383,8 @@ aq.Grid = cc.Node.extend ({
                                     cell_obj, cell_pos.x, cell_pos.y,
                                     grid_block_obj, grid_block_pos.x, grid_block_pos.y);
 
-            if (cell_collision != 0) {
+            if (cell_collision !== 0) {
+               // Report this collision back to the game code
                var c = {};
                c.cell = cc.clone (cell);
                c.collision = cell_collision;
@@ -401,6 +404,52 @@ aq.Grid = cc.Node.extend ({
       }
 
       return collision;
+   },
+
+   slideBlock: function (block) {
+       var self = this;
+
+       var can_move_left = false;
+       var can_move_right = false;
+
+       var pos = block.getPosition ();
+
+       var p1, p2;
+       var can_move_to = null;
+
+       // Test moving down to the right
+       p1 = cc.p (pos.x + half_block_size, pos.y - half_block_size);
+       p2 = cc.p (pos.x + (half_block_size * 2), pos.y - (half_block_size * 2));
+       var r1 = self.collideBlock (block, p1);
+       var r2 = self.collideBlock (block, p2);
+       if (!r1 && !r2)
+       {
+          can_move_right = true;
+          can_move_to = p2;
+       }
+
+       // test to the left
+       p1 = cc.p (pos.x - half_block_size, pos.y - half_block_size);
+       p2 = cc.p (pos.x - (half_block_size * 2), pos.y - (half_block_size * 2));
+       var l1 = self.collideBlock (block, p1);
+       var l2 = self.collideBlock (block, p2);
+       if (!l1 && !l2)
+       {
+          can_move_left = true;
+          can_move_to = p2;
+       }
+
+       return {
+          can_move_left: can_move_left,
+          can_move_right: can_move_right,
+          can_move_to: can_move_to
+       };
+   },
+
+   breakBlock: function (block, new_pos) {
+       var self = this;
+
+       return false;
    },
 
    /**
@@ -545,8 +594,6 @@ aq.Grid = cc.Node.extend ({
    },
 
    collideSquareWithTriangle: function (x, y, fixed_triangle, triangle_x, triangle_y, square_x, square_y) {
-
-       var self = this;
 
        var ox, oy;
 
@@ -699,7 +746,12 @@ aq.Grid = cc.Node.extend ({
        var tile_data = block.getTileData ();
        var grid_size = tile_data.grid_size;
 
-       var top_left = self.getGridIndexForNode (block) + ((grid_size - 1) * self.blocks_wide);
+       var block_index = self.getGridIndexForNode (block);
+       var top_left = block_index + ((grid_size - 1) * self.blocks_wide);
+
+       var fixed_block_pos = self.getBlockAlignedGridPosition (block);
+
+       block.setPosition (fixed_block_pos);
 
        var x,y;
 
