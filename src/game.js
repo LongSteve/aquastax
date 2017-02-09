@@ -1,5 +1,7 @@
 'use strict';
 
+/* globals AXIS_COLLISION, SLOPE_COLLISION */
+
 var GameLayer = cc.Layer.extend ({
 
    // panels
@@ -40,6 +42,12 @@ var GameLayer = cc.Layer.extend ({
       self.gamePanel = gamePanel;
 
       self.newBlock (0, blocks_wide / 2, blocks_high);
+
+      self.moveHighlightL = new cc.DrawNode ();
+      self.gamePanel.addChild (self.moveHighlightL, 100);
+
+      self.moveHighlightR = new cc.DrawNode ();
+      self.gamePanel.addChild (self.moveHighlightR, 100);
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -102,7 +110,7 @@ var GameLayer = cc.Layer.extend ({
           self.dx = 0;
        }
 
-       // Let the keyboard repeat rate handle holding down a key
+       // Handle repeat block movement left and right
        if (Math.abs (self.dx) === 1) {
           self.keysPressed [cc.KEY.left] = false;
           self.keysPressed [cc.KEY.right] = false;
@@ -131,6 +139,8 @@ var GameLayer = cc.Layer.extend ({
 
        // dx,dy are the point (pixels) difference to move the block in one game update
        var dx = self.dx * aq.config.BLOCK_SIZE;
+
+
        var dy = -aq.config.BLOCK_SIZE / 60;
 
        var current_block_position = self.block.getPosition ();
@@ -142,14 +152,25 @@ var GameLayer = cc.Layer.extend ({
           var fast_dy = dy * 20;
           new_block_position = cc.p (current_block_position.x + dx, current_block_position.y + fast_dy);
           var fast_drop_collision = self.grid.collideBlock (self.block, new_block_position);
-          if ((fast_drop_collision & AXIS_COLLISION) == 0) {
+          if ((fast_drop_collision & AXIS_COLLISION) === 0) {
              dy = fast_dy;
           }
        }
 
-       // Test to see if the falling block can move sideways
+       // Project the block sideways for a collision test
        new_block_position = self.block.getPosition ();
        new_block_position.x += dx;
+
+       // Adjust the y position if the should block is aligned with the grid
+       // This lets the blocks slide left and right into tight gaps
+       var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
+
+       // where does this magic number 2.5 come from?
+       if (Math.abs (new_block_position.y - aligned_pos.y) < 2.5) {
+          new_block_position.y = aligned_pos.y;
+       }
+
+       // Test to see if the falling block can move sideways
        if (self.grid.collideBlock (self.block, new_block_position)) {
           // If collision would occur, don't attempt the sideways move
           dx = 0;
@@ -173,7 +194,6 @@ var GameLayer = cc.Layer.extend ({
           // Allocate a new block for falling
           self.newRandomBlock ();
        };
-
 
        // Highlight the collision that just occured
        self.highlightCollision (self.block);

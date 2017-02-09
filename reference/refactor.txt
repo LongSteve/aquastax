@@ -1,7 +1,12 @@
-7th February 2017
+9th February 2017
 
 ONGOING
-Fix the blocks sliding sideways into place
+Fix the blocks sliding sideways into place.
+Partially done, but need to understand how to aligne the blocks vertically properly.  Currently
+there's a 2.5 magic number in the y offset.
+
+** Figure out how the keyboard repeat works, and decide if it's possible to use actually keyPressed/keyReleased
+functionality. **
 
 TO REFACTOR
 1) Rename block or grid functions that only operate on single cells (that is, the 50x50 grid cell sized elements)

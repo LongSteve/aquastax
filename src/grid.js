@@ -194,6 +194,7 @@ aq.Grid = cc.Node.extend ({
    },
 
    getBlockAlignedGridPosition: function (block) {
+      // jshint unused:false
       var self = this;
 
       var pos = block.getPosition ();
@@ -204,8 +205,8 @@ aq.Grid = cc.Node.extend ({
    },
 
    getGridIndexPositionsForBlockCollision: function (block, pos, rot) {
-
       var self = this;
+
       var tile_num = block.getTileNum ();
 
       var tile_bounds = block.getTileBounds (rot);
@@ -355,7 +356,6 @@ aq.Grid = cc.Node.extend ({
       var self = this;
 
       var moving_obj_cells = block.getTileCells (new_rot);
-      var moving_obj = block.getObjectData (new_rot);
       var moving_pos = new_pos;
 
       var collision = 0;
@@ -453,6 +453,7 @@ aq.Grid = cc.Node.extend ({
    },
 
    breakBlock: function (block, new_pos) {
+       // jshint unused:false
        var self = this;
 
        return false;
