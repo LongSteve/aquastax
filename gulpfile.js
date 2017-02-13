@@ -1,8 +1,8 @@
 /* jshint node: true */
 'use strict';
 
-// Import gulp
-var gulp = require ('gulp');
+// Import gulp through gulp-help
+var gulp = require ('gulp-help')(require ('gulp'), {hideEmpty: true, hideDepsMessage: true});
 
 // And lots of useful plugins
 var gutil = require ('gulp-util');
@@ -25,16 +25,16 @@ var lazypipe = require ('lazypipe');
 var minimist = require ('minimist');
 
 // Process command line arg for enabling stylish jshint output
-// Use --jshint=stylish
-var argv = minimist (process.argv.slice (2), {'string': 'jshint'});
+// Use --stylish
+var argv = minimist (process.argv.slice (2), {'boolean': 'stylish'});
 
 // Set true when using the long running 'gulp serve' command
 var isWatching = false;
 
 /**
- * Default task (run jshint and build the index.html)
+ * Default task, show the help
  */
-gulp.task ('default', ['jshint', 'index']);
+gulp.task ('default', ['help']);
 
 /**
  * Generate index.html in .tmp folder, embedding the livereload script tag
@@ -50,7 +50,7 @@ gulp.task ('index', function () {
 /**
  * Run jshint on all the files
  */
-gulp.task ('jshint', function () {
+gulp.task ('jshint', 'Run jshint over the source .js files', [], function () {
    return gulp.src ([
       './gulpfile.js',
       './src/**/*.js',
@@ -59,29 +59,29 @@ gulp.task ('jshint', function () {
       './main.js'
    ])
    .pipe (cached ('jshint'))        // cache in memory
-   .pipe (_jshint (argv.jshint))    // pass in command line arg for 'stylish'
+   .pipe (_jshint (argv.stylish))   // pass in command line arg for 'stylish'
    .pipe (_livereload ());          // pass to livereload
-});
+}, {options: {'stylish': 'Use the stylish processor for output'}});
 
 /**
  * Serve up the index.html and the rest of the project .js files (for debug running).
  * This is our version of 'cocos run -p web', but with livereload, and jshinting.
  */
-gulp.task ('serve', ['watch']);
+gulp.task ('serve', 'Serve the project files on port 8000, including livereload', ['watch']);
 
 gulp.task ('static', serve ({
    port: 8000,
    root: ['./.tmp', '.']
 }));
 
-gulp.task ('watch', ['static', 'default'], function () {
+gulp.task ('watch', ['static', 'index', 'jshint'], function () {
    isWatching = true;
 
    livereload ({ start: true });
 
-   gulp.watch (['./main.js', 'src/*.js', 'res/*.js'], { interval: 2000 }, ['jshint']).on ('change', function (evt) {
+   gulp.watch (['./*.js', 'src/**/*.js', 'res/**/*.js'], { interval: 2000 }, ['jshint']).on ('change', function (evt) {
       if (evt.type !== 'changed') {
-         gulp.start ('index');         // wish I could remember why I needed to do this!
+         gulp.start ('index');
       }
    });
 
@@ -92,13 +92,13 @@ gulp.task ('watch', ['static', 'default'], function () {
  * Jshint with either default or stylish reporter (default works better in SlickEdit
  * whereas stylish better in build logs)
  */
-function _jshint (reporter) {
+function _jshint (isStylish) {
    var jshintfile = './.jshintrc';
    var jshintSettings = JSON.parse (fs.readFileSync (jshintfile, 'utf8'));
 
    return lazypipe ()
       .pipe (jshint, jshintSettings)
-      .pipe (jshint.reporter, reporter === 'stylish' ? stylish : 'default') ();
+      .pipe (jshint.reporter, isStylish ? stylish : 'default') ();
 }
 
 /**
