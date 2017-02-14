@@ -46,6 +46,21 @@ aq.config.BLOCK_SIZE = 50;
 aq.config.GRID_WIDTH = 14;
 
 /**
+ * Millisecond delay for keyboard being held down and actions repeating
+ */
+aq.config.KEY_DELAY_MS = 100;
+
+/**
+ * Block drop rate in grid cells per second
+ */
+aq.config.NORMAL_BLOCK_DROP_RATE = 1;
+
+/*
+ * Block drop rate when fast dropping
+ */
+aq.config.FAST_BLOCK_DROP_RATE = 20;
+
+/**
  * Freeze the aq.config object so we don't go adding to it all over the code
  */
 Object.freeze (aq.config);

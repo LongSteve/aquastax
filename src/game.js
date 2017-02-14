@@ -73,6 +73,10 @@ var GameLayer = cc.Layer.extend ({
    dx:0,
    dy:0,
 
+   // movement repeat timings
+   moveDelayMS: 0,
+   rotateDelayMS: 0,
+
    // block is dropping fast
    fastDrop: false,
 
@@ -95,20 +99,33 @@ var GameLayer = cc.Layer.extend ({
        var collision = 0;
 
        // Drop the block down quickly
-       if (self.keysPressed [cc.KEY.down]) {
-          self.fastDrop = true;
-       } else {
-          self.fastDrop = false;
-       }
+       self.fastDrop = self.keysPressed [cc.KEY.down];
 
        // Move left or right
-       if (self.keysPressed [cc.KEY.left]) {
-          self.dx = -1;
-       } else if (self.keysPressed [cc.KEY.right]) {
-          self.dx = 1;
-       } else {
-          self.dx = 0;
+       if (self.moveDelayMS >= aq.config.KEY_DELAY_MS) {
+          if (self.keysPressed[cc.KEY.left]) {
+             self.dx = -1;
+             self.moveDelayMS = 0;
+          } else if (self.keysPressed [cc.KEY.right]) {
+             self.dx = 1;
+             self.moveDelayMS = 0;
+          }
        }
+
+       if (!self.keysPressed[cc.KEY.left] && !self.keysPressed[cc.KEY.right]) {
+          self.moveDelayMS = aq.config.KEY_DELAY_MS;
+       }
+
+       if (!self.keysPressed[cc.KEY.up]) {
+          self.rotateDelayMS = aq.config.KEY_DELAY_MS;
+       }
+
+       // TODO: Find where I can query the FPS from
+       var framesPerSecond = 60.0;
+       var millisPerUpdate = 1000.0 / framesPerSecond;
+
+       self.moveDelayMS += millisPerUpdate;
+       self.rotateDelayMS += millisPerUpdate;
 
        // Handle repeat block movement left and right
        if (Math.abs (self.dx) === 1) {
@@ -117,7 +134,9 @@ var GameLayer = cc.Layer.extend ({
        }
 
        // Rotate the block through 90 degrees
-       if (self.keysPressed [cc.KEY.up]) {
+       if (self.rotateDelayMS >= aq.config.KEY_DELAY_MS && self.keysPressed [cc.KEY.up]) {
+          self.rotateDelayMS = 0;
+
           var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
           collision = self.grid.collideBlock (self.block,
                                               potentialNewRotationAndPosition.position,
@@ -140,8 +159,7 @@ var GameLayer = cc.Layer.extend ({
        // dx,dy are the point (pixels) difference to move the block in one game update
        var dx = self.dx * aq.config.BLOCK_SIZE;
 
-
-       var dy = -aq.config.BLOCK_SIZE / 60;
+       var dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
 
        var current_block_position = self.block.getPosition ();
        var new_block_position;
@@ -149,7 +167,7 @@ var GameLayer = cc.Layer.extend ({
        // If we're fast dropping, check for a collision and only keep the dy update
        // value fast if no collision would occur
        if (self.fastDrop) {
-          var fast_dy = dy * 20;
+          var fast_dy = -(aq.config.BLOCK_SIZE * aq.config.FAST_BLOCK_DROP_RATE) / framesPerSecond;
           new_block_position = cc.p (current_block_position.x + dx, current_block_position.y + fast_dy);
           var fast_drop_collision = self.grid.collideBlock (self.block, new_block_position);
           if ((fast_drop_collision & AXIS_COLLISION) === 0) {
@@ -166,7 +184,9 @@ var GameLayer = cc.Layer.extend ({
        var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
 
        // where does this magic number 2.5 come from?
-       if (Math.abs (new_block_position.y - aligned_pos.y) < 2.5) {
+       var alignedDistance = 2.5;
+       //var alignedDistance = (aq.config.BLOCK_SIZE * 2) / framesPerSecond;
+       if (Math.abs (new_block_position.y - aligned_pos.y) <= alignedDistance) {
           new_block_position.y = aligned_pos.y;
        }
 
@@ -257,8 +277,7 @@ var GameLayer = cc.Layer.extend ({
 
                    // Align the block to the grid at the current position, to make sure
                    // that sliding moves correctly
-                   var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
-                   //self.block.setPosition (aligned_pos);
+                   aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
                    self.block.x = aligned_pos.x;
                    if (aligned_pos.y < self.block.y) {
                       self.block.y = aligned_pos.y;
@@ -294,6 +313,8 @@ var GameLayer = cc.Layer.extend ({
              self.moveBlockBy (dx, dy);
           }
        }
+
+       self.dx = 0;
    },
 
    // highlight a collision
