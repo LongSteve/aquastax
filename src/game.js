@@ -16,6 +16,17 @@ var GameLayer = cc.Layer.extend ({
    // collision test indicators
    collisionPoints: null,
 
+   // Previous frame movement flags
+   could_move_right: false,
+   could_move_left: false,
+
+   // keypress indicators
+   keyPressIndicators: null,
+   keyMap: null,
+
+   // general variable indicators
+   variableIndicators: null,
+
    ctor: function () {
       var self = this;
 
@@ -49,6 +60,66 @@ var GameLayer = cc.Layer.extend ({
       self.moveHighlightR = new cc.DrawNode ();
       self.gamePanel.addChild (self.moveHighlightR, 100);
 
+      self.keyPressIndicators = [];
+      self.keyPressIndicators [0] = new cc.DrawNode ();
+      self.keyPressIndicators [1] = new cc.DrawNode ();
+      self.keyPressIndicators [2] = new cc.DrawNode ();
+      self.keyPressIndicators [3] = new cc.DrawNode ();
+
+      var triangle = [
+         cc.p (0, 0),
+         cc.p (50, 50),
+         cc.p (100,0)
+      ];
+
+      self.keyPressIndicators [0].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
+      self.keyPressIndicators [0].x = self.gamePanel.x - 250;
+      self.keyPressIndicators [0].y = h / 2;
+      self.addChild (self.keyPressIndicators [0]);
+
+      self.keyPressIndicators [1].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
+      self.keyPressIndicators [1].x = self.gamePanel.x - 300;
+      self.keyPressIndicators [1].y = h / 2 - 100;
+      self.keyPressIndicators[1].setRotation (-90);
+      self.addChild (self.keyPressIndicators [1]);
+
+      self.keyPressIndicators [2].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
+      self.keyPressIndicators [2].x = self.gamePanel.x - 100;
+      self.keyPressIndicators [2].y = h / 2;
+      self.keyPressIndicators[2].setRotation (90);
+      self.addChild (self.keyPressIndicators [2]);
+
+      self.keyPressIndicators [3].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
+      self.keyPressIndicators [3].x = self.gamePanel.x - 150;
+      self.keyPressIndicators [3].y = h / 2 - 100;
+      self.keyPressIndicators[3].setRotation (180);
+      self.addChild (self.keyPressIndicators [3]);
+
+      self.keyPressIndicators [0].setVisible (false);
+      self.keyPressIndicators [1].setVisible (false);
+      self.keyPressIndicators [2].setVisible (false);
+      self.keyPressIndicators [3].setVisible (false);
+
+      self.keyMap = [];
+      self.keyMap [cc.KEY.up] = 0;
+      self.keyMap [cc.KEY.left] = 1;
+      self.keyMap [cc.KEY.right] = 2;
+      self.keyMap [cc.KEY.down] = 3;
+
+      self.variableIndicators = [];
+
+      self.variableIndicators [0] = new cc.DrawNode ();
+      self.variableIndicators [0].drawCircle (cc.p (0,0), 20, 2 * Math.PI, 32, false, 2, cc.color (0,255,0));
+      self.variableIndicators [0].setPosition (self.gamePanel.x - 200, h / 3 * 2);
+      self.variableIndicators [0].setVisible (false);
+      self.addChild (self.variableIndicators [0]);
+
+      self.variableIndicators [1] = new cc.DrawNode ();
+      self.variableIndicators [1].drawCircle (cc.p (0,0), 20, 2 * Math.PI, 32, false, 2, cc.color (0,0,255));
+      self.variableIndicators [1].setPosition (self.gamePanel.x - 200, (h / 3 * 2) - 50);
+      self.variableIndicators [1].setVisible (false);
+      self.addChild (self.variableIndicators [1]);
+
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
          onKeyPressed: function (keyCode) {
@@ -69,16 +140,9 @@ var GameLayer = cc.Layer.extend ({
    // array of keys pressed
    keysPressed: [],
 
-   // delta x and y for block movement
-   dx:0,
-   dy:0,
-
    // movement repeat timings
    moveDelayMS: 0,
    rotateDelayMS: 0,
-
-   // block is dropping fast
-   fastDrop: false,
 
    keyAction: function (keyCode, pressed) {
       var self = this;
@@ -96,45 +160,51 @@ var GameLayer = cc.Layer.extend ({
    update: function () {
        var self = this;
 
+       // Game update values
+       var framesPerSecond = cc.game.config.frameRate;
+       var millisPerUpdate = 1000.0 / framesPerSecond;
+
+       // Get key states
+       var leftPressed = self.keysPressed[cc.KEY.left];
+       var rightPressed = self.keysPressed[cc.KEY.right];
+
+       var rotatePressed = self.keysPressed[cc.KEY.up];
+       var dropPressed = self.keysPressed[cc.KEY.down];
+
+       // General purpose collision detection
        var collision = 0;
 
-       // Drop the block down quickly
-       self.fastDrop = self.keysPressed [cc.KEY.down];
+       // Action triggers
+       var willRotate;
+
+       // Move block left and right in pixels
+       var dx = 0;
+       var dy = 0;
 
        // Move left or right
        if (self.moveDelayMS >= aq.config.KEY_DELAY_MS) {
-          if (self.keysPressed[cc.KEY.left]) {
-             self.dx = -1;
+          if (leftPressed) {
+             dx = -1 * aq.config.BLOCK_SIZE;          // move one block left
              self.moveDelayMS = 0;
-          } else if (self.keysPressed [cc.KEY.right]) {
-             self.dx = 1;
+          } else if (rightPressed) {
+             dx = 1 * aq.config.BLOCK_SIZE;           // move one block right
              self.moveDelayMS = 0;
           }
        }
 
-       if (!self.keysPressed[cc.KEY.left] && !self.keysPressed[cc.KEY.right]) {
+       if (!leftPressed && !rightPressed) {
           self.moveDelayMS = aq.config.KEY_DELAY_MS;
        }
 
-       if (!self.keysPressed[cc.KEY.up]) {
+       if (!rotatePressed) {
           self.rotateDelayMS = aq.config.KEY_DELAY_MS;
        }
-
-       // TODO: Find where I can query the FPS from
-       var framesPerSecond = 60.0;
-       var millisPerUpdate = 1000.0 / framesPerSecond;
 
        self.moveDelayMS += millisPerUpdate;
        self.rotateDelayMS += millisPerUpdate;
 
-       // Handle repeat block movement left and right
-       if (Math.abs (self.dx) === 1) {
-          self.keysPressed [cc.KEY.left] = false;
-          self.keysPressed [cc.KEY.right] = false;
-       }
-
        // Rotate the block through 90 degrees
-       if (self.rotateDelayMS >= aq.config.KEY_DELAY_MS && self.keysPressed [cc.KEY.up]) {
+       if (rotatePressed && self.rotateDelayMS >= aq.config.KEY_DELAY_MS) {
           self.rotateDelayMS = 0;
 
           var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
@@ -150,23 +220,21 @@ var GameLayer = cc.Layer.extend ({
           }
           if (collision === 0) {
              self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
+             willRotate = true;
           }
-          self.keysPressed[cc.KEY.up] = false;
        }
 
        self.grid.highlightBlockCells (self.block);
 
        // dx,dy are the point (pixels) difference to move the block in one game update
-       var dx = self.dx * aq.config.BLOCK_SIZE;
-
-       var dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
+       dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
 
        var current_block_position = self.block.getPosition ();
        var new_block_position;
 
        // If we're fast dropping, check for a collision and only keep the dy update
        // value fast if no collision would occur
-       if (self.fastDrop) {
+       if (dropPressed) {
           var fast_dy = -(aq.config.BLOCK_SIZE * aq.config.FAST_BLOCK_DROP_RATE) / framesPerSecond;
           new_block_position = cc.p (current_block_position.x + dx, current_block_position.y + fast_dy);
           var fast_drop_collision = self.grid.collideBlock (self.block, new_block_position);
@@ -175,17 +243,53 @@ var GameLayer = cc.Layer.extend ({
           }
        }
 
+       self.keyPressIndicators [self.keyMap [cc.KEY.up]].setVisible (willRotate);
+       self.keyPressIndicators [self.keyMap [cc.KEY.down]].setVisible (dy == fast_dy);
+       self.keyPressIndicators [self.keyMap [cc.KEY.left]].setVisible (dx < 0);
+       self.keyPressIndicators [self.keyMap [cc.KEY.right]].setVisible (dx > 0);
+
+       // If the block is within 2 * the amount it moves by per frame, then
+       // assume it's aligned with the grid
+       var alignedDistance = (aq.config.BLOCK_SIZE * 2) / framesPerSecond;
+
+       // Adjust the y position if the block is aligned with the grid
+       // This lets the blocks slide left and right into tight gaps
+       var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
+
+       // Sideways test, if left or right movement key is pressed
+       var tmp_collision = 1;
+       var tmp_dx, tmp_pos
+       if (leftPressed || rightPressed) {
+          tmp_dx = (leftPressed ? -1 : 1) * aq.config.BLOCK_SIZE;
+          tmp_pos = self.block.getPosition ();
+          if (Math.abs (tmp_pos.y - aligned_pos.y) <= alignedDistance) {
+             tmp_pos.y = aligned_pos.y;
+          }
+          tmp_pos.x += tmp_dx;
+          tmp_collision = self.grid.collideBlock (self.block, tmp_pos);
+       }
+
+       var can_move_left = leftPressed && (tmp_collision === 0);
+       var can_move_right = rightPressed && (tmp_collision === 0);
+
+       if (can_move_left && !self.could_move_left) {
+          dx = tmp_dx;
+       }
+
+       if (can_move_right && !self.could_move_right) {
+          dx = tmp_dx;
+       }
+
+       self.could_move_left = can_move_left;
+       self.could_move_right = can_move_right;
+
+       self.variableIndicators [0].setVisible (!can_move_left);
+       self.variableIndicators [1].setVisible (!can_move_right);
+
        // Project the block sideways for a collision test
        new_block_position = self.block.getPosition ();
        new_block_position.x += dx;
 
-       // Adjust the y position if the should block is aligned with the grid
-       // This lets the blocks slide left and right into tight gaps
-       var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
-
-       // where does this magic number 2.5 come from?
-       var alignedDistance = 2.5;
-       //var alignedDistance = (aq.config.BLOCK_SIZE * 2) / framesPerSecond;
        if (Math.abs (new_block_position.y - aligned_pos.y) <= alignedDistance) {
           new_block_position.y = aligned_pos.y;
        }
@@ -313,8 +417,6 @@ var GameLayer = cc.Layer.extend ({
              self.moveBlockBy (dx, dy);
           }
        }
-
-       self.dx = 0;
    },
 
    // highlight a collision

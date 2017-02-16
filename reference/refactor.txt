@@ -1,14 +1,12 @@
-14th February 2017
+16th February 2017
 
 ONGOING
-Fix the blocks sliding sideways into place.  I did this, but broke it again with the key repeat handling
-
-Partially done, but need to understand how to aligne the blocks vertically properly.  Currently
-there's a 2.5 magic number in the y offset.
-
-Abstract the keyboard keys so that in the future I can redefine them without change all the code
+Fix the blocks sliding sideways into place.  Have now worked out a solution for this, using left and right
+key pressed and stored previous frame values for could_move_left and could_move_right. *Hopefully Fixed*
 
 TO REFACTOR
-1) Rename block or grid functions that only operate on single cells (that is, the 50x50 grid cell sized elements)
+1) All the boilerplate code for indicators (using DrawNode) in game.js.  Lots of copy and paste there.
+2) Move the block movement functions out of game.update into it's own 'handleBlockMove' method (or something)
+3) Rename block or grid functions that only operate on single cells (that is, the 50x50 grid cell sized elements)
 
 
