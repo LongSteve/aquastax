@@ -1,12 +1,19 @@
-16th February 2017
+21st February 2017
 
 ONGOING
-Fix the blocks sliding sideways into place.  Have now worked out a solution for this, using left and right
-key pressed and stored previous frame values for could_move_left and could_move_right. *Hopefully Fixed*
+
+Fix bugs 1 and 2.
+
+Move onto stack clustering/grouping.
+
+BUGS
+1) Rotating a block into a place where a triangle will overlap with an equal triangle in the grid, causes the
+   block to overlap.  It might be because the collision test when rotating (game.js:196) doesn't take into
+   account of the y axis movement (down) that should occur in the frame.
+2) Rotating a block when it's moving down next to a solid vertical stack, the rotation stops and cannot be
+   continued until the block is moved left or right.  Happens on the 2x1 blocks.
 
 TO REFACTOR
-1) All the boilerplate code for indicators (using DrawNode) in game.js.  Lots of copy and paste there.
-2) Move the block movement functions out of game.update into it's own 'handleBlockMove' method (or something)
-3) Rename block or grid functions that only operate on single cells (that is, the 50x50 grid cell sized elements)
+99) Rename block or grid functions that only operate on single cells (that is, the 50x50 grid cell sized elements)
 
 

@@ -24,9 +24,6 @@ var GameLayer = cc.Layer.extend ({
    keyPressIndicators: null,
    keyMap: null,
 
-   // general variable indicators
-   variableIndicators: null,
-
    ctor: function () {
       var self = this;
 
@@ -60,65 +57,7 @@ var GameLayer = cc.Layer.extend ({
       self.moveHighlightR = new cc.DrawNode ();
       self.gamePanel.addChild (self.moveHighlightR, 100);
 
-      self.keyPressIndicators = [];
-      self.keyPressIndicators [0] = new cc.DrawNode ();
-      self.keyPressIndicators [1] = new cc.DrawNode ();
-      self.keyPressIndicators [2] = new cc.DrawNode ();
-      self.keyPressIndicators [3] = new cc.DrawNode ();
-
-      var triangle = [
-         cc.p (0, 0),
-         cc.p (50, 50),
-         cc.p (100,0)
-      ];
-
-      self.keyPressIndicators [0].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
-      self.keyPressIndicators [0].x = self.gamePanel.x - 250;
-      self.keyPressIndicators [0].y = h / 2;
-      self.addChild (self.keyPressIndicators [0]);
-
-      self.keyPressIndicators [1].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
-      self.keyPressIndicators [1].x = self.gamePanel.x - 300;
-      self.keyPressIndicators [1].y = h / 2 - 100;
-      self.keyPressIndicators[1].setRotation (-90);
-      self.addChild (self.keyPressIndicators [1]);
-
-      self.keyPressIndicators [2].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
-      self.keyPressIndicators [2].x = self.gamePanel.x - 100;
-      self.keyPressIndicators [2].y = h / 2;
-      self.keyPressIndicators[2].setRotation (90);
-      self.addChild (self.keyPressIndicators [2]);
-
-      self.keyPressIndicators [3].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
-      self.keyPressIndicators [3].x = self.gamePanel.x - 150;
-      self.keyPressIndicators [3].y = h / 2 - 100;
-      self.keyPressIndicators[3].setRotation (180);
-      self.addChild (self.keyPressIndicators [3]);
-
-      self.keyPressIndicators [0].setVisible (false);
-      self.keyPressIndicators [1].setVisible (false);
-      self.keyPressIndicators [2].setVisible (false);
-      self.keyPressIndicators [3].setVisible (false);
-
-      self.keyMap = [];
-      self.keyMap [cc.KEY.up] = 0;
-      self.keyMap [cc.KEY.left] = 1;
-      self.keyMap [cc.KEY.right] = 2;
-      self.keyMap [cc.KEY.down] = 3;
-
-      self.variableIndicators = [];
-
-      self.variableIndicators [0] = new cc.DrawNode ();
-      self.variableIndicators [0].drawCircle (cc.p (0,0), 20, 2 * Math.PI, 32, false, 2, cc.color (0,255,0));
-      self.variableIndicators [0].setPosition (self.gamePanel.x - 200, h / 3 * 2);
-      self.variableIndicators [0].setVisible (false);
-      self.addChild (self.variableIndicators [0]);
-
-      self.variableIndicators [1] = new cc.DrawNode ();
-      self.variableIndicators [1].drawCircle (cc.p (0,0), 20, 2 * Math.PI, 32, false, 2, cc.color (0,0,255));
-      self.variableIndicators [1].setPosition (self.gamePanel.x - 200, (h / 3 * 2) - 50);
-      self.variableIndicators [1].setVisible (false);
-      self.addChild (self.variableIndicators [1]);
+      self.initKeyPressIndicators ();
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -147,6 +86,7 @@ var GameLayer = cc.Layer.extend ({
    keyAction: function (keyCode, pressed) {
       var self = this;
       self.keysPressed [keyCode] = pressed;
+      self.keyPressIndicators [self.keyMap [keyCode]].setVisible (pressed);
    },
 
    clearKeys: function () {
@@ -157,266 +97,301 @@ var GameLayer = cc.Layer.extend ({
       self.keysPressed [cc.KEY.right] = false;
    },
 
-   update: function () {
+   initKeyPressIndicators: function () {
        var self = this;
 
-       // Game update values
-       var framesPerSecond = cc.game.config.frameRate;
-       var millisPerUpdate = 1000.0 / framesPerSecond;
+       // Create DrawNode objects to show the up,down,left and right key pressed states
+       var i;
 
-       // Get key states
-       var leftPressed = self.keysPressed[cc.KEY.left];
-       var rightPressed = self.keysPressed[cc.KEY.right];
+       self.keyPressIndicators = [];
+       self.keyMap = [];
 
-       var rotatePressed = self.keysPressed[cc.KEY.up];
-       var dropPressed = self.keysPressed[cc.KEY.down];
+       var triangle = [
+          cc.p (0, 0),
+          cc.p (50, 50),
+          cc.p (100,0)
+       ];
 
-       // General purpose collision detection
-       var collision = 0;
+       var offsets = [
+          -250, 0, 0, cc.KEY.up,
+          -300, -100, -90, cc.KEY.left,
+          -100, 0, 90, cc.KEY.right,
+          -150, -100, 180, cc.KEY.down
+       ];
 
-       // Action triggers
-       var willRotate;
+       for (i = 0; i < 4; i++) {
+          self.keyPressIndicators [i] = new cc.DrawNode ();
+          self.keyPressIndicators [i].drawPoly (triangle, cc.color (255,0,0), 4, cc.color (255,255,255));
+          self.keyPressIndicators [i].x = self.gamePanel.x + offsets [(i*4) + 0];
+          self.keyPressIndicators [i].y = cc.winSize.height / 2 + offsets [(i*4) + 1];
+          self.keyPressIndicators [i].setRotation (offsets [(i*4) + 2]);
+          self.addChild (self.keyPressIndicators [i]);
+          self.keyPressIndicators [i].setVisible (false);
 
-       // Move block left and right in pixels
-       var dx = 0;
-       var dy = 0;
-
-       // Move left or right
-       if (self.moveDelayMS >= aq.config.KEY_DELAY_MS) {
-          if (leftPressed) {
-             dx = -1 * aq.config.BLOCK_SIZE;          // move one block left
-             self.moveDelayMS = 0;
-          } else if (rightPressed) {
-             dx = 1 * aq.config.BLOCK_SIZE;           // move one block right
-             self.moveDelayMS = 0;
-          }
+          self.keyMap [offsets [(i*4)+3]] = i;
        }
+   },
 
-       if (!leftPressed && !rightPressed) {
-          self.moveDelayMS = aq.config.KEY_DELAY_MS;
-       }
+   update: function () {
+      var self = this;
 
-       if (!rotatePressed) {
-          self.rotateDelayMS = aq.config.KEY_DELAY_MS;
-       }
+      self.handleBlockMovement ();
+   },
 
-       self.moveDelayMS += millisPerUpdate;
-       self.rotateDelayMS += millisPerUpdate;
+   handleBlockMovement: function () {
+      var self = this;
 
-       // Rotate the block through 90 degrees
-       if (rotatePressed && self.rotateDelayMS >= aq.config.KEY_DELAY_MS) {
-          self.rotateDelayMS = 0;
+      // Game update values
+      var framesPerSecond = cc.game.config.frameRate;
+      var millisPerUpdate = 1000.0 / framesPerSecond;
 
-          var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
-          collision = self.grid.collideBlock (self.block,
-                                              potentialNewRotationAndPosition.position,
-                                              potentialNewRotationAndPosition.rotation);
+      // Get key states
+      var leftPressed = self.keysPressed[cc.KEY.left];
+      var rightPressed = self.keysPressed[cc.KEY.right];
 
-          while (collision === 1 || collision === 2) {
-             potentialNewRotationAndPosition.position.x += (collision * aq.config.BLOCK_SIZE);
-             collision = self.grid.collideBlock (self.block,
-                                                 potentialNewRotationAndPosition.position,
-                                                 potentialNewRotationAndPosition.rotation);
-          }
-          if (collision === 0) {
-             self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
-             willRotate = true;
-          }
-       }
+      var rotatePressed = self.keysPressed[cc.KEY.up];
+      var dropPressed = self.keysPressed[cc.KEY.down];
 
-       self.grid.highlightBlockCells (self.block);
+      // General purpose collision detection
+      var collision = 0;
 
-       // dx,dy are the point (pixels) difference to move the block in one game update
-       dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
+      // Action triggers
+      var willRotate;
 
-       var current_block_position = self.block.getPosition ();
-       var new_block_position;
+      // Move block left and right in pixels
+      var dx = 0;
+      var dy = 0;
 
-       // If we're fast dropping, check for a collision and only keep the dy update
-       // value fast if no collision would occur
-       if (dropPressed) {
-          var fast_dy = -(aq.config.BLOCK_SIZE * aq.config.FAST_BLOCK_DROP_RATE) / framesPerSecond;
-          new_block_position = cc.p (current_block_position.x + dx, current_block_position.y + fast_dy);
-          var fast_drop_collision = self.grid.collideBlock (self.block, new_block_position);
-          if ((fast_drop_collision & AXIS_COLLISION) === 0) {
-             dy = fast_dy;
-          }
-       }
+      // Move left or right
+      if (self.moveDelayMS >= aq.config.KEY_DELAY_MS) {
+         if (leftPressed) {
+            dx = -1 * aq.config.BLOCK_SIZE;          // move one block left
+            self.moveDelayMS = 0;
+         } else if (rightPressed) {
+            dx = 1 * aq.config.BLOCK_SIZE;           // move one block right
+            self.moveDelayMS = 0;
+         }
+      }
 
-       self.keyPressIndicators [self.keyMap [cc.KEY.up]].setVisible (willRotate);
-       self.keyPressIndicators [self.keyMap [cc.KEY.down]].setVisible (dy == fast_dy);
-       self.keyPressIndicators [self.keyMap [cc.KEY.left]].setVisible (dx < 0);
-       self.keyPressIndicators [self.keyMap [cc.KEY.right]].setVisible (dx > 0);
+      if (!leftPressed && !rightPressed) {
+         self.moveDelayMS = aq.config.KEY_DELAY_MS;
+      }
 
-       // If the block is within 2 * the amount it moves by per frame, then
-       // assume it's aligned with the grid
-       var alignedDistance = (aq.config.BLOCK_SIZE * 2) / framesPerSecond;
+      if (!rotatePressed) {
+         self.rotateDelayMS = aq.config.KEY_DELAY_MS;
+      }
 
-       // Adjust the y position if the block is aligned with the grid
-       // This lets the blocks slide left and right into tight gaps
-       var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
+      self.moveDelayMS += millisPerUpdate;
+      self.rotateDelayMS += millisPerUpdate;
 
-       // Sideways test, if left or right movement key is pressed
-       var tmp_collision = 1;
-       var tmp_dx, tmp_pos
-       if (leftPressed || rightPressed) {
-          tmp_dx = (leftPressed ? -1 : 1) * aq.config.BLOCK_SIZE;
-          tmp_pos = self.block.getPosition ();
-          if (Math.abs (tmp_pos.y - aligned_pos.y) <= alignedDistance) {
-             tmp_pos.y = aligned_pos.y;
-          }
-          tmp_pos.x += tmp_dx;
-          tmp_collision = self.grid.collideBlock (self.block, tmp_pos);
-       }
+      // Rotate the block through 90 degrees
+      if (rotatePressed && self.rotateDelayMS >= aq.config.KEY_DELAY_MS) {
+         self.rotateDelayMS = 0;
 
-       var can_move_left = leftPressed && (tmp_collision === 0);
-       var can_move_right = rightPressed && (tmp_collision === 0);
+         var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
+         collision = self.grid.collideBlock (self.block,
+                                             potentialNewRotationAndPosition.position,
+                                             potentialNewRotationAndPosition.rotation);
 
-       if (can_move_left && !self.could_move_left) {
-          dx = tmp_dx;
-       }
+         while (collision === (1 | AXIS_COLLISION) || collision === (2 | AXIS_COLLISION)) {
+            var move_x = (collision & 0xff) === 1 ? 1 : -1;
+            potentialNewRotationAndPosition.position.x += (move_x * aq.config.BLOCK_SIZE);
+            collision = self.grid.collideBlock (self.block,
+                                                potentialNewRotationAndPosition.position,
+                                                potentialNewRotationAndPosition.rotation);
+         }
 
-       if (can_move_right && !self.could_move_right) {
-          dx = tmp_dx;
-       }
+         if (collision === 0) {
+            self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
+            willRotate = true;
+         }
+      }
 
-       self.could_move_left = can_move_left;
-       self.could_move_right = can_move_right;
+      self.grid.highlightBlockCells (self.block);
 
-       self.variableIndicators [0].setVisible (!can_move_left);
-       self.variableIndicators [1].setVisible (!can_move_right);
+      // dx,dy are the point (pixels) difference to move the block in one game update
+      dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
 
-       // Project the block sideways for a collision test
-       new_block_position = self.block.getPosition ();
-       new_block_position.x += dx;
+      var current_block_position = self.block.getPosition ();
+      var new_block_position, fast_dy;
 
-       if (Math.abs (new_block_position.y - aligned_pos.y) <= alignedDistance) {
-          new_block_position.y = aligned_pos.y;
-       }
+      // If we're fast dropping, check for a collision and only keep the dy update
+      // value fast if no collision would occur
+      if (dropPressed) {
+         fast_dy = -(aq.config.BLOCK_SIZE * aq.config.FAST_BLOCK_DROP_RATE) / framesPerSecond;
+         new_block_position = cc.p (current_block_position.x + dx, current_block_position.y + fast_dy);
+         var fast_drop_collision = self.grid.collideBlock (self.block, new_block_position);
+         if ((fast_drop_collision & AXIS_COLLISION) === 0) {
+            dy = fast_dy;
+         }
+      }
 
-       // Test to see if the falling block can move sideways
-       if (self.grid.collideBlock (self.block, new_block_position)) {
-          // If collision would occur, don't attempt the sideways move
-          dx = 0;
-       }
+      // If the block is within 2 * the amount it moves by per frame, then
+      // assume it's aligned with the grid
+      var alignedDistance = (aq.config.BLOCK_SIZE * 2) / framesPerSecond;
 
-       // Test to see if the falling block can move straight down.
-       new_block_position = self.block.getPosition ();
-       new_block_position.y += dy;
+      // Adjust the y position if the block is aligned with the grid
+      // This lets the blocks slide left and right into tight gaps
+      var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
 
-       collision = 0;
-       collision = self.grid.collideBlock (self.block, new_block_position);
+      // Sideways test, if left or right movement key is pressed
+      var tmp_collision = 1;
+      var tmp_dx, tmp_pos;
+      if (leftPressed || rightPressed) {
+         tmp_dx = (leftPressed ? -1 : 1) * aq.config.BLOCK_SIZE;
+         tmp_pos = self.block.getPosition ();
+         if (Math.abs (tmp_pos.y - aligned_pos.y) <= alignedDistance) {
+            tmp_pos.y = aligned_pos.y;
+         }
+         tmp_pos.x += tmp_dx;
+         tmp_collision = self.grid.collideBlock (self.block, tmp_pos);
+      }
 
-       //
-       // stick block in place
-       //
-       var stickBlock = function () {
+      var can_move_left = leftPressed && (tmp_collision === 0);
+      var can_move_right = rightPressed && (tmp_collision === 0);
 
-          // If the falling block cannot move down (or slide), lock it in place
-          self.grid.insertBlockIntoGrid (self.block);
+      if (can_move_left && !self.could_move_left) {
+         dx = tmp_dx;
+      }
 
-          // Allocate a new block for falling
-          self.newRandomBlock ();
-       };
+      if (can_move_right && !self.could_move_right) {
+         dx = tmp_dx;
+      }
 
-       // Highlight the collision that just occured
-       self.highlightCollision (self.block);
+      self.could_move_left = can_move_left;
+      self.could_move_right = can_move_right;
 
-       if (self.block.isSliding) {
+      // Project the block sideways for a collision test
+      new_block_position = self.block.getPosition ();
+      new_block_position.x += dx;
 
-          // If the player has pressed the left or right button
-          if (dx !== 0) {
-             // Shift the block to the next grid aligned column, out of the slide
-             dx = self.block.isSliding.can_move_to.x - self.block.x;
-             // Take the block out of 'sliding' mode
-             self.block.isSliding = null;
-          } else {
-             // Otherwise handle the slope movement
-             if (self.block.isSliding.can_move_left) {
-                dx = dy;
-             } else if (self.block.isSliding.can_move_right) {
-                dx = -dy;
-             }
-          }
+      if (Math.abs (new_block_position.y - aligned_pos.y) <= alignedDistance) {
+         new_block_position.y = aligned_pos.y;
+      }
 
-          // Update the position
-          self.moveBlockBy (dx, dy);
+      // Test to see if the falling block can move sideways
+      if (self.grid.collideBlock (self.block, new_block_position)) {
+         // If collision would occur, don't attempt the sideways move
+         dx = 0;
+      }
 
-          // if the block is still sliding (might have been a left/right move to stop it sliding)
-          if (self.block.isSliding) {
-             if (self.block.isSliding.can_move_left) {
-                // it was going left
-                if (self.block.x <= self.block.isSliding.can_move_to.x) {
-                   // fix to the exact position
-                   self.block.setPosition (self.block.isSliding.can_move_to);
-                   // stop the 'sliding' mode
-                   self.block.isSliding = null;
-                }
-             } else if (self.block.isSliding.can_move_right) {
-                // or if it was going right
-                if (self.block.x >= self.block.isSliding.can_move_to.x) {
-                   // fix to the exact position and stop the slide
-                   self.block.setPosition (self.block.isSliding.can_move_to);
-                   self.block.isSliding = null;
-                }
-             }
-          }
+      // Test to see if the falling block can move straight down.
+      new_block_position = self.block.getPosition ();
+      new_block_position.y += dy;
 
-       } else {
+      collision = 0;
+      collision = self.grid.collideBlock (self.block, new_block_position);
 
-          if (collision) {
+      //
+      // stick block in place
+      //
+      var stickBlock = function () {
 
-             if ((collision & SLOPE_COLLISION) !== 0) {
+         // If the falling block cannot move down (or slide), lock it in place
+         self.grid.insertBlockIntoGrid (self.block);
 
-                //
-                // Handle sliding the block calculations
-                //
-                var slide = self.grid.slideBlock (self.block);
+         // Allocate a new block for falling
+         self.newRandomBlock ();
+      };
 
-                //
-                // If the block can slide left or right, then send it off
-                //
-                if (slide.can_move_left || slide.can_move_right) {
-                   self.block.isSliding = slide;
+      // Highlight the collision that just occured
+      self.highlightCollision (self.block);
 
-                   // Align the block to the grid at the current position, to make sure
-                   // that sliding moves correctly
-                   aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
-                   self.block.x = aligned_pos.x;
-                   if (aligned_pos.y < self.block.y) {
-                      self.block.y = aligned_pos.y;
-                   }
+      if (self.block.isSliding) {
 
-                } else {
+         // If the player has pressed the left or right button
+         if (dx !== 0) {
+            // Shift the block to the next grid aligned column, out of the slide
+            dx = self.block.isSliding.can_move_to.x - self.block.x;
+            // Take the block out of 'sliding' mode
+            self.block.isSliding = null;
+         } else {
+            // Otherwise handle the slope movement
+            if (self.block.isSliding.can_move_left) {
+               dx = dy;
+            } else if (self.block.isSliding.can_move_right) {
+               dx = -dy;
+            }
+         }
 
-                   //
-                   // Otherwise, the only case here is that the slide code determined that it actually
-                   // couldn't slide the block.  This could be because it's stuck in place between
-                   // two slopes, or that this is a point collision which should cause a break
-                   //
-                   var breaking = self.grid.breakBlock (self.block, new_block_position);
+         // Update the position
+         self.moveBlockBy (dx, dy);
 
-                   if (breaking) {
-                      //
-                      // Handle the block breaking
-                      //
-                   } else {
-                      // stick block in place
-                      stickBlock ();
-                   }
-                }
+         // if the block is still sliding (might have been a left/right move to stop it sliding)
+         if (self.block.isSliding) {
+            if (self.block.isSliding.can_move_left) {
+               // it was going left
+               if (self.block.x <= self.block.isSliding.can_move_to.x) {
+                  // fix to the exact position
+                  self.block.setPosition (self.block.isSliding.can_move_to);
+                  // stop the 'sliding' mode
+                  self.block.isSliding = null;
+               }
+            } else if (self.block.isSliding.can_move_right) {
+               // or if it was going right
+               if (self.block.x >= self.block.isSliding.can_move_to.x) {
+                  // fix to the exact position and stop the slide
+                  self.block.setPosition (self.block.isSliding.can_move_to);
+                  self.block.isSliding = null;
+               }
+            }
+         }
 
-             } else if ((collision & AXIS_COLLISION) !== 0) {
-                // axis collision means no sliding or breaking, so stick the block in place
-                stickBlock ();
-             }
+      } else {
 
-          } else {
+         if (collision) {
 
-             // otherwise, no collision, so move it
-             self.moveBlockBy (dx, dy);
-          }
-       }
+            if ((collision & SLOPE_COLLISION) !== 0) {
+
+               //
+               // Handle sliding the block calculations
+               //
+               var slide = self.grid.slideBlock (self.block);
+
+               //
+               // If the block can slide left or right, then send it off
+               //
+               if (slide.can_move_left || slide.can_move_right) {
+                  self.block.isSliding = slide;
+
+                  // Align the block to the grid at the current position, to make sure
+                  // that sliding moves correctly
+                  aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
+                  self.block.x = aligned_pos.x;
+                  if (aligned_pos.y < self.block.y) {
+                     self.block.y = aligned_pos.y;
+                  }
+
+               } else {
+
+                  //
+                  // Otherwise, the only case here is that the slide code determined that it actually
+                  // couldn't slide the block.  This could be because it's stuck in place between
+                  // two slopes, or that this is a point collision which should cause a break
+                  //
+                  var breaking = self.grid.breakBlock (self.block, new_block_position);
+
+                  if (breaking) {
+                     //
+                     // Handle the block breaking
+                     //
+                  } else {
+                     // stick block in place
+                     stickBlock ();
+                  }
+               }
+
+            } else if ((collision & AXIS_COLLISION) !== 0) {
+               // axis collision means no sliding or breaking, so stick the block in place
+               stickBlock ();
+            }
+
+         } else {
+
+            // otherwise, no collision, so move it
+            self.moveBlockBy (dx, dy);
+         }
+      }
    },
 
    // highlight a collision
@@ -478,6 +453,10 @@ var GameLayer = cc.Layer.extend ({
        var grid_x = aq.config.GRID_WIDTH / 2;
        var grid_y = cc.winSize.height / aq.config.BLOCK_SIZE;
        var rnd_tile_num = aq.Block.getRandomTileNumber ();
+
+       // TODO: Investigate rotate into place and overlap bug.  Set this
+       // to 7 to force the second block for testing
+       //rnd_tile_num = 7;
 
        self.newBlock (rnd_tile_num, grid_x, grid_y);
    },

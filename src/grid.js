@@ -463,9 +463,12 @@ aq.Grid = cc.Node.extend ({
     * Tests for the general collision case.  Will be expanded to account for all sorts of collisions.
     * @return 0 for no collision.
     *         1 for a left boundary collision
-    *         -1 for a right boundry collision
-    *         2 for a bottom boundary (game grid baseline)
+    *         2 for a right boundry collision
+    *         3 for a bottom boundary (game grid baseline)
     *         99 for a collision with an existing block in the grid
+    *
+    *         Each value is also ORed with either AXIS_COLLISION or SLOPE_COLLISION to indicate
+    *         the collision type.  AND with 0xff to remove that.
     */
    collideBlock: function (block, new_pos, new_rot) {
       var self = this;
