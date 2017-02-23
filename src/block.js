@@ -249,7 +249,7 @@ aq.Block = cc.Node.extend ({
    /**
     * Return a list of tile cells with position offsets.
     */
-   getTileCells: function (include_empty, rotation) {
+   getTileCells: function (rotation, exclude_empty) {
 
       var self = this;
 
@@ -271,7 +271,7 @@ aq.Block = cc.Node.extend ({
          {
             grid_pos = (y * grid_size) + x;
             tile_cell = tile.grid_data [rotation][grid_pos];
-            if (include_empty || tile_cell !== 0) {
+            if (tile_cell !== 0 || !exclude_empty) {
                cell_list.push ({
                   tile_cell: tile_cell,
                   x: x,

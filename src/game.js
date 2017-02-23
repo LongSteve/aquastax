@@ -454,10 +454,6 @@ var GameLayer = cc.Layer.extend ({
        var grid_y = cc.winSize.height / aq.config.BLOCK_SIZE;
        var rnd_tile_num = aq.Block.getRandomTileNumber ();
 
-       // TODO: Investigate rotate into place and overlap bug.  Set this
-       // to 7 to force the second block for testing
-       //rnd_tile_num = 7;
-
        self.newBlock (rnd_tile_num, grid_x, grid_y);
    },
 
