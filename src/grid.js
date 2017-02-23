@@ -3,6 +3,11 @@
 var AXIS_COLLISION          = (1 << 8);
 var SLOPE_COLLISION         = (1 << 9);
 
+var NO_COLLISION              = 0;
+var GRID_LEFT_EDGE_COLLISION  = 1;
+var GRID_RIGHT_EDGE_COLLISION = 2;
+var GRID_BOTTOM_COLLISION     = 3;
+
 var half_block_size = (aq.config.BLOCK_SIZE / 2);
 
 var triangle_signs = [
@@ -332,18 +337,18 @@ aq.Grid = cc.Node.extend ({
        var block_size = aq.config.BLOCK_SIZE;
 
        if (new_pos.x + (bounds.left * block_size) < 0) {
-          return (1 | AXIS_COLLISION);
+          return (GRID_LEFT_EDGE_COLLISION | AXIS_COLLISION);
        }
 
        if (new_pos.x + (bounds.right * block_size) > (self.blocks_wide * block_size)) {
-          return (2 | AXIS_COLLISION);
+          return (GRID_RIGHT_EDGE_COLLISION | AXIS_COLLISION);
        }
 
        if (new_pos.y + (bounds.bottom * block_size) < 0) {
-          return (3 | AXIS_COLLISION);
+          return (GRID_BOTTOM_COLLISION | AXIS_COLLISION);
        }
 
-       return 0;
+       return NO_COLLISION;
    },
 
    /**
@@ -358,7 +363,7 @@ aq.Grid = cc.Node.extend ({
       var moving_obj_cells = block.getTileCells (new_rot);
       var moving_pos = new_pos;
 
-      var collision = 0;
+      var collision = NO_COLLISION;
 
       // Save any collision points
       var collision_points = [];
@@ -383,7 +388,7 @@ aq.Grid = cc.Node.extend ({
                                     cell_obj, cell_pos.x, cell_pos.y,
                                     grid_block_obj, grid_block_pos.x, grid_block_pos.y);
 
-            if (cell_collision !== 0) {
+            if (cell_collision !== NO_COLLISION) {
                // Report this collision back to the game code
                var c = {};
                c.cell = cc.clone (cell);
@@ -482,16 +487,16 @@ aq.Grid = cc.Node.extend ({
       }
 
       var bounds_collision = self.collideBlockWithGridBounds (block, new_pos, new_rot);
-      if (bounds_collision !== 0) {
+      if (bounds_collision !== NO_COLLISION) {
          return bounds_collision;
       }
 
       var grid_data_collision = self.collideBlockWithGridData (block, new_pos, new_rot);
-      if (grid_data_collision !== 0) {
+      if (grid_data_collision !== NO_COLLISION) {
          return grid_data_collision;
       }
 
-      return 0;
+      return NO_COLLISION;
    },
 
    /**
@@ -503,7 +508,7 @@ aq.Grid = cc.Node.extend ({
 
        var self = this;
 
-       var collision = 0;
+       var collision = NO_COLLISION;
 
        if (grid_obj === 0) {
           return collision;

@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals AXIS_COLLISION, SLOPE_COLLISION */
+/* globals AXIS_COLLISION, SLOPE_COLLISION, NO_COLLISION, GRID_LEFT_EDGE_COLLISION, GRID_RIGHT_EDGE_COLLISION */
 
 var GameLayer = cc.Layer.extend ({
 
@@ -153,7 +153,7 @@ var GameLayer = cc.Layer.extend ({
       var dropPressed = self.keysPressed[cc.KEY.down];
 
       // General purpose collision detection
-      var collision = 0;
+      var collision = NO_COLLISION;
 
       // Action triggers
       var willRotate;
@@ -193,15 +193,59 @@ var GameLayer = cc.Layer.extend ({
                                              potentialNewRotationAndPosition.position,
                                              potentialNewRotationAndPosition.rotation);
 
-         while (collision === (1 | AXIS_COLLISION) || collision === (2 | AXIS_COLLISION)) {
-            var move_x = (collision & 0xff) === 1 ? 1 : -1;
-            potentialNewRotationAndPosition.position.x += (move_x * aq.config.BLOCK_SIZE);
-            collision = self.grid.collideBlock (self.block,
-                                                potentialNewRotationAndPosition.position,
-                                                potentialNewRotationAndPosition.rotation);
+         // Test the collision data to see if the block has collided with something on
+         // it's left, or right.  If so, we might be able shift the block sideways
+         // to allow the rotation
+
+         if (collision !== NO_COLLISION) {
+
+            // Take into account colliding with the left and right edges of the grid
+
+            // csl = collision_sum_left, or number of collision points to the left of the falling block
+            var collision_sum_left = ((collision & 0x0f) === GRID_LEFT_EDGE_COLLISION) ? 1 : 0;
+
+            // csr = collision_sum_right, or number of collision points to the right of the falling block
+            var collision_sum_right = ((collision & 0x0f) === GRID_RIGHT_EDGE_COLLISION) ? 1 : 0;
+
+            var collision_points = self.block.collision_points;
+            if (collision_points && collision_points.length > 0) {
+               // Sum the points to the left and right of the falling block where collisions occured
+
+               // Take into account the block bounds within the grid_size area
+               var block_grid_size = self.block.getGridSize ();
+               var bounds = self.block.getTileBounds ();
+               var block_x = self.block.getPositionX ();
+               for (var i = 0; i < collision_points.length; i++) {
+
+                  if (collision_points [i].grid_block_pos.x < block_x + (bounds.left * aq.config.BLOCK_SIZE)) {
+                     collision_sum_left++;
+                  }
+                  if (collision_points [i].grid_block_pos.x > block_x - ((block_grid_size - bounds.right) * aq.config.BLOCK_SIZE)) {
+                     collision_sum_right++;
+                  }
+               }
+            }
+
+            // Work out if we can move the block to the left or right
+            var move_x = 0;
+            if (collision_sum_left > 0 && collision_sum_right === 0) {
+               // shift right since collision was on the left side
+               move_x = aq.config.BLOCK_SIZE;
+            } else if (collision_sum_right > 0 && collision_sum_left === 0) {
+               // shift left, since collision was on the right
+               move_x = -aq.config.BLOCK_SIZE;
+            }
+
+            // Move is appropriate, and no further collision
+            if (move_x !== 0) {
+               potentialNewRotationAndPosition.position.x += move_x;
+               collision = self.grid.collideBlock (self.block,
+                                                   potentialNewRotationAndPosition.position,
+                                                   potentialNewRotationAndPosition.rotation);
+            }
          }
 
-         if (collision === 0) {
+         if (collision === NO_COLLISION) {
             self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
             willRotate = true;
          }
@@ -279,7 +323,7 @@ var GameLayer = cc.Layer.extend ({
       new_block_position = self.block.getPosition ();
       new_block_position.y += dy;
 
-      collision = 0;
+      collision = NO_COLLISION;
       collision = self.grid.collideBlock (self.block, new_block_position);
 
       //
