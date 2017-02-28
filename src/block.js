@@ -19,10 +19,10 @@ aq.Block = cc.Node.extend ({
 
       // Make the set of drawNodes corresponding to each rotation
       self.drawNodes = [
-         self.createTileNodeAtRotation (0, 0, tile_num, 0),
-         self.createTileNodeAtRotation (0, 0, tile_num, 1),
-         self.createTileNodeAtRotation (0, 0, tile_num, 2),
-         self.createTileNodeAtRotation (0, 0, tile_num, 3),
+         self.createTileNodeAtRotation (tile_num, 0),
+         self.createTileNodeAtRotation (tile_num, 1),
+         self.createTileNodeAtRotation (tile_num, 2),
+         self.createTileNodeAtRotation (tile_num, 3),
       ];
 
       self.tile_num = tile_num;
@@ -39,13 +39,12 @@ aq.Block = cc.Node.extend ({
    /**
     * Create a cc.DrawNode to render a given tile number and rotation.
     *
-    * @param x position
-    * @param y position
     * @param n tile number (0 - aq.Block.TILE_DATA.length)
     * @param r rotation (0 - 3)
     * @return a cc.DrawNode to add to the scene
     */
-   createTileNodeAtRotation: function (x, y, n, r) {
+   createTileNodeAtRotation: function (n, r) {
+      var self = this;
 
       var node = new cc.DrawNode ();
 
@@ -64,14 +63,87 @@ aq.Block = cc.Node.extend ({
          dx = (i % td.grid_size) * aq.config.BLOCK_SIZE;
 
          if (t1 !== 0) {
-            aq.drawTri (node, x + dx, y + dy, t1, td.color);
+            aq.drawTri (node, dx, dy, t1, td.color);
          }
          if (t2 !== 0) {
-            aq.drawTri (node, x + dx, y + dy, t2, td.color);
+            aq.drawTri (node, dx, dy, t2, td.color);
          }
       }
 
+      self.addBlockOutline (node, n, r);
+
       return node;
+   },
+
+   /**
+    * Add the cc.DrawNode geometry (using DrawNode.drawSegment) calls to render lines for the
+    * block outline
+    *
+    * @param node The cc.DrawNode to add the outlines too
+    * @param n tile number (0 - aq.Block.TILE_DATA.length)
+    * @param r rotation (0 - 3)
+    */
+   addBlockOutline: function (node, n, r) {
+       var self = this;
+
+       if (typeof (r) === 'undefined') {
+          r = self.rot;
+       }
+
+       var dx = 0;
+       var dy = 0;
+
+       var td = aq.Block.TILE_DATA [n];
+
+       var ind = function (tx, ty) {
+          if (tx < 0 || tx >= td.grid_size) {
+             return -1;
+          }
+          if (ty < 0 || ty >= td.grid_size) {
+             return -1;
+          }
+
+          var i = (y * td.grid_size) + x;
+          return i;
+       };
+
+       // TODO: Continue with this
+       // The general idea here is to loop over the cells of the block, and determine if there are edges that
+       // align with 'empty' space, they need an outline.  The code below is a start for a single case of
+       // one triangle, and it kind of works!  Need a lot more thinking about how best to structure the
+       // cases.
+
+       for (var x = 0; x < td.grid_size; x++) {
+          for (var y = 0; y < td.grid_size; y++) {
+
+             var i = ind (x, y);
+
+             var tris = td.grid_data [r][i];
+
+             if (tris !== 0) {
+                var tris_l = ind (x - 1, y);
+                var tris_r = ind (x + 1, y);
+                var tris_t = ind (x, y - 1);
+                var tris_b = ind (x, y + 1);
+
+                var t1 = (tris >> 4) & 0xf;
+                var t2 = tris & 0xf;
+
+                if (t1 === 1 || t2 === 1) {
+                   // Vertical line at left edge
+                   if (tris_l === -1 || ((tris_l & 0xf) === 1) || (((tris_l & 0xf0) >> 4) === 1)
+                                     || ((tris_l & 0xf) === 2) || (((tris_l & 0xf0) >> 4) === 2)) {
+                      // Need a line
+                      dx = x * aq.config.BLOCK_SIZE;
+                      dy = y * aq.config.BLOCK_SIZE;
+
+                      node.drawSegment (cc.p (dx, dy), cc.p (dx, dy + aq.config.BLOCK_SIZE), 2, cc.color (255,255,255,255));
+                   }
+                }
+             }
+          }
+       }
+
    },
 
    getTileData: function () {
@@ -295,6 +367,22 @@ aq.Block = cc.Node.extend ({
 //                 | \            | /            \ |           / |
 //                 |__\           |/              \|          /__|
 //
+//
+// When grid_data defines the tile layout it's indexed from top left to bottom right.
+// So the first example below, the tile looks like so:
+//
+// [0x4,0x0,0x31,0x0]
+//
+//                 |--------|--------|
+// |----|----|     |    /|  |        |
+// | 04 |    |     |   / |  |        |
+// |----|----|     |  /__|  |        |
+// | 31 |    |     |--------|--------|
+// |----|----|     |  ____  |        |
+//                 |  |\ |  |        |
+//                 |  | \|  |        |
+//                 |  |__\  |        |
+//                 |--------|--------|
 
 aq.Block.TILE_DATA = [
    {

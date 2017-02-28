@@ -49,7 +49,7 @@ aq.drawTri = function (node, x, y, type, color) {
       break;
    }
 
-   node.drawPoly (triangle, cc.color (color), 4, cc.color (255,255,255,255));
+   node.drawPoly (triangle, cc.color (color), 4, true);
 };
 
 

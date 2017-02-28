@@ -1,12 +1,15 @@
-23rd February 2017
+28rd February 2017
 
 ONGOING
 
-Move onto stack clustering/grouping.
+Stack clustering/grouping
+
+Implement the addBlockOutline function properly.
 
 BUGS
 
-None at the moment :-)
+One bug at the moment :-(
+When sliding using the fast drop, blocks can stutter.  Possibly due to moving over grid cell boundaries.
 
 TO REFACTOR
 99) Rename block or grid functions that only operate on single cells (that is, the 50x50 grid cell sized elements)
