@@ -90,55 +90,94 @@ aq.Block = cc.Node.extend ({
           r = self.rot;
        }
 
-       var dx = 0;
-       var dy = 0;
-
        var td = aq.Block.TILE_DATA [n];
+       var block_size = aq.config.BLOCK_SIZE;
 
-       var ind = function (tx, ty) {
-          if (tx < 0 || tx >= td.grid_size) {
-             return -1;
+       var outline_color = cc.color (0,0,0,255);
+       var outline_width = 2;
+
+       // Does the cell contain the specific triangle of the given type
+       var has_tri = function (cell, type) {
+          if (cell === 0) {
+             return false;
           }
-          if (ty < 0 || ty >= td.grid_size) {
-             return -1;
+
+          return ((cell & 0x0f) === type || ((cell >> 4) & 0x0f) === type);
+       };
+
+       // Get the cell data from the x,y position of a block.  Indexed from the top left.
+       var cell_data = function  (x, y) {
+          if (x < 0 || x >= td.grid_size) {
+             return 0;
+          }
+          if (y < 0 || y >= td.grid_size) {
+             return 0;
           }
 
           var i = (y * td.grid_size) + x;
-          return i;
+          return td.grid_data [r][i];
        };
 
-       // TODO: Continue with this
-       // The general idea here is to loop over the cells of the block, and determine if there are edges that
-       // align with 'empty' space, they need an outline.  The code below is a start for a single case of
-       // one triangle, and it kind of works!  Need a lot more thinking about how best to structure the
-       // cases.
+       var has_top_edge = function (cell) {
+          return has_tri (cell, 2) || has_tri (cell, 3);
+       };
 
+       var has_bottom_edge = function (cell) {
+          return has_tri (cell, 1) || has_tri (cell, 4);
+       };
+
+       var has_left_edge = function (cell) {
+          return has_tri (cell, 1) || has_tri (cell, 2);
+       };
+
+       var has_right_edge = function (cell) {
+          return has_tri (cell, 3) || has_tri (cell, 4);
+       };
+
+       // Loop over the cells within the block grid, and draw any necessary block outlines
        for (var x = 0; x < td.grid_size; x++) {
           for (var y = 0; y < td.grid_size; y++) {
+             var cell = cell_data (x, y);
 
-             var i = ind (x, y);
+             // cx,cy will be the top left point of the cell
+             var cx = x * block_size;
+             var cy = (td.grid_size - y) * block_size;
 
-             var tris = td.grid_data [r][i];
+             if (cell !== 0) {
+                // grab the data from the cells around the target cell
+                var left = cell_data (x - 1, y);
+                var right = cell_data (x + 1, y);
+                var above = cell_data (x, y - 1);
+                var below = cell_data (x, y + 1);
 
-             if (tris !== 0) {
-                var tris_l = ind (x - 1, y);
-                var tris_r = ind (x + 1, y);
-                var tris_t = ind (x, y - 1);
-                var tris_b = ind (x, y + 1);
+                // boundary line at the top edge of the cell
+                if (has_top_edge (cell) && !has_bottom_edge (above)) {
+                   node.drawSegment (cc.p (cx, cy), cc.p (cx + block_size, cy), outline_width, outline_color);
+                }
 
-                var t1 = (tris >> 4) & 0xf;
-                var t2 = tris & 0xf;
+                // boundary line at the bottom edge of the cell
+                if (has_bottom_edge (cell) && !has_top_edge (below)) {
+                   node.drawSegment (cc.p (cx, cy - block_size), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
+                }
 
-                if (t1 === 1 || t2 === 1) {
-                   // Vertical line at left edge
-                   if (tris_l === -1 || ((tris_l & 0xf) === 1) || (((tris_l & 0xf0) >> 4) === 1)
-                                     || ((tris_l & 0xf) === 2) || (((tris_l & 0xf0) >> 4) === 2)) {
-                      // Need a line
-                      dx = x * aq.config.BLOCK_SIZE;
-                      dy = y * aq.config.BLOCK_SIZE;
+                // boundary line at the left edge of the cell
+                if (has_left_edge (cell) && !has_right_edge (left)) {
+                   node.drawSegment (cc.p (cx, cy), cc.p (cx, cy - block_size), outline_width, outline_color);
+                }
 
-                      node.drawSegment (cc.p (dx, dy), cc.p (dx, dy + aq.config.BLOCK_SIZE), 2, cc.color (255,255,255,255));
-                   }
+                // boundary line at the right edge of the cell
+                if (has_right_edge (cell) && !has_left_edge (right)) {
+                   node.drawSegment (cc.p (cx + block_size, cy), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
+                }
+
+                // right diagonal boundary
+                if ((has_tri (cell, 1) && !has_tri (cell, 3)) || (has_tri (cell, 3) && !has_tri (cell, 1))) {
+                   node.drawSegment (cc.p (cx, cy), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
+                }
+
+                // left diagonal boundary
+                if ((has_tri (cell, 2) && !has_tri (cell, 4)) || (has_tri (cell, 4) && !has_tri (cell, 2))) {
+                   node.drawSegment (cc.p (cx + block_size, cy), cc.p (cx, cy - block_size), outline_width, outline_color);
                 }
              }
           }
