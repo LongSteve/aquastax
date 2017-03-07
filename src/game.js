@@ -501,10 +501,18 @@ var GameLayer = cc.Layer.extend ({
        self.newBlock (rnd_tile_num, grid_x, grid_y);
    },
 
-   // Create a new block and add it to the game panel at the specified position
+   // Create a new block and add it to the game panel at the specified position.
+   // Removes the old (current) falling block.
    // Also calls setFallingBlock as a side effect
    newBlock: function (type, grid_x, grid_y) {
       var self = this;
+
+      // Enable this when the grid clustering is working properly, and the grid is rendered using
+      // the cluster data.  Currently, the blocks are left in place where they land.
+      //
+      //if (self.block) {
+      //   self.block.removeFromParent (true);
+      //}
 
       self.block = new aq.Block (type);
       self.block.setPosition (grid_x * aq.config.BLOCK_SIZE, grid_y * aq.config.BLOCK_SIZE);

@@ -2,6 +2,8 @@
 
 var AXIS_COLLISION          = (1 << 8);
 var SLOPE_COLLISION         = (1 << 9);
+var CLUSTER_FLAG_T1         = (1 << 10);
+var CLUSTER_FLAG_T2         = (1 << 11);
 
 var NO_COLLISION              = 0;
 var GRID_LEFT_EDGE_COLLISION  = 1;
@@ -814,6 +816,119 @@ aq.Grid = cc.Node.extend ({
                       game_grid[grid_pos] = (game_grid[grid_pos]) | (block_grid_pos & 0xf0) | (tile_num << 16);  // insert as t2
                    }
                 }
+             }
+          }
+       }
+
+       self.generateClusters ();
+   },
+
+   generateClusters: function () {
+       var self = this;
+
+       var game_grid = self.game_grid;
+       var grid_pos;
+
+       var clusters = [];
+
+       // Clear the cluster flags before passing over the grid working out the clusters
+       for (grid_pos = 0; grid_pos < game_grid.length; grid_pos++) {
+          game_grid [grid_pos] &= ~(CLUSTER_FLAG_T1|CLUSTER_FLAG_T2);
+       }
+
+       var UP = 0;
+       var DOWN = 1;
+       var LEFT = 2;
+       var RIGHT = 3;
+
+       var has_tri = function (cell, type) {
+          if (cell === 0) {
+             return false;
+          }
+
+          return ((cell & 0x0f) === type || ((cell >> 4) & 0x0f) === type);
+       };
+
+       // Recursively call addToCluster to walk over the grid data.  This will
+       // full out the clusters array with groups of cells that correspond to
+       // the clusters of the same size.
+       var addToCluster = function (current_triangle, direction, x, y) {
+
+          var grid_pos = (y * self.blocks_wide) + x;
+
+          var tile_num_1 = (game_grid [grid_pos] >> 24) & 0xff;
+          var tile_num_2 = (game_grid [grid_pos] >> 16) & 0xff;
+
+          // Entry point, should fan out in all appropriate directions
+          if (current_triangle === -1 && direction === -1) {
+
+          }
+
+          // Bail out (end recursion) if the cluster flags are already set, or there's nothing in the cell
+          if (game_grid [grid_pos] === 0 || ((game_grid [grid_pos] & (CLUSTER_FLAG_T1|CLUSTER_FLAG_T2)) !== 0)) {
+             return;
+          }
+
+          // Set the cluster flags as having been tested, so we don't move back through this cell
+          game_grid [grid_pos] |= (CLUSTER_FLAG_T1|CLUSTER_FLAG_T2);
+
+          // Work out the indexes of the cells adjacent to the current cell
+          // Use -1 to indicate we don't want to check in that direction
+          var left_index = -1;
+          if (x > 0) {
+             left_index = (y * self.blocks_wide) + (x - 1);
+          }
+          var right_index = -1;
+          if (x < self.blocks_wide - 1) {
+             right_index = (y * self.blocks_wide) + (x + 1);
+          }
+          var up_index = -1;
+          if (y < self.blocks_high - 1) {
+             up_index = ((y + 1) * self.blocks_wide) + x;
+          }
+          var down_index = -1;
+          if (y > 0) {
+             down_index = ((y - 1) * self.blocks_wide) + x;
+          }
+
+          // Check the triangles at the current grid position, based on the direction of
+          // entry, so see if we want to recurse off in that direction, due to a matching
+          // adjacent triangle
+          if (current_triangle === 1) {
+             if (direction === LEFT && left_index !== -1) {
+                // Check for type 3 or 4
+             } else if (direction === DOWN && down_index !== -1) {
+                // Check for type 2 or 3
+             }
+          } else if (current_triangle === 2) {
+             if (direction === UP) {
+                // Check for type 1 or 4
+             } else if (direction === LEFT) {
+                // Check for type 3 or 4
+             }
+          } else if (current_triangle === 3) {
+             if (direction === UP) {
+                // Check for type 1 or 4
+             } else if (direction === RIGHT) {
+                // Check for type 1 or 2
+             }
+          } else if (current_triangle === 4) {
+             if (direction === RIGHT) {
+                // Check for type 1 or 2
+             } else if (direction === DOWN) {
+                // Check for type 2 or 3
+             }
+          }
+       };
+
+       // Pass over the grid cells, working out clusters
+       for (var y = 0; y < self.blocks_high; y++)
+       {
+          for (var x = 0; x < self.blocks_wide; x++)
+          {
+             grid_pos = (y * self.blocks_wide) + x;
+             if (game_grid [grid_pos] !== 0 && ((game_grid [grid_pos] & (CLUSTER_FLAG_T1|CLUSTER_FLAG_T2)) === 0)) {
+                addToCluster (-1, -1, x, y);
              }
           }
        }
