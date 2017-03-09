@@ -25,8 +25,8 @@ var lazypipe = require ('lazypipe');
 var minimist = require ('minimist');
 
 // Process command line arg for enabling stylish jshint output
-// Use --stylish
-var argv = minimist (process.argv.slice (2), {'boolean': 'stylish'});
+// Use --basic for basic output, suitable for IDE parsing
+var argv = minimist (process.argv.slice (2), {'boolean': 'basic'});
 
 // Set true when using the long running 'gulp serve' command
 var isWatching = false;
@@ -59,9 +59,9 @@ gulp.task ('jshint', 'Run jshint over the source .js files', [], function () {
       './main.js'
    ])
    .pipe (cached ('jshint'))        // cache in memory
-   .pipe (_jshint (argv.stylish))   // pass in command line arg for 'stylish'
+   .pipe (_jshint (!argv.basic))    // pass in command line arg for 'stylish'
    .pipe (_livereload ());          // pass to livereload
-}, {options: {'stylish': 'Use the stylish processor for output'}});
+}, {options: {'basic': 'Use the basic processor for output, default is stylish'}});
 
 /**
  * Serve up the index.html and the rest of the project .js files (for debug running).
