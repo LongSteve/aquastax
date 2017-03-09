@@ -1,11 +1,9 @@
-2nd March 2017
+9th March 2017
 
 ONGOING
 
-Stack clustering/grouping
-
-Implement the cluster code, so that larger blocks are created from joined areas of 'blocks' of the same colour
-within the grid.
+Stack clustering/grouping.  Build upon the flood fill routine to iterate over blocks of the game colour, taking
+into account the triangle points.
 
 BUGS
 

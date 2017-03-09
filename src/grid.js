@@ -2,8 +2,7 @@
 
 var AXIS_COLLISION          = (1 << 8);
 var SLOPE_COLLISION         = (1 << 9);
-var CLUSTER_FLAG_T1         = (1 << 10);
-var CLUSTER_FLAG_T2         = (1 << 11);
+var FILL_FLAG_SEEN          = (1 << 10);
 
 var NO_COLLISION              = 0;
 var GRID_LEFT_EDGE_COLLISION  = 1;
@@ -314,6 +313,10 @@ aq.Grid = cc.Node.extend ({
 
    highlightBlockCells: function (block) {
        var self = this;
+
+       if (!block) {
+          return;
+       }
 
        var block_size = aq.config.BLOCK_SIZE;
        var indexes = self.getGridIndexPositionsForBlockCollision (block, block.getPosition (), block.getRotation ());
@@ -819,119 +822,101 @@ aq.Grid = cc.Node.extend ({
              }
           }
        }
-
-       self.generateClusters ();
    },
 
-   generateClusters: function () {
+   fillParent: null,
+   fillCells: null,
+   fillIndex: 0,
+
+   renderFilledCells: function () {
        var self = this;
 
-       var game_grid = self.game_grid;
-       var grid_pos;
-
-       var clusters = [];
-
-       // Clear the cluster flags before passing over the grid working out the clusters
-       for (grid_pos = 0; grid_pos < game_grid.length; grid_pos++) {
-          game_grid [grid_pos] &= ~(CLUSTER_FLAG_T1|CLUSTER_FLAG_T2);
+       if (!self.fillCells || self.fillIndex >= self.fillCells.length) {
+          return;
        }
 
-       var UP = 0;
-       var DOWN = 1;
-       var LEFT = 2;
-       var RIGHT = 3;
+       var grid_pos = self.fillCells [self.fillIndex++];
 
-       var has_tri = function (cell, type) {
-          if (cell === 0) {
-             return false;
-          }
+       var x = grid_pos % self.blocks_wide;
+       var y = Math.floor (grid_pos / self.blocks_wide);
+       var node = new cc.DrawNode ();
+       node.drawRect (cc.p (0,0), cc.p (aq.config.BLOCK_SIZE, aq.config.BLOCK_SIZE), cc.color (255,0,255,128), 2);
+       node.setPosition (x * aq.config.BLOCK_SIZE, y * aq.config.BLOCK_SIZE);
+       self.fillParent.addChild (node);
+   },
 
-          return ((cell & 0x0f) === type || ((cell >> 4) & 0x0f) === type);
-       };
+   exampleFloodFill: function () {
+       var self = this;
 
-       // Recursively call addToCluster to walk over the grid data.  This will
-       // full out the clusters array with groups of cells that correspond to
-       // the clusters of the same size.
-       var addToCluster = function (current_triangle, direction, x, y) {
+       var LEFT = (1 << 0);
+       var RIGHT = (1 << 1);
+       var UP = (1 << 2);
+       var DOWN = (1 << 3);
 
-          var grid_pos = (y * self.blocks_wide) + x;
+       // grid_pos is index into self.game_grid for the current cell
+       // direction is direction from the caller
+       var floodFill = function (grid_pos, direction_from) {
 
-          var tile_num_1 = (game_grid [grid_pos] >> 24) & 0xff;
-          var tile_num_2 = (game_grid [grid_pos] >> 16) & 0xff;
-
-          // Entry point, should fan out in all appropriate directions
-          if (current_triangle === -1 && direction === -1) {
-
-          }
-
-          // Bail out (end recursion) if the cluster flags are already set, or there's nothing in the cell
-          if (game_grid [grid_pos] === 0 || ((game_grid [grid_pos] & (CLUSTER_FLAG_T1|CLUSTER_FLAG_T2)) !== 0)) {
+          // If the fill routine has been through this grid cell already, bail out
+          if ((self.game_grid [grid_pos] & FILL_FLAG_SEEN) !== 0) {
              return;
           }
 
-          // Set the cluster flags as having been tested, so we don't move back through this cell
-          game_grid [grid_pos] |= (CLUSTER_FLAG_T1|CLUSTER_FLAG_T2);
+          self.game_grid [grid_pos] |= FILL_FLAG_SEEN;
 
-          // Work out the indexes of the cells adjacent to the current cell
-          // Use -1 to indicate we don't want to check in that direction
-          var left_index = -1;
-          if (x > 0) {
-             left_index = (y * self.blocks_wide) + (x - 1);
-          }
-          var right_index = -1;
-          if (x < self.blocks_wide - 1) {
-             right_index = (y * self.blocks_wide) + (x + 1);
-          }
-          var up_index = -1;
-          if (y < self.blocks_high - 1) {
-             up_index = ((y + 1) * self.blocks_wide) + x;
-          }
-          var down_index = -1;
-          if (y > 0) {
-             down_index = ((y - 1) * self.blocks_wide) + x;
+          // Set the cell to render if it's not empty
+          if ((self.game_grid [grid_pos] & 0xff) !== 0) {
+             self.fillCells.push (grid_pos);
           }
 
-          // Check the triangles at the current grid position, based on the direction of
-          // entry, so see if we want to recurse off in that direction, due to a matching
-          // adjacent triangle
-          if (current_triangle === 1) {
-             if (direction === LEFT && left_index !== -1) {
-                // Check for type 3 or 4
-             } else if (direction === DOWN && down_index !== -1) {
-                // Check for type 2 or 3
-             }
-          } else if (current_triangle === 2) {
-             if (direction === UP) {
-                // Check for type 1 or 4
-             } else if (direction === LEFT) {
-                // Check for type 3 or 4
-             }
-          } else if (current_triangle === 3) {
-             if (direction === UP) {
-                // Check for type 1 or 4
-             } else if (direction === RIGHT) {
-                // Check for type 1 or 2
-             }
-          } else if (current_triangle === 4) {
-             if (direction === RIGHT) {
-                // Check for type 1 or 2
-             } else if (direction === DOWN) {
-                // Check for type 2 or 3
-             }
+          var x = grid_pos % self.blocks_wide;
+          var y = Math.floor (grid_pos / self.blocks_wide);
+
+          // If the cell is not entered from above (UP), then we can recurse
+          // in the up direction.  Passing DOWN as the direction_from, and
+          // "grid_pos + self.blocks_wide" to get the grid index for one
+          // row above
+
+          if ((direction_from & UP) === 0 && y < self.blocks_high - 1) {
+             floodFill (grid_pos + self.blocks_wide, DOWN);
+          }
+
+          // Etc.
+
+          if ((direction_from & RIGHT) === 0 && x < self.blocks_wide - 1) {
+             floodFill (grid_pos + 1, LEFT);
+          }
+
+          // Etc.
+
+          if ((direction_from & LEFT) === 0 && x > 0) {
+             floodFill (grid_pos - 1, RIGHT);
+          }
+
+          // Etc.
+
+          if ((direction_from & DOWN) === 0 && y > 0) {
+             floodFill (grid_pos - self.blocks_wide, UP);
           }
        };
 
-       // Pass over the grid cells, working out clusters
-       for (var y = 0; y < self.blocks_high; y++)
-       {
-          for (var x = 0; x < self.blocks_wide; x++)
-          {
-             grid_pos = (y * self.blocks_wide) + x;
-             if (game_grid [grid_pos] !== 0 && ((game_grid [grid_pos] & (CLUSTER_FLAG_T1|CLUSTER_FLAG_T2)) === 0)) {
-                addToCluster (-1, -1, x, y);
-             }
-          }
+       self.fillIndex = 0;
+       self.fillCells = [];
+
+       // Clear the floodfill bits in the game_grid
+       for (var i = 0; i < self.game_grid.length; i++) {
+          self.game_grid [i] &= ~FILL_FLAG_SEEN;
        }
+
+       if (self.fillParent) {
+          // Remove all the pink blocks
+          self.fillParent.removeAllChildren (true);
+       } else {
+          self.fillParent = new cc.Node ();
+          self.addChild (self.fillParent);
+       }
+
+       floodFill (0, 0);
    }
 });
 

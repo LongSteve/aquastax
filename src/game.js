@@ -136,10 +136,16 @@ var GameLayer = cc.Layer.extend ({
       var self = this;
 
       self.handleBlockMovement ();
+
+      self.grid.renderFilledCells ();
    },
 
    handleBlockMovement: function () {
       var self = this;
+
+      if (!self.block) {
+         return;
+      }
 
       // Game update values
       var framesPerSecond = cc.game.config.frameRate;
@@ -336,6 +342,9 @@ var GameLayer = cc.Layer.extend ({
 
          // Allocate a new block for falling
          self.newRandomBlock ();
+
+         // Fill the grid
+         self.grid.exampleFloodFill ();
       };
 
       // Highlight the collision that just occured
