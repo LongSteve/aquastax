@@ -1,13 +1,19 @@
 'use strict';
 
-var AXIS_COLLISION          = (1 << 8);
-var SLOPE_COLLISION         = (1 << 9);
-var FILL_FLAG_SEEN          = (1 << 10);
+var AXIS_COLLISION            = (1 << 8);
+var SLOPE_COLLISION           = (1 << 9);
+var FILL_FLAG_SEEN_T1         = (1 << 10);
+var FILL_FLAG_SEEN_T2         = (1 << 11);
 
 var NO_COLLISION              = 0;
 var GRID_LEFT_EDGE_COLLISION  = 1;
 var GRID_RIGHT_EDGE_COLLISION = 2;
 var GRID_BOTTOM_COLLISION     = 3;
+
+var FILL_LEFT                 = (1 << 0);
+var FILL_RIGHT                = (1 << 1);
+var FILL_UP                   = (1 << 2);
+var FILL_DOWN                 = (1 << 3);
 
 var half_block_size = (aq.config.BLOCK_SIZE / 2);
 
@@ -825,87 +831,128 @@ aq.Grid = cc.Node.extend ({
    },
 
    fillParent: null,
-   fillCells: null,
+   fillGroups: null,
    fillIndex: 0,
 
    renderFilledCells: function () {
        var self = this;
 
-       if (!self.fillCells || self.fillIndex >= self.fillCells.length) {
+       if (!self.fillGroups || self.fillIndex >= self.fillGroups.length) {
           return;
        }
 
-       var grid_pos = self.fillCells [self.fillIndex++];
+       var cells = self.fillGroups [self.fillIndex].cells;
+       var tile_num = self.fillGroups [self.fillIndex].tile_num;
+       var color = aq.Block.TILE_DATA [tile_num].color;
 
-       var x = grid_pos % self.blocks_wide;
-       var y = Math.floor (grid_pos / self.blocks_wide);
-       var node = new cc.DrawNode ();
-       node.drawRect (cc.p (0,0), cc.p (aq.config.BLOCK_SIZE, aq.config.BLOCK_SIZE), cc.color (255,0,255,128), 2);
-       node.setPosition (x * aq.config.BLOCK_SIZE, y * aq.config.BLOCK_SIZE);
-       self.fillParent.addChild (node);
+       for (var i = 0; i < cells.length; i++) {
+          var cell = cells [i];
+
+          var x = cell.grid_pos % self.blocks_wide;
+          var y = Math.floor (cell.grid_pos / self.blocks_wide);
+
+          var node = new cc.DrawNode ();
+          aq.drawTri (node, 0, 0, cell.triangle_type, color);
+          node.setPosition (x * aq.config.BLOCK_SIZE, y * aq.config.BLOCK_SIZE);
+          self.fillParent.addChild (node);
+       }
+
+       self.fillIndex++;
    },
 
-   exampleFloodFill: function () {
+   groupFloodFill: function () {
        var self = this;
-
-       var LEFT = (1 << 0);
-       var RIGHT = (1 << 1);
-       var UP = (1 << 2);
-       var DOWN = (1 << 3);
 
        // grid_pos is index into self.game_grid for the current cell
        // direction is direction from the caller
-       var floodFill = function (grid_pos, direction_from) {
+       var floodFill = function (grid_pos, direction_from, group_from) {
 
-          // If the fill routine has been through this grid cell already, bail out
-          if ((self.game_grid [grid_pos] & FILL_FLAG_SEEN) !== 0) {
-             return;
-          }
-
-          self.game_grid [grid_pos] |= FILL_FLAG_SEEN;
-
-          // Set the cell to render if it's not empty
-          if ((self.game_grid [grid_pos] & 0xff) !== 0) {
-             self.fillCells.push (grid_pos);
-          }
+          var tile_num_from = group_from.tile_num;
 
           var x = grid_pos % self.blocks_wide;
           var y = Math.floor (grid_pos / self.blocks_wide);
 
-          // If the cell is not entered from above (UP), then we can recurse
-          // in the up direction.  Passing DOWN as the direction_from, and
-          // "grid_pos + self.blocks_wide" to get the grid index for one
-          // row above
+          // Each entry into flood fill has to check both t1 and t2 triangle
+          // locations within the grid position
+          for (var i = 0; i < 2; i++) {
 
-          if ((direction_from & UP) === 0 && y < self.blocks_high - 1) {
-             floodFill (grid_pos + self.blocks_wide, DOWN);
-          }
+             // For comparison purposes, shift the bits as necessary into a single variable
+             var triangle_type = (self.game_grid [grid_pos] >> (i * 4)) & 0x0f;
+             var tile_num = (self.game_grid [grid_pos] >> (24 - (i * 8))) & 0x0f;
 
-          // Etc.
+             // If the fill routine has been through this grid cell and triangle location already, bail out
+             if ((self.game_grid [grid_pos] & (FILL_FLAG_SEEN_T1 << i)) !== 0) {
+                continue;
+             }
 
-          if ((direction_from & RIGHT) === 0 && x < self.blocks_wide - 1) {
-             floodFill (grid_pos + 1, LEFT);
-          }
+             // If the tile_num at this location doesn't match tile_num_from, bail out
+             if (tile_num_from !== -1 && tile_num_from !== tile_num) {
+                continue;
+             }
 
-          // Etc.
+             // Check for appropriate triangle type given the direction of filling
+             if ((direction_from & FILL_UP) !== 0 && (triangle_type === 1 || triangle_type === 4)) {
+                continue;
+             }
+             if ((direction_from & FILL_RIGHT) !== 0 && (triangle_type === 1 || triangle_type === 2)) {
+                continue;
+             }
+             if ((direction_from & FILL_LEFT) !== 0 && (triangle_type === 3 || triangle_type === 4)) {
+                continue;
+             }
+             if ((direction_from & FILL_DOWN) !== 0 && (triangle_type === 2 || triangle_type === 3)) {
+                continue;
+             }
 
-          if ((direction_from & LEFT) === 0 && x > 0) {
-             floodFill (grid_pos - 1, RIGHT);
-          }
+             self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1 << i);
 
-          // Etc.
+             // Set the triangle to render if it's not empty
+             if (triangle_type !== 0) {
+                group_from.cells.push ({
+                   grid_pos: grid_pos,
+                   triangle_type: triangle_type
+                });
+             }
 
-          if ((direction_from & DOWN) === 0 && y > 0) {
-             floodFill (grid_pos - self.blocks_wide, UP);
+             // If the cell is not entered from above (UP), then we can recurse
+             // in the up direction.  Passing DOWN as the direction_from, and
+             // "grid_pos + self.blocks_wide" to get the grid index for one
+             // row above
+
+             if ((direction_from & FILL_UP) === 0 && y < self.blocks_high - 1) {
+                if (triangle_type === 2 || triangle_type === 3) {
+                   floodFill (grid_pos + self.blocks_wide, FILL_DOWN, group_from);
+                }
+             }
+
+             if ((direction_from & FILL_RIGHT) === 0 && x < self.blocks_wide - 1) {
+                if (triangle_type === 3 || triangle_type === 4) {
+                   floodFill (grid_pos + 1, FILL_LEFT, group_from);
+                }
+             }
+
+             if ((direction_from & FILL_LEFT) === 0 && x > 0) {
+                if (triangle_type === 1 || triangle_type === 2) {
+                   floodFill (grid_pos - 1, FILL_RIGHT, group_from);
+                }
+             }
+
+             if ((direction_from & FILL_DOWN) === 0 && y > 0) {
+                if (triangle_type === 1 || triangle_type === 4) {
+                   floodFill (grid_pos - self.blocks_wide, FILL_UP, group_from);
+                }
+             }
           }
        };
 
        self.fillIndex = 0;
-       self.fillCells = [];
+       self.fillGroups = [];
+
+       var i;
 
        // Clear the floodfill bits in the game_grid
-       for (var i = 0; i < self.game_grid.length; i++) {
-          self.game_grid [i] &= ~FILL_FLAG_SEEN;
+       for (i = 0; i < self.game_grid.length; i++) {
+          self.game_grid [i] &= ~(FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
        }
 
        if (self.fillParent) {
@@ -916,7 +963,24 @@ aq.Grid = cc.Node.extend ({
           self.addChild (self.fillParent);
        }
 
-       floodFill (0, 0);
+       for (i = 0; i < self.game_grid.length; i++) {
+          if ((self.game_grid [i] & 0xff) !== 0) {
+             for (var t = 0; t < 2; t++) {
+
+                // For comparison purposes, shift the bits as necessary into a single variable
+                var tile_num = (self.game_grid [i] >> (24 - (t * 8))) & 0x0f;
+
+                if ((self.game_grid [i] & (FILL_FLAG_SEEN_T1 << t)) === 0) {
+                   var newGroup = {
+                      tile_num: tile_num,
+                      cells: []
+                   };
+                   self.fillGroups.push (newGroup);
+                   floodFill (i, 0, newGroup);
+                }
+             }
+          }
+       }
    }
 });
 

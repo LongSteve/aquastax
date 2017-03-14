@@ -344,7 +344,7 @@ var GameLayer = cc.Layer.extend ({
          self.newRandomBlock ();
 
          // Fill the grid
-         self.grid.exampleFloodFill ();
+         self.grid.groupFloodFill ();
       };
 
       // Highlight the collision that just occured
@@ -519,9 +519,9 @@ var GameLayer = cc.Layer.extend ({
       // Enable this when the grid clustering is working properly, and the grid is rendered using
       // the cluster data.  Currently, the blocks are left in place where they land.
       //
-      //if (self.block) {
-      //   self.block.removeFromParent (true);
-      //}
+      if (self.block) {
+         self.block.removeFromParent (true);
+      }
 
       self.block = new aq.Block (type);
       self.block.setPosition (grid_x * aq.config.BLOCK_SIZE, grid_y * aq.config.BLOCK_SIZE);

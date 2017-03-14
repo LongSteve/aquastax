@@ -1,9 +1,11 @@
-9th March 2017
+14th March 2017
 
 ONGOING
 
 Stack clustering/grouping.  Build upon the flood fill routine to iterate over blocks of the game colour, taking
 into account the triangle points.
+
+Grouping the blocks together results in more groups than it should.  Fix this.
 
 BUGS
 
