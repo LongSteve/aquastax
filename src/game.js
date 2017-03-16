@@ -2,6 +2,9 @@
 
 /* globals AXIS_COLLISION, SLOPE_COLLISION, NO_COLLISION, GRID_LEFT_EDGE_COLLISION, GRID_RIGHT_EDGE_COLLISION */
 
+// Set the something other than -1 to force the block that spawns to always be this same block
+var FIXED_TEST_BLOCK = -1;
+
 var GameLayer = cc.Layer.extend ({
 
    // panels
@@ -23,6 +26,9 @@ var GameLayer = cc.Layer.extend ({
    // keypress indicators
    keyPressIndicators: null,
    keyMap: null,
+
+   // group count indicator
+   groupCountLabel: null,
 
    ctor: function () {
       var self = this;
@@ -49,7 +55,7 @@ var GameLayer = cc.Layer.extend ({
 
       self.gamePanel = gamePanel;
 
-      self.newBlock (0, blocks_wide / 2, blocks_high);
+      self.newBlock (FIXED_TEST_BLOCK === -1 ? 0 : FIXED_TEST_BLOCK, blocks_wide / 2, blocks_high);
 
       self.moveHighlightL = new cc.DrawNode ();
       self.gamePanel.addChild (self.moveHighlightL, 100);
@@ -58,6 +64,11 @@ var GameLayer = cc.Layer.extend ({
       self.gamePanel.addChild (self.moveHighlightR, 100);
 
       self.initKeyPressIndicators ();
+
+      self.groupCountLabel = new cc.LabelTTF ('0', 'Arial', 38);
+      self.groupCountLabel.setPosition (gamePanel.x - 50, cc.winSize.height - 50);
+      self.groupCountLabel.setColor (cc.color (255,255,255));
+      self.addChild (self.groupCountLabel);
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -136,8 +147,6 @@ var GameLayer = cc.Layer.extend ({
       var self = this;
 
       self.handleBlockMovement ();
-
-      self.grid.renderFilledCells ();
    },
 
    handleBlockMovement: function () {
@@ -345,6 +354,8 @@ var GameLayer = cc.Layer.extend ({
 
          // Fill the grid
          self.grid.groupFloodFill ();
+
+         self.groupCountLabel.setString (self.grid.fillGroupCount);
       };
 
       // Highlight the collision that just occured
@@ -506,6 +517,10 @@ var GameLayer = cc.Layer.extend ({
        var grid_x = aq.config.GRID_WIDTH / 2;
        var grid_y = cc.winSize.height / aq.config.BLOCK_SIZE;
        var rnd_tile_num = aq.Block.getRandomTileNumber ();
+
+       if (FIXED_TEST_BLOCK !== -1) {
+          rnd_tile_num = FIXED_TEST_BLOCK;
+       }
 
        self.newBlock (rnd_tile_num, grid_x, grid_y);
    },

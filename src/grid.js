@@ -832,36 +832,42 @@ aq.Grid = cc.Node.extend ({
 
    fillParent: null,
    fillGroups: null,
-   fillIndex: 0,
+   fillGroupCount: 0,
 
    renderFilledCells: function () {
        var self = this;
 
-       if (!self.fillGroups || self.fillIndex >= self.fillGroups.length) {
+       if (!self.fillGroups || self.fillGroups.length === 0) {
           return;
        }
 
-       var cells = self.fillGroups [self.fillIndex].cells;
-       var tile_num = self.fillGroups [self.fillIndex].tile_num;
-       var color = aq.Block.TILE_DATA [tile_num].color;
+       self.fillGroupCount = self.fillGroups.length;
 
-       for (var i = 0; i < cells.length; i++) {
-          var cell = cells [i];
+       for (var fillIndex = 0; fillIndex < self.fillGroups.length; fillIndex++) {
+          var cells = self.fillGroups[fillIndex].cells;
+          var tile_num = self.fillGroups [fillIndex].tile_num;
+          var color = aq.Block.TILE_DATA [tile_num].color;
 
-          var x = cell.grid_pos % self.blocks_wide;
-          var y = Math.floor (cell.grid_pos / self.blocks_wide);
+          for (var i = 0; i < cells.length; i++) {
+             var cell = cells [i];
 
-          var node = new cc.DrawNode ();
-          aq.drawTri (node, 0, 0, cell.triangle_type, color);
-          node.setPosition (x * aq.config.BLOCK_SIZE, y * aq.config.BLOCK_SIZE);
-          self.fillParent.addChild (node);
+             var x = cell.grid_pos % self.blocks_wide;
+             var y = Math.floor (cell.grid_pos / self.blocks_wide);
+
+             var node = new cc.DrawNode ();
+             aq.drawTri (node, 0, 0, cell.triangle_type, color);
+             node.setPosition (x * aq.config.BLOCK_SIZE, y * aq.config.BLOCK_SIZE);
+             self.fillParent.addChild (node);
+          }
        }
-
-       self.fillIndex++;
    },
 
    groupFloodFill: function () {
        var self = this;
+
+       var square = function (c) {
+          return (((c & 0xff) === 0x31) || ((c & 0xff) === 0x13) || ((c & 0xff) === 0x24) || ((c & 0xff) === 0x42));
+       };
 
        // grid_pos is index into self.game_grid for the current cell
        // direction is direction from the caller
@@ -871,6 +877,61 @@ aq.Grid = cc.Node.extend ({
 
           var x = grid_pos % self.blocks_wide;
           var y = Math.floor (grid_pos / self.blocks_wide);
+
+          // Early bail out for empty cell
+          if ((self.game_grid [grid_pos] && 0xff) === 0) {
+             self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
+             return;
+          }
+
+          // Test for a solid square block at this cell position
+          if (square (self.game_grid [grid_pos])) {
+             // and both triangles belong to the same tile
+             var t1 = (self.game_grid [grid_pos] >> 24) & 0xff;
+             var t2 = (self.game_grid [grid_pos] >> 16) & 0xff;
+
+             if (t1 === t2) {
+                // and the tile matches our current group
+                if (tile_num_from === t1) {     // could also use t2, they're the same
+
+                   // Bail out if already seen
+                   if ((self.game_grid [grid_pos] & (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2)) === (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2)) {
+                      return;
+                   }
+
+                   // push both triangles onto the current group
+                   group_from.cells.push ({
+                      grid_pos: grid_pos,
+                      triangle_type: (self.game_grid [grid_pos] & 0x0f)
+                   });
+                   group_from.cells.push ({
+                      grid_pos: grid_pos,
+                      triangle_type: (self.game_grid [grid_pos] >> 4) & 0x0f
+                   });
+
+                   // Mark the cell fully seen
+                   self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
+
+                   if ((direction_from & FILL_UP) === 0 && y < self.blocks_high - 1) {
+                      floodFill (grid_pos + self.blocks_wide, FILL_DOWN, group_from);
+                   }
+
+                   if ((direction_from & FILL_RIGHT) === 0 && x < self.blocks_wide - 1) {
+                      floodFill (grid_pos + 1, FILL_LEFT, group_from);
+                   }
+
+                   if ((direction_from & FILL_LEFT) === 0 && x > 0) {
+                      floodFill (grid_pos - 1, FILL_RIGHT, group_from);
+                   }
+
+                   if ((direction_from & FILL_DOWN) === 0 && y > 0) {
+                      floodFill (grid_pos - self.blocks_wide, FILL_UP, group_from);
+                   }
+
+                   return;
+                }
+             }
+          }
 
           // Each entry into flood fill has to check both t1 and t2 triangle
           // locations within the grid position
@@ -945,7 +1006,6 @@ aq.Grid = cc.Node.extend ({
           }
        };
 
-       self.fillIndex = 0;
        self.fillGroups = [];
 
        var i;
@@ -975,12 +1035,16 @@ aq.Grid = cc.Node.extend ({
                       tile_num: tile_num,
                       cells: []
                    };
-                   self.fillGroups.push (newGroup);
                    floodFill (i, 0, newGroup);
+                   if (newGroup.cells.length > 0) {
+                      self.fillGroups.push (newGroup);
+                   }
                 }
              }
           }
        }
+
+       self.renderFilledCells ();
    }
 });
 
