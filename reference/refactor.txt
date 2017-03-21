@@ -1,9 +1,11 @@
-16th March 2017
+21th March 2017
 
 ONGOING
 
-Stack clustering/grouping.  Build upon the flood fill routine to iterate over blocks of the same colour, taking
-into account the triangle points.
+Stack clustering/grouping.
+
+Re-organize the 'make block' code so it actually makes a real Block object from the combined
+grid data.
 
 Refactor the flood fill to remove copy/pasted code blocks and possibly simplify.
 

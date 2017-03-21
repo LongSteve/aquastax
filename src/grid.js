@@ -848,6 +848,9 @@ aq.Grid = cc.Node.extend ({
           var tile_num = self.fillGroups [fillIndex].tile_num;
           var color = aq.Block.TILE_DATA [tile_num].color;
 
+          // TODO: Make an actual Block object at this point, add it to the scene
+          // at the appropriate position for rendering
+
           for (var i = 0; i < cells.length; i++) {
              var cell = cells [i];
 
@@ -859,7 +862,87 @@ aq.Grid = cc.Node.extend ({
              node.setPosition (x * aq.config.BLOCK_SIZE, y * aq.config.BLOCK_SIZE);
              self.fillParent.addChild (node);
           }
+
+          var outline = new cc.DrawNode ();
+          var tile_data = self.makeTileDataFromGroup (fillIndex);
+          aq.Block.createBlockOutline (outline, tile_data, 0);
+          outline.setPosition (tile_data.x * aq.config.BLOCK_SIZE, tile_data.y * aq.config.BLOCK_SIZE);
+          self.fillParent.addChild (outline);
        }
+   },
+
+   // Given a combined cell 'group', make a TILE_DATA object, like the predefined tiles within Block.js
+   // This will go towards creating actual Block objects shortly.
+   makeTileDataFromGroup: function (group) {
+       var self = this;
+
+       var tile_num = self.fillGroups [group].tile_num;
+       var cells = self.fillGroups [group].cells;
+
+       var tile_data = {
+          'id': 'group' + group,
+          'flags': 'active',
+          'color': aq.Block.TILE_DATA [tile_num].color,
+          'anchors': [[0,0]]
+       };
+
+       // Work out the cell extents
+       var min_x, min_y, max_x, max_y, i, grid_pos, x, y;
+
+       min_x = min_y = self.blocks_wide * 10;
+       max_x = max_y = 0;
+
+       for (i = 0; i < cells.length; i++) {
+          grid_pos = cells [i].grid_pos;
+          x = grid_pos % self.blocks_wide;
+          y = Math.floor (grid_pos / self.blocks_wide);
+          if (x > max_x) {
+             max_x = x;
+          }
+          if (x < min_x) {
+             min_x = x;
+          }
+          if (y > max_y) {
+             max_y = y;
+          }
+          if (y < min_y) {
+             min_y = y;
+          }
+       }
+
+       var w = max_x - min_x + 1;
+       var h = max_y - min_y + 1;
+
+       tile_data.grid_size = w > h ? w : h;
+
+       var grid_offset = (min_y * self.blocks_wide) + min_x;
+       var grid_data = [];
+       for (i = 0; i < tile_data.grid_size * tile_data.grid_size; i++) {
+          grid_data [i] = 0;
+       }
+
+       for (i = 0; i < cells.length; i++) {
+          grid_pos = cells [i].grid_pos - grid_offset;
+          x = grid_pos % self.blocks_wide;
+          y = Math.floor (grid_pos / self.blocks_wide);
+          y = tile_data.grid_size - (y + 1);
+          var tile_grid_pos = (y * tile_data.grid_size) + x;
+          if (grid_data [tile_grid_pos] !== 0) {
+             grid_data[tile_grid_pos] |= (cells[i].triangle_type << 4);
+          } else {
+             grid_data[tile_grid_pos] = cells[i].triangle_type;
+          }
+       }
+
+       tile_data.grid_data = [];
+       tile_data.grid_data [0] = grid_data;
+
+       // Store the x,y coord of the block/tile thingy, for rendering.
+       // This should be temporary until a Block is actually created.
+       tile_data.x = min_x;
+       tile_data.y = min_y;
+
+       return tile_data;
    },
 
    groupFloodFill: function () {

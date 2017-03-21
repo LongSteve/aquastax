@@ -39,150 +39,51 @@ aq.Block = cc.Node.extend ({
    /**
     * Create a cc.DrawNode to render a given tile number and rotation.
     *
-    * @param n tile number (0 - aq.Block.TILE_DATA.length)
-    * @param r rotation (0 - 3)
+    * @param tile_num tile number (0 - aq.Block.TILE_DATA.length)
+    * @param rotation rotation number (0 - 3)
     * @return a cc.DrawNode to add to the scene
     */
-   createTileNodeAtRotation: function (n, r) {
+   createTileNodeAtRotation: function (tile_num, rotation) {
       var self = this;
-
-      var node = new cc.DrawNode ();
-
-      var dx = 0;
-      var dy = 0;
-
-      var td = aq.Block.TILE_DATA [n];
-      var m = td.grid_size * td.grid_size;
-
-      for (var i = 0; i < m; i++) {
-         var tris = td.grid_data [r][i];
-         var t1 = (tris >> 4) & 0xf;
-         var t2 = tris & 0xf;
-
-         dy = ((td.grid_size - 1) - Math.floor (i / td.grid_size)) * aq.config.BLOCK_SIZE;
-         dx = (i % td.grid_size) * aq.config.BLOCK_SIZE;
-
-         if (t1 !== 0) {
-            aq.drawTri (node, dx, dy, t1, td.color);
-         }
-         if (t2 !== 0) {
-            aq.drawTri (node, dx, dy, t2, td.color);
-         }
-      }
-
-      self.addBlockOutline (node, n, r);
-
-      return node;
+      var tile_data = aq.Block.TILE_DATA [tile_num];
+      return self.createTileNodeFromData (tile_data, rotation);
    },
 
    /**
-    * Add the cc.DrawNode geometry (using DrawNode.drawSegment) calls to render lines for the
-    * block outline
+    * Create a cc.DrawNode to render the given tile_data, at the rotation.
     *
-    * @param node The cc.DrawNode to add the outlines too
-    * @param n tile number (0 - aq.Block.TILE_DATA.length)
-    * @param r rotation (0 - 3)
+    * @param tile_data object (normally taken from TILE_DATA)
+    * @param rotation rotation number (0 - 3)
+    * @return a cc.DrawNode to add to the scene
     */
-   addBlockOutline: function (node, n, r) {
-       var self = this;
+   createTileNodeFromData: function (tile_data, rotation) {
 
-       if (typeof (r) === 'undefined') {
-          r = self.rot;
-       }
+       var dx = 0;
+       var dy = 0;
 
-       var td = aq.Block.TILE_DATA [n];
-       var block_size = aq.config.BLOCK_SIZE;
+       var node = new cc.DrawNode ();
 
-       var outline_color = cc.color (0,0,0,255);
-       var outline_width = 2;
+       var m = tile_data.grid_size * tile_data.grid_size;
 
-       // Does the cell contain the specific triangle of the given type
-       var has_tri = function (cell, type) {
-          if (cell === 0) {
-             return false;
+       for (var i = 0; i < m; i++) {
+          var tris = tile_data.grid_data [rotation][i];
+          var t1 = (tris >> 4) & 0xf;
+          var t2 = tris & 0xf;
+
+          dy = ((tile_data.grid_size - 1) - Math.floor (i / tile_data.grid_size)) * aq.config.BLOCK_SIZE;
+          dx = (i % tile_data.grid_size) * aq.config.BLOCK_SIZE;
+
+          if (t1 !== 0) {
+             aq.drawTri (node, dx, dy, t1, tile_data.color);
           }
-
-          return ((cell & 0x0f) === type || ((cell >> 4) & 0x0f) === type);
-       };
-
-       // Get the cell data from the x,y position of a block.  Indexed from the top left.
-       var cell_data = function  (x, y) {
-          if (x < 0 || x >= td.grid_size) {
-             return 0;
-          }
-          if (y < 0 || y >= td.grid_size) {
-             return 0;
-          }
-
-          var i = (y * td.grid_size) + x;
-          return td.grid_data [r][i];
-       };
-
-       var has_top_edge = function (cell) {
-          return has_tri (cell, 2) || has_tri (cell, 3);
-       };
-
-       var has_bottom_edge = function (cell) {
-          return has_tri (cell, 1) || has_tri (cell, 4);
-       };
-
-       var has_left_edge = function (cell) {
-          return has_tri (cell, 1) || has_tri (cell, 2);
-       };
-
-       var has_right_edge = function (cell) {
-          return has_tri (cell, 3) || has_tri (cell, 4);
-       };
-
-       // Loop over the cells within the block grid, and draw any necessary block outlines
-       for (var x = 0; x < td.grid_size; x++) {
-          for (var y = 0; y < td.grid_size; y++) {
-             var cell = cell_data (x, y);
-
-             // cx,cy will be the top left point of the cell
-             var cx = x * block_size;
-             var cy = (td.grid_size - y) * block_size;
-
-             if (cell !== 0) {
-                // grab the data from the cells around the target cell
-                var left = cell_data (x - 1, y);
-                var right = cell_data (x + 1, y);
-                var above = cell_data (x, y - 1);
-                var below = cell_data (x, y + 1);
-
-                // boundary line at the top edge of the cell
-                if (has_top_edge (cell) && !has_bottom_edge (above)) {
-                   node.drawSegment (cc.p (cx, cy), cc.p (cx + block_size, cy), outline_width, outline_color);
-                }
-
-                // boundary line at the bottom edge of the cell
-                if (has_bottom_edge (cell) && !has_top_edge (below)) {
-                   node.drawSegment (cc.p (cx, cy - block_size), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
-                }
-
-                // boundary line at the left edge of the cell
-                if (has_left_edge (cell) && !has_right_edge (left)) {
-                   node.drawSegment (cc.p (cx, cy), cc.p (cx, cy - block_size), outline_width, outline_color);
-                }
-
-                // boundary line at the right edge of the cell
-                if (has_right_edge (cell) && !has_left_edge (right)) {
-                   node.drawSegment (cc.p (cx + block_size, cy), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
-                }
-
-                // right diagonal boundary
-                if ((has_tri (cell, 1) && !has_tri (cell, 3)) || (has_tri (cell, 3) && !has_tri (cell, 1))) {
-                   node.drawSegment (cc.p (cx, cy), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
-                }
-
-                // left diagonal boundary
-                if ((has_tri (cell, 2) && !has_tri (cell, 4)) || (has_tri (cell, 4) && !has_tri (cell, 2))) {
-                   node.drawSegment (cc.p (cx + block_size, cy), cc.p (cx, cy - block_size), outline_width, outline_color);
-                }
-             }
+          if (t2 !== 0) {
+             aq.drawTri (node, dx, dy, t2, tile_data.color);
           }
        }
 
+       aq.Block.createBlockOutline (node, tile_data, rotation);
+
+       return node;
    },
 
    getTileData: function () {
@@ -512,6 +413,110 @@ aq.Block.getRandomTileNumber = function () {
 aq.Block.getTileDataForNum = function (tile_num) {
    return aq.Block.TILE_DATA [tile_num];
 };
+
+/**
+ * Creates the cc.DrawNode geometry (using DrawNode.drawSegment) calls to render lines for the
+ * block outline.  This is used by the grid for rendering large combined blocks.
+ *
+ * @param node The cc.DrawNode to add the outlines too
+ * @param tile_data from the TILE_DATA array
+ * @param rotation rotation number (0 - 3)
+ */
+aq.Block.createBlockOutline = function (node, tile_data, rotation) {
+
+    var block_size = aq.config.BLOCK_SIZE;
+
+    var outline_color = cc.color (0,0,0,255);
+    var outline_width = 2;
+
+    // Does the cell contain the specific triangle of the given type
+    var has_tri = function (cell, type) {
+       if (cell === 0) {
+          return false;
+       }
+
+       return ((cell & 0x0f) === type || ((cell >> 4) & 0x0f) === type);
+    };
+
+    // Get the cell data from the x,y position of a block.  Indexed from the top left.
+    var cell_data = function  (x, y) {
+       if (x < 0 || x >= tile_data.grid_size) {
+          return 0;
+       }
+       if (y < 0 || y >= tile_data.grid_size) {
+          return 0;
+       }
+
+       var i = (y * tile_data.grid_size) + x;
+       return tile_data.grid_data [rotation][i];
+    };
+
+    var has_top_edge = function (cell) {
+       return has_tri (cell, 2) || has_tri (cell, 3);
+    };
+
+    var has_bottom_edge = function (cell) {
+       return has_tri (cell, 1) || has_tri (cell, 4);
+    };
+
+    var has_left_edge = function (cell) {
+       return has_tri (cell, 1) || has_tri (cell, 2);
+    };
+
+    var has_right_edge = function (cell) {
+       return has_tri (cell, 3) || has_tri (cell, 4);
+    };
+
+    // Loop over the cells within the block grid, and draw any necessary block outlines
+    for (var x = 0; x < tile_data.grid_size; x++) {
+       for (var y = 0; y < tile_data.grid_size; y++) {
+          var cell = cell_data (x, y);
+
+          // cx,cy will be the top left point of the cell
+          var cx = x * block_size;
+          var cy = (tile_data.grid_size - y) * block_size;
+
+          if (cell !== 0) {
+             // grab the data from the cells around the target cell
+             var left = cell_data (x - 1, y);
+             var right = cell_data (x + 1, y);
+             var above = cell_data (x, y - 1);
+             var below = cell_data (x, y + 1);
+
+             // boundary line at the top edge of the cell
+             if (has_top_edge (cell) && !has_bottom_edge (above)) {
+                node.drawSegment (cc.p (cx, cy), cc.p (cx + block_size, cy), outline_width, outline_color);
+             }
+
+             // boundary line at the bottom edge of the cell
+             if (has_bottom_edge (cell) && !has_top_edge (below)) {
+                node.drawSegment (cc.p (cx, cy - block_size), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
+             }
+
+             // boundary line at the left edge of the cell
+             if (has_left_edge (cell) && !has_right_edge (left)) {
+                node.drawSegment (cc.p (cx, cy), cc.p (cx, cy - block_size), outline_width, outline_color);
+             }
+
+             // boundary line at the right edge of the cell
+             if (has_right_edge (cell) && !has_left_edge (right)) {
+                node.drawSegment (cc.p (cx + block_size, cy), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
+             }
+
+             // right diagonal boundary
+             if ((has_tri (cell, 1) && !has_tri (cell, 3)) || (has_tri (cell, 3) && !has_tri (cell, 1))) {
+                node.drawSegment (cc.p (cx, cy), cc.p (cx + block_size, cy - block_size), outline_width, outline_color);
+             }
+
+             // left diagonal boundary
+             if ((has_tri (cell, 2) && !has_tri (cell, 4)) || (has_tri (cell, 4) && !has_tri (cell, 2))) {
+                node.drawSegment (cc.p (cx + block_size, cy), cc.p (cx, cy - block_size), outline_width, outline_color);
+             }
+          }
+       }
+    }
+};
+
 
 /**
  * initTileData function, needs to be called at game startup, so is called as an Immediately Executed Function.
