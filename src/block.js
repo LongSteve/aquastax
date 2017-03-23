@@ -5,28 +5,48 @@ aq.Block = cc.Node.extend ({
    // a list of cc.DrawNode objects representing this block at the 4 rotations
    drawNodes: null,
 
-   // The tile number for this block
+   // The tile number for this block (or -1 if a custom tile)
    tile_num: 0,
+
+   // A reference to the tile data for this block
+   tile_data: null,
 
    // Block rotation (0 - 3)
    rot: 0,
 
-   ctor: function (tile_num) {
+   // Construct a Block from a given pre-defined tile number, or a dynamically created tile_data object
+   ctor: function (tile_num, tile_data) {
       var self = this;
 
-      // 1. super init first
+      // super init first
       self._super ();
 
-      // Make the set of drawNodes corresponding to each rotation
-      self.drawNodes = [
-         self.createTileNodeAtRotation (tile_num, 0),
-         self.createTileNodeAtRotation (tile_num, 1),
-         self.createTileNodeAtRotation (tile_num, 2),
-         self.createTileNodeAtRotation (tile_num, 3),
-      ];
-
+      // Tile number reference
       self.tile_num = tile_num;
+
+      // First rotation
       self.rot = 0;
+
+      // Custom tile_data passed in
+      if (tile_num === -1 && tile_data instanceof Object) {
+         self.tile_data = tile_data;
+
+         // Only need one rotation for a custom block
+         self.drawNodes = [
+            self.createTileNodeAtRotation (0)
+         ];
+      } else {
+         // Or using one of the pre-defined tiles
+         self.tile_data = aq.Block.TILE_DATA [tile_num];
+
+         // Make the set of drawNodes corresponding to each rotation
+         self.drawNodes = [
+            self.createTileNodeAtRotation (0),
+            self.createTileNodeAtRotation (1),
+            self.createTileNodeAtRotation (2),
+            self.createTileNodeAtRotation (3),
+         ];
+      }
 
       for (var n = 0; n < self.drawNodes.length; n++) {
          if (n > 0) {
@@ -43,52 +63,40 @@ aq.Block = cc.Node.extend ({
     * @param rotation rotation number (0 - 3)
     * @return a cc.DrawNode to add to the scene
     */
-   createTileNodeAtRotation: function (tile_num, rotation) {
-      var self = this;
-      var tile_data = aq.Block.TILE_DATA [tile_num];
-      return self.createTileNodeFromData (tile_data, rotation);
-   },
-
-   /**
-    * Create a cc.DrawNode to render the given tile_data, at the rotation.
-    *
-    * @param tile_data object (normally taken from TILE_DATA)
-    * @param rotation rotation number (0 - 3)
-    * @return a cc.DrawNode to add to the scene
-    */
-   createTileNodeFromData: function (tile_data, rotation) {
+   createTileNodeAtRotation: function (rotation) {
+       var self = this;
 
        var dx = 0;
        var dy = 0;
 
+       var grid_size = self.tile_data.grid_size;
+
        var node = new cc.DrawNode ();
 
-       var m = tile_data.grid_size * tile_data.grid_size;
-
-       for (var i = 0; i < m; i++) {
-          var tris = tile_data.grid_data [rotation][i];
+       for (var i = 0; i < grid_size * grid_size; i++) {
+          var tris = self.tile_data.grid_data [rotation][i];
           var t1 = (tris >> 4) & 0xf;
           var t2 = tris & 0xf;
 
-          dy = ((tile_data.grid_size - 1) - Math.floor (i / tile_data.grid_size)) * aq.config.BLOCK_SIZE;
-          dx = (i % tile_data.grid_size) * aq.config.BLOCK_SIZE;
+          dy = ((grid_size - 1) - Math.floor (i / grid_size)) * aq.config.BLOCK_SIZE;
+          dx = (i % grid_size) * aq.config.BLOCK_SIZE;
 
           if (t1 !== 0) {
-             aq.drawTri (node, dx, dy, t1, tile_data.color);
+             aq.drawTri (node, dx, dy, t1, self.tile_data.color);
           }
           if (t2 !== 0) {
-             aq.drawTri (node, dx, dy, t2, tile_data.color);
+             aq.drawTri (node, dx, dy, t2, self.tile_data.color);
           }
        }
 
-       aq.Block.createBlockOutline (node, tile_data, rotation);
+       aq.Block.createBlockOutline (node, self.tile_data, rotation);
 
        return node;
    },
 
    getTileData: function () {
        var self = this;
-       return aq.Block.TILE_DATA [self.tile_num];
+       return self.tile_data;
    },
 
    getTileNum: function () {
@@ -103,7 +111,7 @@ aq.Block = cc.Node.extend ({
 
    getGridSize: function () {
        var self = this;
-       return aq.Block.TILE_DATA [self.tile_num].grid_size;
+       return self.tile_data.grid_size;
    },
 
    getObjectData: function (rotation) {
@@ -112,7 +120,7 @@ aq.Block = cc.Node.extend ({
           rotation = self.rot;
        }
 
-       return aq.Block.TILE_DATA[self.tile_num].grid_data[rotation];
+       return self.tile_data.grid_data[rotation];
    },
 
    getNewRotationAndPosition90: function () {
@@ -199,8 +207,8 @@ aq.Block = cc.Node.extend ({
       }
 
       // TODO: Calculate this once at startup and cache the values
-      var tile = aq.Block.TILE_DATA [self.tile_num];
-      var grid_size = tile.grid_size;
+      var grid_size = self.tile_data.grid_size;
+      var grid_data = self.tile_data.grid_data;
 
       var x = 0, y = 0;
       var lb = 99, rb = 99, bb = 99, tb = 99;
@@ -213,7 +221,7 @@ aq.Block = cc.Node.extend ({
             // Determine left bound
             if (lb === 99) {
                grid_pos = (y * grid_size) + x;
-               if (tile.grid_data [rotation][grid_pos] !== 0) {
+               if (grid_data [rotation][grid_pos] !== 0) {
                   lb = x;
                }
             }
@@ -221,7 +229,7 @@ aq.Block = cc.Node.extend ({
             // Determine right bound
             if (rb === 99) {
                grid_pos = (y * grid_size) + (grid_size - 1 - x);
-               if (tile.grid_data [rotation][grid_pos] !== 0) {
+               if (grid_data [rotation][grid_pos] !== 0) {
                   rb = (grid_size - x);
                }
             }
@@ -235,7 +243,7 @@ aq.Block = cc.Node.extend ({
             // Determine 'bottom' or lower bound
             if (bb === 99) {
                grid_pos = ((grid_size - 1 - y) * grid_size) + x;
-               if (tile.grid_data [rotation][grid_pos] !== 0 && y < bb) {
+               if (grid_data [rotation][grid_pos] !== 0 && y < bb) {
                   bb = y;
                }
             }
@@ -243,7 +251,7 @@ aq.Block = cc.Node.extend ({
             // Determine 'top' or upper bound
             if (tb === 99) {
                grid_pos = (y * grid_size) + x;
-               if (tile.grid_data [rotation][grid_pos] !== 0 && y < tb) {
+               if (grid_data [rotation][grid_pos] !== 0 && y < tb) {
                   tb = grid_size - y;
                }
             }
@@ -269,8 +277,8 @@ aq.Block = cc.Node.extend ({
          rotation = self.rot;
       }
 
-      var tile = aq.Block.TILE_DATA [self.tile_num];
-      var grid_size = tile.grid_size;
+      var grid_size = self.tile_data.grid_size;
+      var grid_data = self.tile_data.grid_data;
 
       var x = 0, y = 0;
       var grid_pos, tile_cell;
@@ -282,7 +290,7 @@ aq.Block = cc.Node.extend ({
          for (y = 0; y < grid_size; ++y)
          {
             grid_pos = (y * grid_size) + x;
-            tile_cell = tile.grid_data [rotation][grid_pos];
+            tile_cell = grid_data [rotation][grid_pos];
             if (tile_cell !== 0 || !exclude_empty) {
                cell_list.push ({
                   tile_cell: tile_cell,

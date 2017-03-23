@@ -834,6 +834,8 @@ aq.Grid = cc.Node.extend ({
    fillGroups: null,
    fillGroupCount: 0,
 
+   // Take the fillGroups array, and create a set of Block objects for rendering, each one added
+   // to the fillParent node so we can dispose of them all in one go as appropriate
    renderFilledCells: function () {
        var self = this;
 
@@ -841,39 +843,26 @@ aq.Grid = cc.Node.extend ({
           return;
        }
 
+       // Clear any existing blocks
+       if (self.fillParent) {
+          self.fillParent.removeAllChildren (true);
+       } else {
+          // Allova
+          self.fillParent = new cc.Node ();
+          self.addChild (self.fillParent);
+       }
+
        self.fillGroupCount = self.fillGroups.length;
 
        for (var fillIndex = 0; fillIndex < self.fillGroups.length; fillIndex++) {
-          var cells = self.fillGroups[fillIndex].cells;
-          var tile_num = self.fillGroups [fillIndex].tile_num;
-          var color = aq.Block.TILE_DATA [tile_num].color;
-
-          // TODO: Make an actual Block object at this point, add it to the scene
-          // at the appropriate position for rendering
-
-          for (var i = 0; i < cells.length; i++) {
-             var cell = cells [i];
-
-             var x = cell.grid_pos % self.blocks_wide;
-             var y = Math.floor (cell.grid_pos / self.blocks_wide);
-
-             var node = new cc.DrawNode ();
-             aq.drawTri (node, 0, 0, cell.triangle_type, color);
-             node.setPosition (x * aq.config.BLOCK_SIZE, y * aq.config.BLOCK_SIZE);
-             self.fillParent.addChild (node);
-          }
-
-          var outline = new cc.DrawNode ();
-          var tile_data = self.makeTileDataFromGroup (fillIndex);
-          aq.Block.createBlockOutline (outline, tile_data, 0);
-          outline.setPosition (tile_data.x * aq.config.BLOCK_SIZE, tile_data.y * aq.config.BLOCK_SIZE);
-          self.fillParent.addChild (outline);
+          var block = self.createBlockFromTileDataGroup(fillIndex);
+          self.fillParent.addChild (block);
        }
    },
 
-   // Given a combined cell 'group', make a TILE_DATA object, like the predefined tiles within Block.js
-   // This will go towards creating actual Block objects shortly.
-   makeTileDataFromGroup: function (group) {
+   // Given a combined cell 'group', make a Block object, like the predefined tiles within Block.js
+   // but using the generated block data from the grid.
+   createBlockFromTileDataGroup: function (group) {
        var self = this;
 
        var tile_num = self.fillGroups [group].tile_num;
@@ -896,18 +885,10 @@ aq.Grid = cc.Node.extend ({
           grid_pos = cells [i].grid_pos;
           x = grid_pos % self.blocks_wide;
           y = Math.floor (grid_pos / self.blocks_wide);
-          if (x > max_x) {
-             max_x = x;
-          }
-          if (x < min_x) {
-             min_x = x;
-          }
-          if (y > max_y) {
-             max_y = y;
-          }
-          if (y < min_y) {
-             min_y = y;
-          }
+          max_x = x > max_x ? x : max_x;
+          min_x = x < min_x ? x : min_x;
+          max_y = y > max_y ? y : max_y;
+          min_y = y < min_y ? y : min_y;
        }
 
        var w = max_x - min_x + 1;
@@ -915,34 +896,32 @@ aq.Grid = cc.Node.extend ({
 
        tile_data.grid_size = w > h ? w : h;
 
+       // Fill a grid_data array with empty zeros
        var grid_offset = (min_y * self.blocks_wide) + min_x;
        var grid_data = [];
        for (i = 0; i < tile_data.grid_size * tile_data.grid_size; i++) {
           grid_data [i] = 0;
        }
 
+       // Now insert all the triangle data for the group into the grid_data array
        for (i = 0; i < cells.length; i++) {
           grid_pos = cells [i].grid_pos - grid_offset;
           x = grid_pos % self.blocks_wide;
           y = Math.floor (grid_pos / self.blocks_wide);
           y = tile_data.grid_size - (y + 1);
           var tile_grid_pos = (y * tile_data.grid_size) + x;
-          if (grid_data [tile_grid_pos] !== 0) {
-             grid_data[tile_grid_pos] |= (cells[i].triangle_type << 4);
-          } else {
-             grid_data[tile_grid_pos] = cells[i].triangle_type;
-          }
+          grid_data[tile_grid_pos] = cells[i].cell_data;
        }
 
+       // Add the grid_data to the tile_data
        tile_data.grid_data = [];
        tile_data.grid_data [0] = grid_data;
 
-       // Store the x,y coord of the block/tile thingy, for rendering.
-       // This should be temporary until a Block is actually created.
-       tile_data.x = min_x;
-       tile_data.y = min_y;
+       // Create a block from this tile_data for returning
+       var block = new aq.Block (-1, tile_data);
+       block.setPosition (min_x * aq.config.BLOCK_SIZE, min_y * aq.config.BLOCK_SIZE);
 
-       return tile_data;
+       return block;
    },
 
    groupFloodFill: function () {
@@ -957,9 +936,40 @@ aq.Grid = cc.Node.extend ({
        var floodFill = function (grid_pos, direction_from, group_from) {
 
           var tile_num_from = group_from.tile_num;
-
           var x = grid_pos % self.blocks_wide;
           var y = Math.floor (grid_pos / self.blocks_wide);
+
+          var fillOutwards = function (triangle_type) {
+
+             // If the cell is not entered from above (UP), then we can recurse
+             // in the up direction.  Passing DOWN as the direction_from, and
+             // "grid_pos + self.blocks_wide" to get the grid index for one
+             // row above
+
+             if ((direction_from & FILL_UP) === 0 && y < self.blocks_high - 1) {
+                if (triangle_type === -1 || triangle_type === 2 || triangle_type === 3) {
+                   floodFill (grid_pos + self.blocks_wide, FILL_DOWN, group_from);
+                }
+             }
+
+             if ((direction_from & FILL_RIGHT) === 0 && x < self.blocks_wide - 1) {
+                if (triangle_type === -1 || triangle_type === 3 || triangle_type === 4) {
+                   floodFill (grid_pos + 1, FILL_LEFT, group_from);
+                }
+             }
+
+             if ((direction_from & FILL_LEFT) === 0 && x > 0) {
+                if (triangle_type === -1 || triangle_type === 1 || triangle_type === 2) {
+                   floodFill (grid_pos - 1, FILL_RIGHT, group_from);
+                }
+             }
+
+             if ((direction_from & FILL_DOWN) === 0 && y > 0) {
+                if (triangle_type === -1 || triangle_type === 1 || triangle_type === 4) {
+                   floodFill (grid_pos - self.blocks_wide, FILL_UP, group_from);
+                }
+             }
+          };
 
           // Early bail out for empty cell
           if ((self.game_grid [grid_pos] && 0xff) === 0) {
@@ -982,34 +992,17 @@ aq.Grid = cc.Node.extend ({
                       return;
                    }
 
-                   // push both triangles onto the current group
+                   // push the square cell data onto the current group
                    group_from.cells.push ({
                       grid_pos: grid_pos,
-                      triangle_type: (self.game_grid [grid_pos] & 0x0f)
-                   });
-                   group_from.cells.push ({
-                      grid_pos: grid_pos,
-                      triangle_type: (self.game_grid [grid_pos] >> 4) & 0x0f
+                      cell_data: (self.game_grid [grid_pos] & 0xff)
                    });
 
                    // Mark the cell fully seen
                    self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
 
-                   if ((direction_from & FILL_UP) === 0 && y < self.blocks_high - 1) {
-                      floodFill (grid_pos + self.blocks_wide, FILL_DOWN, group_from);
-                   }
-
-                   if ((direction_from & FILL_RIGHT) === 0 && x < self.blocks_wide - 1) {
-                      floodFill (grid_pos + 1, FILL_LEFT, group_from);
-                   }
-
-                   if ((direction_from & FILL_LEFT) === 0 && x > 0) {
-                      floodFill (grid_pos - 1, FILL_RIGHT, group_from);
-                   }
-
-                   if ((direction_from & FILL_DOWN) === 0 && y > 0) {
-                      floodFill (grid_pos - self.blocks_wide, FILL_UP, group_from);
-                   }
+                   // Fill outwards from this cell
+                   fillOutwards (-1);
 
                    return;
                 }
@@ -1048,44 +1041,19 @@ aq.Grid = cc.Node.extend ({
                 continue;
              }
 
-             self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1 << i);
-
              // Set the triangle to render if it's not empty
              if (triangle_type !== 0) {
                 group_from.cells.push ({
                    grid_pos: grid_pos,
-                   triangle_type: triangle_type
+                   cell_data: triangle_type
                 });
              }
 
-             // If the cell is not entered from above (UP), then we can recurse
-             // in the up direction.  Passing DOWN as the direction_from, and
-             // "grid_pos + self.blocks_wide" to get the grid index for one
-             // row above
+             // Mark the triangle position (t1 or t2) as seen
+             self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1 << i);
 
-             if ((direction_from & FILL_UP) === 0 && y < self.blocks_high - 1) {
-                if (triangle_type === 2 || triangle_type === 3) {
-                   floodFill (grid_pos + self.blocks_wide, FILL_DOWN, group_from);
-                }
-             }
-
-             if ((direction_from & FILL_RIGHT) === 0 && x < self.blocks_wide - 1) {
-                if (triangle_type === 3 || triangle_type === 4) {
-                   floodFill (grid_pos + 1, FILL_LEFT, group_from);
-                }
-             }
-
-             if ((direction_from & FILL_LEFT) === 0 && x > 0) {
-                if (triangle_type === 1 || triangle_type === 2) {
-                   floodFill (grid_pos - 1, FILL_RIGHT, group_from);
-                }
-             }
-
-             if ((direction_from & FILL_DOWN) === 0 && y > 0) {
-                if (triangle_type === 1 || triangle_type === 4) {
-                   floodFill (grid_pos - self.blocks_wide, FILL_UP, group_from);
-                }
-             }
+             // Fill outwards from this cell
+             fillOutwards (triangle_type);
           }
        };
 
@@ -1096,14 +1064,6 @@ aq.Grid = cc.Node.extend ({
        // Clear the floodfill bits in the game_grid
        for (i = 0; i < self.game_grid.length; i++) {
           self.game_grid [i] &= ~(FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
-       }
-
-       if (self.fillParent) {
-          // Remove all the pink blocks
-          self.fillParent.removeAllChildren (true);
-       } else {
-          self.fillParent = new cc.Node ();
-          self.addChild (self.fillParent);
        }
 
        for (i = 0; i < self.game_grid.length; i++) {
