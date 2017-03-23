@@ -14,6 +14,9 @@ aq.Block = cc.Node.extend ({
    // Block rotation (0 - 3)
    rot: 0,
 
+   // Could collision data be recorded for this block
+   collision_reporting_enabled: true,
+
    // Construct a Block from a given pre-defined tile number, or a dynamically created tile_data object
    ctor: function (tile_num, tile_data) {
       var self = this;
@@ -264,6 +267,16 @@ aq.Block = cc.Node.extend ({
          bottom: bb,
          top: tb
       };
+   },
+
+   setCollisionReportingEnabled: function (enabled) {
+       var self = this;
+       self.collision_reporting_enabled = enabled;
+   },
+
+   isCollisionReportingEnabled: function () {
+       var self = this;
+       return self.collision_reporting_enabled;
    },
 
    /**

@@ -52,4 +52,15 @@ aq.drawTri = function (node, x, y, type, color) {
    node.drawPoly (triangle, cc.color (color), 4, true);
 };
 
+/**
+ * Determine if a grid cell (either from a block or within the grid) is a solid square
+ *
+ * @param c the grid cell data value
+ * @return true is the cell is a solid square made of two triangles, and not a single triangle
+ */
+aq.isSquareCell = function (c) {
+   return (((c & 0xff) === 0x31) || ((c & 0xff) === 0x13) || ((c & 0xff) === 0x24) || ((c & 0xff) === 0x42));
+};
+
+
 

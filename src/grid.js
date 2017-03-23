@@ -392,18 +392,20 @@ aq.Grid = cc.Node.extend ({
 
          for (var i = 0; i < grid_indexes.length; i++) {
 
-            var grid_block_pos = self.getGridPositionForIndex (grid_indexes [i].grid_index);
-            var grid_block_obj = (self.getGridDataForIndex (grid_indexes [i].grid_index) & 0xff);
+            var grid_block_index = grid_indexes [i].grid_index;
+            var grid_block_pos = self.getGridPositionForIndex (grid_block_index);
+            var grid_block_obj = (self.getGridDataForIndex (grid_block_index) & 0xff);
 
             var cell_collision = self.collideCell (
                                     cell_obj, cell_pos.x, cell_pos.y,
                                     grid_block_obj, grid_block_pos.x, grid_block_pos.y);
 
-            if (cell_collision !== NO_COLLISION) {
+            if (cell_collision !== NO_COLLISION && block.isCollisionReportingEnabled ()) {
                // Report this collision back to the game code
                var c = {};
                c.cell = cc.clone (cell);
                c.collision = cell_collision;
+               c.grid_block_index = grid_block_index;
                c.grid_block_pos = grid_block_pos;
                c.grid_block_obj = grid_block_obj;
                collision_points.push (c);
@@ -413,15 +415,19 @@ aq.Grid = cc.Node.extend ({
          }
       }
 
-      if (collision_points.length > 0) {
-         block.collision_points = collision_points;
-      } else {
-         block.collision_points = null;
+      if (block.isCollisionReportingEnabled ()) {
+         if (collision_points.length > 0) {
+            block.collision_points = collision_points;
+         } else {
+            block.collision_points = null;
+         }
       }
 
       return collision;
    },
 
+   // Test to see if the block can slide in either the left or the right directions.
+   // Used speculatively in order to trigger a slide
    slideBlock: function (block) {
        var self = this;
 
@@ -429,6 +435,9 @@ aq.Grid = cc.Node.extend ({
        var can_move_right = false;
 
        var pos = block.getPosition ();
+
+       // Disable block collision reporting
+       block.setCollisionReportingEnabled (false);
 
        var p1, p2;
        var can_move_to = null;
@@ -461,6 +470,8 @@ aq.Grid = cc.Node.extend ({
           can_move_to.y = Math.floor (can_move_to.y / aq.config.BLOCK_SIZE) * aq.config.BLOCK_SIZE;
        }
 
+       block.setCollisionReportingEnabled (true);
+
        return {
           can_move_left: can_move_left,
           can_move_right: can_move_right,
@@ -468,9 +479,28 @@ aq.Grid = cc.Node.extend ({
        };
    },
 
+   // Test for the appropriate stack breaking scenario
    breakBlock: function (block, new_pos) {
-       // jshint unused:false
        var self = this;
+
+       if (block.collision_points) {
+          for(var i = 0; i < block.collision_points.length; i++) {
+             // For each point in the grid, test the collision point, with the cell/triangle
+             // of the block falling.
+
+             var cp = block.collision_points [i];
+             cc.log ('grid collision point: ' + cp.grid_block_index + ' triangle_type: ' + cp.grid_block_obj);
+             cc.log ('block triangle data:' + cp.cell.tile_cell);
+
+             var grid_cell = cp.grid_block_obj;
+             var block_cell = cp.cell.tile_cell;
+
+             // Use aq.isSquareCell and the triangle numbers to test the collision points for the appropriate
+             // triangle against flat section collisions that should result in breaking
+             // Note. This isn't necessarily a simple scenario, since multiple collision points can be reported
+             // by the block
+          }
+       }
 
        return false;
    },
@@ -582,11 +612,7 @@ aq.Grid = cc.Node.extend ({
                 }
              }
 
-             var square = function (c) {
-                return (((c & 0xff) === 0x31) || ((c & 0xff) === 0x13) || ((c & 0xff) === 0x24) || ((c & 0xff) === 0x42));
-             };
-
-             if (square (moving_obj) && square (grid_obj))
+             if (aq.isSquareCell (moving_obj) && aq.isSquareCell (grid_obj))
              {
                 //
                 // Handle 2 squares colliding
@@ -599,11 +625,11 @@ aq.Grid = cc.Node.extend ({
                 //
                 // Handle triangle collision
 
-                if (square (moving_obj))
+                if (aq.isSquareCell (moving_obj))
                 {
                    collision = self.collideSquareWithTriangle (px, py, grid_obj, grid_pos_x, grid_pos_y, moving_pos_x, moving_pos_y);
                 }
-                else if (square(grid_obj))
+                else if (aq.isSquareCell(grid_obj))
                 {
                    collision = self.collideSquareWithTriangle (px, py, moving_obj, moving_pos_x, moving_pos_y, grid_pos_x, grid_pos_y);
                 }
@@ -927,10 +953,6 @@ aq.Grid = cc.Node.extend ({
    groupFloodFill: function () {
        var self = this;
 
-       var square = function (c) {
-          return (((c & 0xff) === 0x31) || ((c & 0xff) === 0x13) || ((c & 0xff) === 0x24) || ((c & 0xff) === 0x42));
-       };
-
        // grid_pos is index into self.game_grid for the current cell
        // direction is direction from the caller
        var floodFill = function (grid_pos, direction_from, group_from) {
@@ -978,7 +1000,7 @@ aq.Grid = cc.Node.extend ({
           }
 
           // Test for a solid square block at this cell position
-          if (square (self.game_grid [grid_pos])) {
+          if (aq.isSquareCell (self.game_grid [grid_pos])) {
              // and both triangles belong to the same tile
              var t1 = (self.game_grid [grid_pos] >> 24) & 0xff;
              var t2 = (self.game_grid [grid_pos] >> 16) & 0xff;

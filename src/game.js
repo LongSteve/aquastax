@@ -5,6 +5,9 @@
 // Set the something other than -1 to force the block that spawns to always be this same block
 var FIXED_TEST_BLOCK = -1;
 
+// The first block that falls at the beginning
+var FIXED_FIRST_BLOCK = 0;
+
 var GameLayer = cc.Layer.extend ({
 
    // panels
@@ -55,7 +58,7 @@ var GameLayer = cc.Layer.extend ({
 
       self.gamePanel = gamePanel;
 
-      self.newBlock (FIXED_TEST_BLOCK === -1 ? 0 : FIXED_TEST_BLOCK, blocks_wide / 2, blocks_high);
+      self.newBlock (FIXED_FIRST_BLOCK, blocks_wide / 2, blocks_high);
 
       self.moveHighlightL = new cc.DrawNode ();
       self.gamePanel.addChild (self.moveHighlightL, 100);

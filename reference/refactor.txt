@@ -1,13 +1,11 @@
-21th March 2017
+23rd March 2017
 
 ONGOING
 
 Stack clustering/grouping.
 
-Re-organize the 'make block' code so it actually makes a real Block object from the combined
-grid data.
-
-Refactor the flood fill to remove copy/pasted code blocks and possibly simplify.
+Implement the block breaking.  See the grid.breakBlock method and use the block.collision_points
+data.
 
 BUGS
 
