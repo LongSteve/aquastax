@@ -3,7 +3,7 @@
 /* globals AXIS_COLLISION, SLOPE_COLLISION, NO_COLLISION, GRID_LEFT_EDGE_COLLISION, GRID_RIGHT_EDGE_COLLISION */
 
 // Set the something other than -1 to force the block that spawns to always be this same block
-var FIXED_TEST_BLOCK = -1;
+var FIXED_TEST_BLOCK = 7;
 
 // The first block that falls at the beginning
 var FIXED_FIRST_BLOCK = 0;

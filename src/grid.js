@@ -41,6 +41,9 @@ aq.Grid = cc.Node.extend ({
    // node for collision testing visualisation
    grid_collision_squares: null,
 
+   // grid break highlight position
+   grid_break_highlights: null,
+
    // Reference to the currently falling block
    falling_block: null,
 
@@ -78,9 +81,11 @@ aq.Grid = cc.Node.extend ({
 
       self.grid_pos_highlight = new cc.DrawNode ();
       self.grid_collision_squares = new cc.DrawNode ();
+      self.grid_break_highlights = new cc.Node ();
 
       self.addChild (self.grid_pos_highlight);
       self.addChild (self.grid_collision_squares);
+      self.addChild (self.grid_break_highlights, 500);
 
       self.scheduleUpdate ();
    },
@@ -483,7 +488,11 @@ aq.Grid = cc.Node.extend ({
    breakBlock: function (block, new_pos) {
        var self = this;
 
-       if (block.collision_points) {
+       if (block.collision_points && block.collision_points.length > 0) {
+
+          // Visualise the break position in the grid
+          self.grid_break_highlights.removeAllChildren (true);
+
           for(var i = 0; i < block.collision_points.length; i++) {
              // For each point in the grid, test the collision point, with the cell/triangle
              // of the block falling.
@@ -499,6 +508,34 @@ aq.Grid = cc.Node.extend ({
              // triangle against flat section collisions that should result in breaking
              // Note. This isn't necessarily a simple scenario, since multiple collision points can be reported
              // by the block
+
+
+             var highlight = new cc.DrawNode ();
+             highlight.drawCircle (cc.p (0,0), 6, 2 * cc.PI, 10, true, 4, cc.color (255,0,255,255));
+
+             var hl_pos = self.getGridPositionForIndex (cp.grid_block_index);    // this is the cell bottom left
+             hl_pos.y += aq.config.BLOCK_SIZE;      // collision point will always be at the top of the cell
+
+             if (aq.isSingleTriangleCell (cp.grid_block_obj, 1)) {
+                // Collision point can only be the top left of the cell
+
+             } else if (aq.isSingleTriangleCell (cp.grid_block_obj, 4)) {
+                // Collision point can only be the top right
+                hl_pos.x += aq.config.BLOCK_SIZE;
+             } else {
+                // The grid cell is either a triangle type 2 or 3 (with solid top edge), or a square, again
+                // with a solid top edge.  So we have to look at the falling block to determine the collision
+                // point
+                highlight.clear ();
+                highlight.drawSegment (cc.p(0,0), cc.p (aq.config.BLOCK_SIZE, 0), 4, cc.color (0,255,0,255));
+
+                // TODO: Determine left or right position of the break
+             }
+
+             highlight.setPosition (hl_pos);
+
+             self.grid_break_highlights.addChild (highlight);
+
           }
        }
 

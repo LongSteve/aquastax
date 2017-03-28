@@ -1,11 +1,11 @@
-23rd March 2017
+28th March 2017
 
 ONGOING
 
 Stack clustering/grouping.
 
 Implement the block breaking.  See the grid.breakBlock method and use the block.collision_points
-data.
+data.  Continue with highlighting the exact position of a break.
 
 BUGS
 
