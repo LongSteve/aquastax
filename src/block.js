@@ -1,5 +1,8 @@
 'use strict';
 
+// Set this to a color to force all blocks to one color, useful for debugging
+var FIXED_BLOCK_COLOR = cc.color (128,128,128,128);
+
 aq.Block = cc.Node.extend ({
 
    // a list of cc.DrawNode objects representing this block at the 4 rotations
@@ -85,10 +88,10 @@ aq.Block = cc.Node.extend ({
           dx = (i % grid_size) * aq.config.BLOCK_SIZE;
 
           if (t1 !== 0) {
-             aq.drawTri (node, dx, dy, t1, self.tile_data.color);
+             aq.drawTri (node, dx, dy, t1, FIXED_BLOCK_COLOR || self.tile_data.color);
           }
           if (t2 !== 0) {
-             aq.drawTri (node, dx, dy, t2, self.tile_data.color);
+             aq.drawTri (node, dx, dy, t2, FIXED_BLOCK_COLOR || self.tile_data.color);
           }
        }
 
@@ -416,6 +419,14 @@ aq.Block.TILE_DATA = [
       'grid_size': 2,
       'grid_data': [[0x0,0x0,
                      0x4,0x1]]
+   },
+   {
+      'id': 'tile8',
+      'flags': 'active',
+      'color': '#ef5000',
+      'anchors': [[-1,-1]],
+      'grid_size': 1,
+      'grid_data': [[0x01]]
    }
 ];
 

@@ -66,7 +66,7 @@ aq.isSquareCell = function (c) {
  * Determine if a grid cell is a single triangle, of the given type
  *
  * @param c the grid cell data value
- * @param t the triangle type (see block.js)
+ * @param t the triangle type (optional) (see block.js)
  * @return true if the cell contains just one single triangle, and it is of the given type
  */
 aq.isSingleTriangleCell = function (c, t) {
@@ -81,6 +81,10 @@ aq.isSingleTriangleCell = function (c, t) {
       return false;
    }
 
+   if (typeof t === 'undefined') {
+      return true;
+   }
+   
    // Otherwise
    return (((c & 0x0f) === t) || (((c >> 4) & 0x0f) === t));
 };
