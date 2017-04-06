@@ -129,6 +129,12 @@ aq.Block = cc.Node.extend ({
        return self.tile_data.grid_data[rotation];
    },
 
+   getCellIndexedBottomLeft: function (x, y, rotation) {
+       var self = this;
+       var grid_data = self.getObjectData (rotation);
+       return grid_data [x + (self.tile_data.grid_size - y - 1) * self.tile_data.grid_size];
+   },
+
    getNewRotationAndPosition90: function () {
        var self = this;
 
