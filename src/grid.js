@@ -514,6 +514,13 @@ aq.Grid = cc.Node.extend ({
        //   If each loop returns true, then we have a break.
        var willBreak = true;
 
+       // Breaking logic revelation, 6th April 2017 at 7:15am (on the train to London)...
+       // Any sloping edge will cause a break, as if it was a slicing knife edge. Basically
+       // if the block should slide, but is prevented from doing so, that would cause a break.
+       // Idea.  Imagine that the blocks are rendered with shiny knife edges, and sparks fly if
+       // they scrape over corner points, or slide down another knife edge, but dig in when 
+       // there's no room to slide.  That makes so much more sense and dealing with the points...
+
        // Visualise the break position in the grid
        if (block.collision_points && block.collision_points.length > 0) {
 
@@ -578,11 +585,11 @@ aq.Grid = cc.Node.extend ({
                    // there's an edge attached to the point, so it blunts it.
                    blunted = true;
                    var gp = self.getGridPositionForIndex (cp.grid_block_index);
+                   // Any type 1 triangle on the left grid edge is always blunted
                    if (gp.x >= aq.config.BLOCK_SIZE) {
-                      blunted = false;
                       var lp = self.getGridDataForIndex (cp.grid_block_index - 1);
-                      if ((lp & 0xff) === 0 || aq.isSingleTriangleCell (lp, 1)) {
-                         // Won't break
+                      if (!aq.isSquareCell (lp) && aq.isSingleTriangleCell (lp, 1)) {
+                         // Not blunted
                          blunted = false;
                       }
                    }
@@ -598,11 +605,11 @@ aq.Grid = cc.Node.extend ({
                    // Except for a cell to the right that blunts the point
                    blunted = true;
                    var gp = self.getGridPositionForIndex (cp.grid_block_index);
+                   // Any type 4 triangle on the right grid edge is always blunted
                    if (gp.x <= aq.config.BLOCK_SIZE * (self.blocks_wide - 1)) {
-                      blunted = false;
                       var rp = self.getGridDataForIndex (cp.grid_block_index + 1);
-                      if ((rp & 0xff) === 0 || aq.isSingleTriangleCell (rp, 4)) {
-                         // Won't break
+                      if (!aq.isSquareCell (rp) && !aq.isSingleTriangleCell (rp, 4)) {
+                         // Not blunted
                          blunted = false;
                       }
                    }
@@ -625,9 +632,14 @@ aq.Grid = cc.Node.extend ({
 
                       // Unless there's a block to the left of the point, within the falling block, that
                       // blunts the falling point
-                      blunted = false;
+                      blunted = true;
                       if (cp.cell.x > 0) {
+                         blunted = false;
                          // TODO: Figure out this for the data in the block
+                         var lc = block.getCellIndexedBottomLeft (cp.cell.x - 1, cp.cell.y);
+                         if ((lc & 0xff) === 0 || aq.isSingleTriangleCell (lc, 2)) {
+                            blunted = true;
+                         }
                       }
 
                    } else if (aq.isSingleTriangleCell (cp.cell.tile_cell, 3)) {
