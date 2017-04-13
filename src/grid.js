@@ -1,5 +1,8 @@
 'use strict';
 
+// Set this to enable various collision debug visualisations
+var COLLISION_DEBUGGING       = true;
+
 var AXIS_COLLISION            = (1 << 8);
 var SLOPE_COLLISION           = (1 << 9);
 var FILL_FLAG_SEEN_T1         = (1 << 10);
@@ -55,8 +58,10 @@ aq.Grid = cc.Node.extend ({
    //
    game_grid: null,
 
-   // list of blocks inserted into the grid (using collideBlock)
-   block_list: null,
+   // A mirror of the game grid that references the cluster/group object array
+   // 31           15
+   // t1 group num | t2 group num
+   cluster_grid: null,
 
    // tmp 1 cell block for collision testing
    tmpBlock: null,
@@ -71,21 +76,22 @@ aq.Grid = cc.Node.extend ({
       self.blocks_high = high;
 
       self.game_grid = new Array (wide * high * 2);
-
-      self.block_list = [];
+      self.cluster_grid = new Array (wide * high * 2);
 
       self.tmpBlock = new aq.Block (3);
 
       // Add the grid outline
       self.addChild (self.createLineGridNode ());
 
-      self.grid_pos_highlight = new cc.DrawNode ();
-      self.grid_collision_squares = new cc.DrawNode ();
-      self.grid_break_highlights = new cc.Node ();
+      if (COLLISION_DEBUGGING) {
+         self.grid_pos_highlight = new cc.DrawNode();
+         self.grid_collision_squares = new cc.DrawNode ();
+         self.grid_break_highlights = new cc.Node ();
 
-      self.addChild (self.grid_pos_highlight);
-      self.addChild (self.grid_collision_squares);
-      self.addChild (self.grid_break_highlights, 500);
+         self.addChild (self.grid_pos_highlight);
+         self.addChild (self.grid_collision_squares);
+         self.addChild (self.grid_break_highlights, 500);
+      }
 
       self.scheduleUpdate ();
    },
@@ -101,47 +107,48 @@ aq.Grid = cc.Node.extend ({
 
          var block_size = aq.config.BLOCK_SIZE;
 
-         // clear the drawnode
-         self.grid_pos_highlight.clear ();
+         if (COLLISION_DEBUGGING) {
+            // clear the drawnode
+            self.grid_pos_highlight.clear ();
 
-         // Add in the geometry for a rectangle to highlight the block grid position
-         self.grid_pos_highlight.drawRect (cc.p (0,0), cc.p (block_size * grid_size, block_size * grid_size),
-                                           null, // fillcolor
-                                           2,    // line width
-                                           cc.color (0,255,0,255));
+            // Add in the geometry for a rectangle to highlight the block grid position
+            self.grid_pos_highlight.drawRect (cc.p (0,0), cc.p (block_size * grid_size, block_size * grid_size),
+                                              null, // fillcolor
+                                              2,    // line width
+                                              cc.color (0,255,0,255));
 
-         // render the tile boundaries
-         var lx = bounds.left * block_size;
-         self.grid_pos_highlight.drawRect (cc.p(lx,0),cc.p(lx,block_size*grid_size),
-                                           null, // fill color
-                                           4,
-                                           cc.color (0,0,255,255));
+            // render the tile boundaries
+            var lx = bounds.left * block_size;
+            self.grid_pos_highlight.drawRect (cc.p(lx,0),cc.p(lx,block_size*grid_size),
+                                              null, // fill color
+                                              4,
+                                              cc.color (0,0,255,255));
 
-         var rx = bounds.right * block_size;
-         self.grid_pos_highlight.drawRect (cc.p(rx,0),cc.p(rx,block_size*grid_size),
-                                           null, // fill color
-                                           4,
-                                           cc.color (0,128,128,255));
+            var rx = bounds.right * block_size;
+            self.grid_pos_highlight.drawRect (cc.p(rx,0),cc.p(rx,block_size*grid_size),
+                                              null, // fill color
+                                              4,
+                                              cc.color (0,128,128,255));
 
-         var bx = bounds.bottom * block_size;
-         self.grid_pos_highlight.drawRect (cc.p(0,bx),cc.p(block_size*grid_size,bx),
-                                           null, // fill color
-                                           4,
-                                           cc.color (128,128,0,255));
+            var bx = bounds.bottom * block_size;
+            self.grid_pos_highlight.drawRect (cc.p(0,bx),cc.p(block_size*grid_size,bx),
+                                              null, // fill color
+                                              4,
+                                              cc.color (128,128,0,255));
+            /*
+            var corners = [
+                  cc.p (0, 0),
+                  cc.p (0, block_size),
+                  cc.p (block_size, block_size),
+                  cc.p (block_size, 0)
+               ];
 
-         /*
-         var corners = [
-               cc.p (0, 0),
-               cc.p (0, block_size),
-               cc.p (block_size, block_size),
-               cc.p (block_size, 0)
-            ];
+            self.grid_pos_highlight.drawPoly (corners, cc.color (255,255,255,255), 4, cc.color (255,255,255,255));
+            */
 
-         self.grid_pos_highlight.drawPoly (corners, cc.color (255,255,255,255), 4, cc.color (255,255,255,255));
-         */
-
-         var pos = self.getGridPositionForNode (self.falling_block);
-         self.grid_pos_highlight.setPosition (pos);
+            var pos = self.getGridPositionForNode (self.falling_block);
+            self.grid_pos_highlight.setPosition (pos);
+         }
       }
    },
 
@@ -329,15 +336,17 @@ aq.Grid = cc.Node.extend ({
           return;
        }
 
-       var block_size = aq.config.BLOCK_SIZE;
-       var indexes = self.getGridIndexPositionsForBlockCollision (block, block.getPosition (), block.getRotation ());
+       if (COLLISION_DEBUGGING) {
+          var block_size = aq.config.BLOCK_SIZE;
+          var indexes = self.getGridIndexPositionsForBlockCollision (block, block.getPosition (), block.getRotation ());
 
-       // Show the grid squares that collision will be tested for
-       self.grid_collision_squares.clear ();
-       for (var n = 0; n < indexes.length; n++) {
-          var p = self.getGridPositionForIndex (indexes [n].grid_index);
-          self.grid_collision_squares.drawRect (p, cc.p (p.x + block_size, p.y + block_size),
-                                                cc.color (128,0,0,128));
+          // Show the grid squares that collision will be tested for
+          self.grid_collision_squares.clear ();
+          for (var n = 0; n < indexes.length; n++) {
+             var p = self.getGridPositionForIndex (indexes [n].grid_index);
+             self.grid_collision_squares.drawRect (p, cc.p (p.x + block_size, p.y + block_size),
+                                                   cc.color (128,0,0,128));
+          }
        }
    },
 
@@ -486,29 +495,33 @@ aq.Grid = cc.Node.extend ({
 
    clearCollisionBreakPoints: function () {
       var self = this;
-      self.grid_break_highlights.removeAllChildren (true);
+      if (COLLISION_DEBUGGING) {
+         self.grid_break_highlights.removeAllChildren(true);
+      }
    },
 
    // Test for the appropriate stack breaking scenario
-   breakBlock: function (block, new_pos) {
+   breakBlock: function (block) {
        var self = this;
-
-       var drawCell = function (node, c, i) {
-           var t1 = (c >> 4) & 0xf;
-           var t2 = c & 0xf;
-           var col = colors [i % colors.length];
-           if (t1 !== 0) {
-              aq.drawTri (node, 0, 0, t1, col);
-           }
-           if (t2 !== 0) {
-              aq.drawTri (node, 0, 0, t2, col);
-           }
-       };
 
        // The logic for breaking should be:
        //   If any loop below returns false, then no break occurs.
        //   If each loop returns true, then we have a break.
        var willBreak = true;
+
+       // As we're going over the collision points, determine any break points
+       var break_points = [];
+
+       // return 0 for t1, 1 for t2
+       var tIndex = function (b, t) {
+          var ti = -1;
+          if ((b & 0x0f) === t) {
+             ti = 0;
+          } else if (((b >> 4) & 0x0f) === t) {
+             ti = 1;
+          }
+          return ti;
+       };
 
        // Breaking logic revelation, 6th April 2017 at 7:15am (on the train to London)...
        // Any sloping edge will cause a break, as if it was a slicing knife edge. Basically
@@ -528,6 +541,10 @@ aq.Grid = cc.Node.extend ({
              var cp = block.collision_points [i];
              var grid_cell = cp.grid_block_obj;
              var block_cell = cp.cell.tile_cell;
+
+             // If a break occurs, we need to keep track of the triangle position to 
+             // be able to trigger the cluster to break
+             var t_index = 0;
 
              // Bottom left of the cell in the grid
              var grid_pos = self.getGridPositionForIndex (cp.grid_block_index);
@@ -556,22 +573,45 @@ aq.Grid = cc.Node.extend ({
              // grid cell, so test the triangles to determine the collision position
              else if (block_cell_index !== cp.grid_block_index) {
                 //assert block_cell_index === cp.grid_block_index + self.blocks_wide
-                if (aq.isSingleTriangleCell (grid_cell, 1) || aq.isSingleTriangleCell (block_cell, 2)) {
-                   // collision point is on the left (grid_pos already points there)
+                if (aq.isSingleTriangleCell (grid_cell, 1)) {
+                   // cell in the grid pointing up, with point on the left
+                   t_index = tIndex (grid_cell, 1);
                    shouldBreak = true;
-                } else if (aq.isSingleTriangleCell (grid_cell, 4) || aq.isSingleTriangleCell (block_cell, 3)) {
+                } else if (aq.isSingleTriangleCell(block_cell, 2)) {
+                   // collision point is on the left (grid_pos already points there)
+                   t_index = tIndex (grid_cell, 2);
+                   if (t_index === -1)
+                      t_index = tIndex (grid_cell, 3);
+                   shouldBreak = true;
+                } else if (aq.isSingleTriangleCell (grid_cell, 4)) {
                    // Collision point is on the right
                    grid_pos.x += aq.config.BLOCK_SIZE;
+                   t_index = tIndex (grid_cell, 4);
+                   shouldBreak = true;
+                } else if (aq.isSingleTriangleCell (block_cell, 3)) {
+                   // Collision point is on the right
+                   grid_pos.x += aq.config.BLOCK_SIZE;
+                   t_index = tIndex (grid_cell, 2);
+                   if (t_index === -1)
+                      t_index = tIndex (grid_cell, 3);
                    shouldBreak = true;
                 }
              }
 
              if (shouldBreak) {
-                var highlight = new cc.DrawNode();
-                var col = shouldBreak ? cc.color (255,0,0,255) : cc.color (0,255,0,255);
-                highlight.drawCircle (grid_pos, 6, 2 * cc.PI, 10, true, 4, col);
-                highlight.drawSegment (center_pos, grid_pos, 2, col);
-                self.grid_break_highlights.addChild (highlight);
+                if (COLLISION_DEBUGGING) {
+                   var highlight = new cc.DrawNode();
+                   var col = shouldBreak ? cc.color (255,0,0,255) : cc.color (0,255,0,255);
+                   highlight.drawCircle (grid_pos, 6, 2 * cc.PI, 10, true, 4, col);
+                   highlight.drawSegment (center_pos, grid_pos, 2, col);
+                   self.grid_break_highlights.addChild (highlight);
+                }
+
+                break_points.push ({
+                   grid_pos: cp.grid_block_index,
+                   t_index: t_index
+                });
+
              } else {
                 willBreak = false;
              }
@@ -582,7 +622,38 @@ aq.Grid = cc.Node.extend ({
           self.clearCollisionBreakPoints ();
        }
 
-       return /*willBreak*/false;
+       // test the cluster/block removal
+       if (willBreak) {
+          for (var bp in break_points) {
+             self.removeCluster (break_points [bp].grid_pos, break_points [bp].t_index);
+          }
+       }
+       
+       return willBreak;
+   },
+
+   removeCluster: function (grid_index, triangle_pos) {
+       var self = this;
+
+       var cluster_index = (self.cluster_grid [grid_index] >> (16 * (1 - triangle_pos))) & 0xffff;
+       var block = self.fillParent.getChildByTag (cluster_index);
+       if (block) {
+          block.removeFromParent (true);
+          // Loop over the cluster grid, and remove the data, along with the corresponding
+          // data from the game_grid
+          for (var i = 0; i < self.cluster_grid.length; i++) {
+             var cluster_data = self.cluster_grid [i];
+             if ((cluster_data & 0xffff) === cluster_index) {
+                self.cluster_grid [i] &= 0xffff0000;
+                self.game_grid [i] &= 0x00ff00f0;
+             }
+
+             if (((cluster_data >> 16) & 0xffff) === cluster_index) {
+                self.cluster_grid [i] &= 0x0000ffff;
+                self.game_grid [i] &= 0xff00000f;
+             }
+          }
+       }
    },
 
    /**
@@ -873,8 +944,6 @@ aq.Grid = cc.Node.extend ({
 
        var self = this;
 
-       self.block_list.push (block);
-
        var tile_data = block.getTileData ();
        var grid_size = tile_data.grid_size;
 
@@ -953,7 +1022,7 @@ aq.Grid = cc.Node.extend ({
        if (self.fillParent) {
           self.fillParent.removeAllChildren (true);
        } else {
-          // Allova
+          // Allocate
           self.fillParent = new cc.Node ();
           self.addChild (self.fillParent);
        }
@@ -1026,6 +1095,9 @@ aq.Grid = cc.Node.extend ({
        // Create a block from this tile_data for returning
        var block = new aq.Block (-1, tile_data);
        block.setPosition (min_x * aq.config.BLOCK_SIZE, min_y * aq.config.BLOCK_SIZE);
+
+       // Tag the block with the cluster index
+       block.setTag (self.fillGroups [group].cluster_index);
 
        return block;
    },
@@ -1103,6 +1175,9 @@ aq.Grid = cc.Node.extend ({
                    // Mark the cell fully seen
                    self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
 
+                   // Add the tile to the cluster_grid
+                   self.cluster_grid [grid_pos] = (group_from.cluster_index << 16) | group_from.cluster_index;
+
                    // Fill outwards from this cell
                    fillOutwards (-1);
 
@@ -1149,6 +1224,9 @@ aq.Grid = cc.Node.extend ({
                    grid_pos: grid_pos,
                    cell_data: triangle_type
                 });
+
+                // Store the cluster grid id/num 
+                self.cluster_grid [grid_pos] |= (group_from.cluster_index << (i * 16));
              }
 
              // Mark the triangle position (t1 or t2) as seen
@@ -1166,6 +1244,9 @@ aq.Grid = cc.Node.extend ({
        // Clear the floodfill bits in the game_grid
        for (i = 0; i < self.game_grid.length; i++) {
           self.game_grid [i] &= ~(FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
+
+          // Also clear the cluster_grid_data
+          self.cluster_grid [i] = 0;
        }
 
        for (i = 0; i < self.game_grid.length; i++) {
@@ -1177,6 +1258,7 @@ aq.Grid = cc.Node.extend ({
 
                 if ((self.game_grid [i] & (FILL_FLAG_SEEN_T1 << t)) === 0) {
                    var newGroup = {
+                      cluster_index: (self.fillGroups.length + 1),
                       tile_num: tile_num,
                       cells: []
                    };

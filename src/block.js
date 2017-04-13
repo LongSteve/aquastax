@@ -1,7 +1,11 @@
 'use strict';
 
 // Set this to a color to force all blocks to one color, useful for debugging
-var FIXED_BLOCK_COLOR = cc.color (128,128,128,128);
+var FIXED_BLOCK_COLOR = null;
+//var FIXED_BLOCK_COLOR = cc.color (128,128,128,128);
+
+// Set this to add a tiny single triangle to the tile set, useful for debugging
+var INCLUDE_SINGLE_TRIANGLE_TILE = false;
 
 aq.Block = cc.Node.extend ({
 
@@ -425,14 +429,6 @@ aq.Block.TILE_DATA = [
       'grid_size': 2,
       'grid_data': [[0x0,0x0,
                      0x4,0x1]]
-   },
-   {
-      'id': 'tile8',
-      'flags': 'active',
-      'color': '#ef5000',
-      'anchors': [[-1,-1]],
-      'grid_size': 1,
-      'grid_data': [[0x01]]
    }
 ];
 
@@ -563,6 +559,19 @@ aq.Block.createBlockOutline = function (node, tile_data, rotation) {
  */
 (function () {
 
+    if (INCLUDE_SINGLE_TRIANGLE_TILE) {
+       aq.Block.TILE_DATA.push (
+          {
+             'id': 'tile8',
+             'flags': 'active',
+             'color': '#ef5000',
+             'anchors': [[-1,-1]],
+             'grid_size': 1,
+             'grid_data': [[0x01]]
+          }
+       );
+    }
+    
    var preRotateTile = function (n) {
 
       var td = aq.Block.TILE_DATA [n];
