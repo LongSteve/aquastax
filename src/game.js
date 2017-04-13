@@ -2,11 +2,8 @@
 
 /* globals AXIS_COLLISION, SLOPE_COLLISION, NO_COLLISION, GRID_LEFT_EDGE_COLLISION, GRID_RIGHT_EDGE_COLLISION */
 
-// Set the something other than -1 to force the block that spawns to always be this same block
-var FIXED_TEST_BLOCK = -1;
-
 // The first block that falls at the beginning
-var FIXED_FIRST_BLOCK = 0;
+var BLOCK_SEQUENCE = [5, 5, 2, 0, 6, 0, 3];
 
 var GameLayer = cc.Layer.extend ({
 
@@ -16,8 +13,11 @@ var GameLayer = cc.Layer.extend ({
    // grid
    grid: null,
 
-   // blocks
+   // currently falling block
    block: null,
+
+   // count of dropped blocks
+   blockCounter: 0,
 
    // collision test indicators
    collisionPoints: null,
@@ -58,7 +58,7 @@ var GameLayer = cc.Layer.extend ({
 
       self.gamePanel = gamePanel;
 
-      self.newBlock (FIXED_FIRST_BLOCK, blocks_wide / 2, blocks_high);
+      self.nextBlock ();
 
       self.moveHighlightL = new cc.DrawNode ();
       self.gamePanel.addChild (self.moveHighlightL, 100);
@@ -353,7 +353,7 @@ var GameLayer = cc.Layer.extend ({
          self.grid.insertBlockIntoGrid (self.block);
 
          // Allocate a new block for falling
-         self.newRandomBlock ();
+         self.nextBlock ();
 
          // Fill the grid
          self.grid.groupFloodFill ();
@@ -443,8 +443,17 @@ var GameLayer = cc.Layer.extend ({
 
                   if (breaking) {
                      //
-                     // Handle the block breaking
+                     // The falling block has broken a grid cluster, so we now need to handle
+                     // a stack collapse.  This will involve dropping free floating clusters
+                     // down, with potential further breakages, until everything settles.
                      //
+
+                     // TODO: Implement the stack collapse
+                     
+                     // For now, simply call nextBlock, without sticking the current falling
+                     // block to the grid
+                     self.nextBlock ();
+
                   } else {
                      // stick block in place
                      stickBlock ();
@@ -517,17 +526,17 @@ var GameLayer = cc.Layer.extend ({
    },
 
    // Create a new random block, at the top middle of the game panel
-   newRandomBlock: function () {
+   nextBlock: function () {
        var self = this;
 
        var grid_x = aq.config.GRID_WIDTH / 2;
        var grid_y = cc.winSize.height / aq.config.BLOCK_SIZE;
        var rnd_tile_num = aq.Block.getRandomTileNumber ();
 
-       if (FIXED_TEST_BLOCK !== -1) {
-          rnd_tile_num = FIXED_TEST_BLOCK;
+       if (self.blockCounter < BLOCK_SEQUENCE.length) {
+          rnd_tile_num = BLOCK_SEQUENCE [self.blockCounter++];
        }
-
+       
        self.newBlock (rnd_tile_num, grid_x, grid_y);
    },
 
