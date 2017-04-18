@@ -3,7 +3,7 @@
 /* globals AXIS_COLLISION, SLOPE_COLLISION, NO_COLLISION, GRID_LEFT_EDGE_COLLISION, GRID_RIGHT_EDGE_COLLISION */
 
 // The first block that falls at the beginning
-var BLOCK_SEQUENCE = [5, 5, 2, 0, 6, 0, 3];
+var BLOCK_SEQUENCE = [];
 
 var GameLayer = cc.Layer.extend ({
 
