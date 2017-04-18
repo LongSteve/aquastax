@@ -149,12 +149,27 @@ var GameLayer = cc.Layer.extend ({
    update: function () {
       var self = this;
 
+      // Handle a collapsing stack. This takes president over normal block dropping and movement
+      if (self.grid.isCollapsing ()) {
+
+         self.handleCollapsing ();
+
+         if (!self.grid.isCollapsing ()) {
+            self.nextBlock ();
+         }
+      }
+
       self.handleBlockMovement ();
+   },
+
+   handleCollapsing: function () {
+       var self = this;
+       self.grid.updateCollapsing ();
    },
 
    handleBlockMovement: function () {
       var self = this;
-
+      
       if (!self.block) {
          return;
       }
@@ -447,13 +462,11 @@ var GameLayer = cc.Layer.extend ({
                      // a stack collapse.  This will involve dropping free floating clusters
                      // down, with potential further breakages, until everything settles.
                      //
-
-                     // TODO: Implement the stack collapse
-                     
-                     // For now, simply call nextBlock, without sticking the current falling
-                     // block to the grid
-                     self.nextBlock ();
-
+                     if (!self.grid.shouldCollapse ()) {
+                        
+                        // If no collapse, then drop the next block
+                        self.nextBlock ();
+                     }
                   } else {
                      // stick block in place
                      stickBlock ();
