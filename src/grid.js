@@ -493,6 +493,33 @@ aq.Grid = cc.Node.extend ({
        };
    },
 
+   //
+   // Stack collapsing functions
+   //
+
+   // Check if there are any free floating clusters that need to fall/collapse
+   shouldCollapse: function () {
+      var self = this;
+
+      return false;
+   },
+
+   // Return true as long as collapsing should update
+   isCollapsing: function () {
+      var self = this;
+
+      return false;
+   },
+
+   // Update a collapsing stack, called from Game::update
+   updateCollapsing: function () {
+      var self = this;
+   },
+
+   //
+   // Block breaking functions
+   //
+
    clearCollisionBreakPoints: function () {
       var self = this;
       if (COLLISION_DEBUGGING) {
