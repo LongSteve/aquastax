@@ -580,8 +580,9 @@ aq.Grid = cc.Node.extend ({
                 } else if (aq.isSingleTriangleCell(block_cell, 2)) {
                    // collision point is on the left (grid_pos already points there)
                    t_index = tIndex (grid_cell, 2);
-                   if (t_index === -1)
+                   if (t_index === -1) {
                       t_index = tIndex (grid_cell, 3);
+                   }
                    shouldBreak = true;
                 } else if (aq.isSingleTriangleCell (grid_cell, 4)) {
                    // Collision point is on the right
@@ -592,8 +593,9 @@ aq.Grid = cc.Node.extend ({
                    // Collision point is on the right
                    grid_pos.x += aq.config.BLOCK_SIZE;
                    t_index = tIndex (grid_cell, 2);
-                   if (t_index === -1)
+                   if (t_index === -1) {
                       t_index = tIndex (grid_cell, 3);
+                   }
                    shouldBreak = true;
                 }
              }
@@ -635,7 +637,7 @@ aq.Grid = cc.Node.extend ({
    removeCluster: function (grid_index, triangle_pos) {
        var self = this;
 
-       var cluster_index = (self.cluster_grid [grid_index] >> (16 * (1 - triangle_pos))) & 0xffff;
+       var cluster_index = (self.cluster_grid [grid_index] >> (16 * triangle_pos)) & 0xffff;
        var block = self.fillParent.getChildByTag (cluster_index);
        if (block) {
           block.removeFromParent (true);
