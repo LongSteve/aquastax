@@ -1071,11 +1071,12 @@ aq.Grid = cc.Node.extend ({
 
        var tile_num = self.fillGroups [group].tile_num;
        var cells = self.fillGroups [group].cells;
+       var color = tile_num !== -1 ? aq.Block.TILE_DATA [tile_num].color : cc.color (128, 128, 128, 128);
 
        var tile_data = {
           'id': 'group' + group,
           'flags': 'active',
-          'color': aq.Block.TILE_DATA [tile_num].color,
+          'color': color,
           'anchors': [[0,0]]
        };
 
@@ -1182,36 +1183,35 @@ aq.Grid = cc.Node.extend ({
 
           // Test for a solid square block at this cell position
           if (aq.isSquareCell (self.game_grid [grid_pos])) {
+
              // and both triangles belong to the same tile
              var t1 = (self.game_grid [grid_pos] >> 24) & 0xff;
              var t2 = (self.game_grid [grid_pos] >> 16) & 0xff;
 
-             if (t1 === t2) {
-                // and the tile matches our current group
-                if (tile_num_from === t1) {     // could also use t2, they're the same
+             // and the tile matches our current group
+             if ((tile_num_from === -1) || ((t1 === t2) && (tile_num_from === t1))) {
 
-                   // Bail out if already seen
-                   if ((self.game_grid [grid_pos] & (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2)) === (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2)) {
-                      return;
-                   }
-
-                   // push the square cell data onto the current group
-                   group_from.cells.push ({
-                      grid_pos: grid_pos,
-                      cell_data: (self.game_grid [grid_pos] & 0xff)
-                   });
-
-                   // Mark the cell fully seen
-                   self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
-
-                   // Add the tile to the cluster_grid
-                   self.cluster_grid [grid_pos] = (group_from.cluster_index << 16) | group_from.cluster_index;
-
-                   // Fill outwards from this cell
-                   fillOutwards (-1);
-
+                // Bail out if already seen
+                if ((self.game_grid [grid_pos] & (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2)) === (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2)) {
                    return;
                 }
+
+                // push the square cell data onto the current group
+                group_from.cells.push ({
+                   grid_pos: grid_pos,
+                   cell_data: (self.game_grid [grid_pos] & 0xff)
+                });
+
+                // Mark the cell fully seen
+                self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
+
+                // Add the tile to the cluster_grid
+                self.cluster_grid [grid_pos] = (group_from.cluster_index << 16) | group_from.cluster_index;
+
+                // Fill outwards from this cell
+                fillOutwards (-1);
+
+                return;
              }
           }
 
@@ -1278,6 +1278,11 @@ aq.Grid = cc.Node.extend ({
           self.cluster_grid [i] = 0;
        }
 
+       // Set to true to group together the grid in combined coloured blocks.
+       // If set false, blocks are combined into complete 'clusters' of adjacent
+       // blocks, regardless of colour. Use false for when the stack is collapsing.
+       var create_color_groups = false;
+
        for (i = 0; i < self.game_grid.length; i++) {
           if ((self.game_grid [i] & 0xff) !== 0) {
              for (var t = 0; t < 2; t++) {
@@ -1288,7 +1293,7 @@ aq.Grid = cc.Node.extend ({
                 if ((self.game_grid [i] & (FILL_FLAG_SEEN_T1 << t)) === 0) {
                    var newGroup = {
                       cluster_index: (self.fillGroups.length + 1),
-                      tile_num: tile_num,
+                      tile_num: create_color_groups ? tile_num : -1,
                       cells: []
                    };
                    floodFill (i, 0, newGroup);
