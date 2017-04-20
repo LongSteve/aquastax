@@ -1059,7 +1059,7 @@ aq.Grid = cc.Node.extend ({
        self.fillGroupCount = self.fillGroups.length;
 
        for (var fillIndex = 0; fillIndex < self.fillGroups.length; fillIndex++) {
-          var block = self.createBlockFromTileDataGroup(fillIndex);
+          var block = self.createBlockFromTileDataGroup(self.fillGroups [fillIndex]);
           self.fillParent.addChild (block);
        }
    },
@@ -1069,14 +1069,12 @@ aq.Grid = cc.Node.extend ({
    createBlockFromTileDataGroup: function (group) {
        var self = this;
 
-       var tile_num = self.fillGroups [group].tile_num;
-       var cells = self.fillGroups [group].cells;
-       var color = tile_num !== -1 ? aq.Block.TILE_DATA [tile_num].color : cc.color (128, 128, 128, 128);
+       var cells = group.cells;
 
        var tile_data = {
-          'id': 'group' + group,
+          'id': 'group' + group.group_index,
           'flags': 'active',
-          'color': color,
+          'color': group.color,
           'anchors': [[0,0]]
        };
 
@@ -1127,12 +1125,18 @@ aq.Grid = cc.Node.extend ({
        block.setPosition (min_x * aq.config.BLOCK_SIZE, min_y * aq.config.BLOCK_SIZE);
 
        // Tag the block with the group index
-       block.setTag (self.fillGroups [group].group_index);
+       block.setTag (group.group_index);
 
        return block;
    },
 
    groupFloodFill: function () {
+       var self = this;
+
+       self.fillGroups = self.gridFloodFill (self.group_grid, true);
+   },
+
+   gridFloodFill: function (grid_data, group_by_color) {
        var self = this;
 
        // grid_pos is index into self.game_grid for the current cell
@@ -1206,7 +1210,7 @@ aq.Grid = cc.Node.extend ({
                 self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
 
                 // Add the tile to the group_grid
-                self.group_grid [grid_pos] = (group_from.group_index << 16) | group_from.group_index;
+                grid_data [grid_pos] = (group_from.group_index << 16) | group_from.group_index;
 
                 // Fill outwards from this cell
                 fillOutwards (-1);
@@ -1255,7 +1259,7 @@ aq.Grid = cc.Node.extend ({
                 });
 
                 // Store the group grid id/num 
-                self.group_grid [grid_pos] |= (group_from.group_index << (i * 16));
+                grid_data [grid_pos] |= (group_from.group_index << (i * 16));
              }
 
              // Mark the triangle position (t1 or t2) as seen
@@ -1266,7 +1270,7 @@ aq.Grid = cc.Node.extend ({
           }
        };
 
-       self.fillGroups = [];
+       var output_list = [];
 
        var i;
 
@@ -1274,36 +1278,37 @@ aq.Grid = cc.Node.extend ({
        for (i = 0; i < self.game_grid.length; i++) {
           self.game_grid [i] &= ~(FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
 
-          // Also clear the group_grid data
-          self.group_grid [i] = 0;
+          // Also clear the extra grid data
+          grid_data [i] = 0;
        }
-
-       // Set to true to group together the grid in combined coloured blocks.
-       // If set false, blocks are combined into complete 'clusters' of adjacent
-       // blocks, regardless of colour. Use false for when the stack is collapsing.
-       var create_color_groups = true;
 
        for (i = 0; i < self.game_grid.length; i++) {
           if ((self.game_grid [i] & 0xff) !== 0) {
              for (var t = 0; t < 2; t++) {
 
-                // For comparison purposes, shift the bits as necessary into a single variable
-                var tile_num = (self.game_grid [i] >> (24 - (t * 8))) & 0x0f;
+                // For comparison purposes, shift the bits as necessary into a single triangle position
+                var tile_num = group_by_color ?  (self.game_grid [i] >> (24 - (t * 8))) & 0x0f : -1;
+                var color = group_by_color ? aq.Block.TILE_DATA [tile_num].color : cc.color (128, 128, 128, 128);
 
                 if ((self.game_grid [i] & (FILL_FLAG_SEEN_T1 << t)) === 0) {
                    var newGroup = {
-                      group_index: (self.fillGroups.length + 1),
-                      tile_num: create_color_groups ? tile_num : -1,
+                      group_index: (output_list.length + 1),
+                      tile_num: tile_num,
+                      color: color,
                       cells: []
                    };
+
                    floodFill (i, 0, newGroup);
+
                    if (newGroup.cells.length > 0) {
-                      self.fillGroups.push (newGroup);
+                      output_list.push (newGroup);
                    }
                 }
              }
           }
        }
+
+       return output_list;
    }
 });
 
