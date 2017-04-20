@@ -58,10 +58,17 @@ aq.Grid = cc.Node.extend ({
    //
    game_grid: null,
 
-   // A mirror of the game grid that references the groups of objects
+   // A mirror of the game grid that references the groups of objects.  A group is a set of tiles
+   // of the same colour.
    // 31           15
    // t1 group num | t2 group num
    group_grid: null,
+
+   // A mirror of the game grid, but that references clusters.  Clusters are similiar to groups
+   // but do not take block colour into account, effectively mapping separated clusters of groups.
+   // 31           15
+   // t1 cluster num | t2 cluster num
+   cluster_grid: null,
 
    // tmp 1 cell block for collision testing
    tmpBlock: null,
@@ -77,6 +84,7 @@ aq.Grid = cc.Node.extend ({
 
       self.game_grid = new Array (wide * high * 2);
       self.group_grid = new Array (wide * high * 2);
+      self.cluster_grid = new Array (wide * high * 2);
 
       self.tmpBlock = new aq.Block (3);
 
@@ -1036,32 +1044,25 @@ aq.Grid = cc.Node.extend ({
 
    fillParent: null,
    fillGroups: null,
-   fillGroupCount: 0,
 
    // Take the fillGroups array, and create a set of Block objects for rendering, each one added
    // to the fillParent node so we can dispose of them all in one go as appropriate
-   renderFillGroups: function () {
+   renderFillGroups: function (group_list, parent_node) {
        var self = this;
 
-       if (!self.fillGroups || self.fillGroups.length === 0) {
+       if (!parent_node || !group_list || group_list.length === 0) {
           return;
        }
 
        // Clear any existing blocks
-       if (self.fillParent) {
-          self.fillParent.removeAllChildren (true);
-       } else {
-          // Allocate
-          self.fillParent = new cc.Node ();
-          self.addChild (self.fillParent);
+       parent_node.removeAllChildren (true);
+
+       for (var i = 0; i < group_list.length; i++) {
+          var block = self.createBlockFromTileDataGroup(group_list [i]);
+          parent_node.addChild (block);
        }
 
-       self.fillGroupCount = self.fillGroups.length;
-
-       for (var fillIndex = 0; fillIndex < self.fillGroups.length; fillIndex++) {
-          var block = self.createBlockFromTileDataGroup(self.fillGroups [fillIndex]);
-          self.fillParent.addChild (block);
-       }
+       return parent_node;
    },
 
    // Given a combined cell 'group', make a Block object, like the predefined tiles within Block.js
@@ -1134,7 +1135,25 @@ aq.Grid = cc.Node.extend ({
        var self = this;
 
        self.fillGroups = self.gridFloodFill (self.group_grid, true);
+
+       if (!self.fillParent) {
+         self.fillParent = new cc.Node ();
+         self.addChild (self.fillParent);
+       }
+
+       // Turn those groups into block nodes to render
+       self.renderFillGroups (self.fillGroups, self.fillParent);
    },
+
+   clusterFloodFill: function () {
+       var self = this;
+
+       var clusters = self.gridFloodFill (self.cluster_grid, false);
+
+       // For each entry in the clusters array, we now need to create a
+       // node parent, and then attach each group node to it, so we end
+       // up with a tree structure, of groups grouped together as clusters       
+    },
 
    gridFloodFill: function (grid_data, group_by_color) {
        var self = this;
@@ -1209,7 +1228,7 @@ aq.Grid = cc.Node.extend ({
                 // Mark the cell fully seen
                 self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
 
-                // Add the tile to the group_grid
+                // Add the tile to the extra grid data
                 grid_data [grid_pos] = (group_from.group_index << 16) | group_from.group_index;
 
                 // Fill outwards from this cell
