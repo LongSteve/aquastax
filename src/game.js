@@ -30,9 +30,6 @@ var GameLayer = cc.Layer.extend ({
    keyPressIndicators: null,
    keyMap: null,
 
-   // group count indicator
-   groupCountLabel: null,
-
    ctor: function () {
       var self = this;
 
@@ -67,11 +64,6 @@ var GameLayer = cc.Layer.extend ({
       self.gamePanel.addChild (self.moveHighlightR, 100);
 
       self.initKeyPressIndicators ();
-
-      self.groupCountLabel = new cc.LabelTTF ('0', 'Arial', 38);
-      self.groupCountLabel.setPosition (gamePanel.x - 50, cc.winSize.height - 50);
-      self.groupCountLabel.setColor (cc.color (255,255,255));
-      self.addChild (self.groupCountLabel);
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -373,10 +365,8 @@ var GameLayer = cc.Layer.extend ({
          // Fill the grid to generate the coloured block groups
          self.grid.groupFloodFill ();
 
-         // Turn those groups into block nodes to render
-         self.grid.renderFillGroups ();
-
-         self.groupCountLabel.setString (self.grid.fillGroupCount);
+         // Also generate set of clusters
+         self.grid.clusterFloodFill ();
       };
 
       // Highlight the collision that just occured
