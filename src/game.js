@@ -370,8 +370,11 @@ var GameLayer = cc.Layer.extend ({
          // Allocate a new block for falling
          self.nextBlock ();
 
-         // Fill the grid
+         // Fill the grid to generate the coloured block groups
          self.grid.groupFloodFill ();
+
+         // Turn those groups into block nodes to render
+         self.grid.renderFillGroups ();
 
          self.groupCountLabel.setString (self.grid.fillGroupCount);
       };

@@ -58,10 +58,10 @@ aq.Grid = cc.Node.extend ({
    //
    game_grid: null,
 
-   // A mirror of the game grid that references the cluster/group object array
+   // A mirror of the game grid that references the groups of objects
    // 31           15
    // t1 group num | t2 group num
-   cluster_grid: null,
+   group_grid: null,
 
    // tmp 1 cell block for collision testing
    tmpBlock: null,
@@ -76,7 +76,7 @@ aq.Grid = cc.Node.extend ({
       self.blocks_high = high;
 
       self.game_grid = new Array (wide * high * 2);
-      self.cluster_grid = new Array (wide * high * 2);
+      self.group_grid = new Array (wide * high * 2);
 
       self.tmpBlock = new aq.Block (3);
 
@@ -651,34 +651,34 @@ aq.Grid = cc.Node.extend ({
           self.clearCollisionBreakPoints ();
        }
 
-       // test the cluster/block removal
+       // test the group/block removal
        if (willBreak) {
           for (var bp in break_points) {
-             self.removeCluster (break_points [bp].grid_pos, break_points [bp].t_index);
+             self.removeGroup (break_points [bp].grid_pos, break_points [bp].t_index);
           }
        }
        
        return willBreak;
    },
 
-   removeCluster: function (grid_index, triangle_pos) {
+   removeGroup: function (grid_index, triangle_pos) {
        var self = this;
 
-       var cluster_index = (self.cluster_grid [grid_index] >> (16 * triangle_pos)) & 0xffff;
-       var block = self.fillParent.getChildByTag (cluster_index);
+       var group_index = (self.group_grid [grid_index] >> (16 * triangle_pos)) & 0xffff;
+       var block = self.fillParent.getChildByTag (group_index);
        if (block) {
           block.removeFromParent (true);
-          // Loop over the cluster grid, and remove the data, along with the corresponding
+          // Loop over the group grid, and remove the data, along with the corresponding
           // data from the game_grid
-          for (var i = 0; i < self.cluster_grid.length; i++) {
-             var cluster_data = self.cluster_grid [i];
-             if ((cluster_data & 0xffff) === cluster_index) {
-                self.cluster_grid [i] &= 0xffff0000;
+          for (var i = 0; i < self.group_grid.length; i++) {
+             var group_data = self.group_grid [i];
+             if ((group_data & 0xffff) === group_index) {
+                self.group_grid [i] &= 0xffff0000;
                 self.game_grid [i] &= 0x00ff00f0;
              }
 
-             if (((cluster_data >> 16) & 0xffff) === cluster_index) {
-                self.cluster_grid [i] &= 0x0000ffff;
+             if (((group_data >> 16) & 0xffff) === group_index) {
+                self.group_grid [i] &= 0x0000ffff;
                 self.game_grid [i] &= 0xff00000f;
              }
           }
@@ -1040,7 +1040,7 @@ aq.Grid = cc.Node.extend ({
 
    // Take the fillGroups array, and create a set of Block objects for rendering, each one added
    // to the fillParent node so we can dispose of them all in one go as appropriate
-   renderFilledCells: function () {
+   renderFillGroups: function () {
        var self = this;
 
        if (!self.fillGroups || self.fillGroups.length === 0) {
@@ -1126,8 +1126,8 @@ aq.Grid = cc.Node.extend ({
        var block = new aq.Block (-1, tile_data);
        block.setPosition (min_x * aq.config.BLOCK_SIZE, min_y * aq.config.BLOCK_SIZE);
 
-       // Tag the block with the cluster index
-       block.setTag (self.fillGroups [group].cluster_index);
+       // Tag the block with the group index
+       block.setTag (self.fillGroups [group].group_index);
 
        return block;
    },
@@ -1205,8 +1205,8 @@ aq.Grid = cc.Node.extend ({
                 // Mark the cell fully seen
                 self.game_grid [grid_pos] |= (FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
 
-                // Add the tile to the cluster_grid
-                self.cluster_grid [grid_pos] = (group_from.cluster_index << 16) | group_from.cluster_index;
+                // Add the tile to the group_grid
+                self.group_grid [grid_pos] = (group_from.group_index << 16) | group_from.group_index;
 
                 // Fill outwards from this cell
                 fillOutwards (-1);
@@ -1254,8 +1254,8 @@ aq.Grid = cc.Node.extend ({
                    cell_data: triangle_type
                 });
 
-                // Store the cluster grid id/num 
-                self.cluster_grid [grid_pos] |= (group_from.cluster_index << (i * 16));
+                // Store the group grid id/num 
+                self.group_grid [grid_pos] |= (group_from.group_index << (i * 16));
              }
 
              // Mark the triangle position (t1 or t2) as seen
@@ -1274,14 +1274,14 @@ aq.Grid = cc.Node.extend ({
        for (i = 0; i < self.game_grid.length; i++) {
           self.game_grid [i] &= ~(FILL_FLAG_SEEN_T1|FILL_FLAG_SEEN_T2);
 
-          // Also clear the cluster_grid_data
-          self.cluster_grid [i] = 0;
+          // Also clear the group_grid data
+          self.group_grid [i] = 0;
        }
 
        // Set to true to group together the grid in combined coloured blocks.
        // If set false, blocks are combined into complete 'clusters' of adjacent
        // blocks, regardless of colour. Use false for when the stack is collapsing.
-       var create_color_groups = false;
+       var create_color_groups = true;
 
        for (i = 0; i < self.game_grid.length; i++) {
           if ((self.game_grid [i] & 0xff) !== 0) {
@@ -1292,7 +1292,7 @@ aq.Grid = cc.Node.extend ({
 
                 if ((self.game_grid [i] & (FILL_FLAG_SEEN_T1 << t)) === 0) {
                    var newGroup = {
-                      cluster_index: (self.fillGroups.length + 1),
+                      group_index: (self.fillGroups.length + 1),
                       tile_num: create_color_groups ? tile_num : -1,
                       cells: []
                    };
@@ -1304,8 +1304,6 @@ aq.Grid = cc.Node.extend ({
              }
           }
        }
-
-       self.renderFilledCells ();
    }
 });
 
