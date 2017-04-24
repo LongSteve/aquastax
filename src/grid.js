@@ -50,6 +50,9 @@ aq.Grid = cc.Node.extend ({
    // Reference to the currently falling block
    falling_block: null,
 
+   // Root of a tree of clusters of block nodes (grouped)
+   block_root: null,
+
    // The game grid is an single dimensional array of ints, starting at 0 bottom left.
    // Each entry uses the following bit pattern:
    //
@@ -90,6 +93,12 @@ aq.Grid = cc.Node.extend ({
 
       // Add the grid outline
       self.addChild (self.createLineGridNode ());
+
+      // Create the block root node.  The tree under this root
+      // gets re-created by the flood fill routines each time a
+      // block lands
+      self.block_root = new cc.Node ();
+      self.addChild (self.block_root);
 
       if (COLLISION_DEBUGGING) {
          self.grid_pos_highlight = new cc.DrawNode();
@@ -673,21 +682,24 @@ aq.Grid = cc.Node.extend ({
        var self = this;
 
        var group_index = (self.group_grid [grid_index] >> (16 * triangle_pos)) & 0xffff;
-       var block = self.fillParent.getChildByTag (group_index);
-       if (block) {
-          block.removeFromParent (true);
-          // Loop over the group grid, and remove the data, along with the corresponding
-          // data from the game_grid
-          for (var i = 0; i < self.group_grid.length; i++) {
-             var group_data = self.group_grid [i];
-             if ((group_data & 0xffff) === group_index) {
-                self.group_grid [i] &= 0xffff0000;
-                self.game_grid [i] &= 0x00ff00f0;
-             }
+       var cluster_nodes = self.block_root.getChildren ();
+       for (var n in cluster_nodes) {
+          var block = cluster_nodes[n].getChildByTag (group_index);
+          if (block) {
+             block.removeFromParent (true);
+             // Loop over the group grid, and remove the data, along with the corresponding
+             // data from the game_grid
+             for (var i = 0; i < self.group_grid.length; i++) {
+                var group_data = self.group_grid [i];
+                if ((group_data & 0xffff) === group_index) {
+                   self.group_grid [i] &= 0xffff0000;
+                   self.game_grid [i] &= 0x00ff00f0;
+                }
 
-             if (((group_data >> 16) & 0xffff) === group_index) {
-                self.group_grid [i] &= 0x0000ffff;
-                self.game_grid [i] &= 0xff00000f;
+                if (((group_data >> 16) & 0xffff) === group_index) {
+                   self.group_grid [i] &= 0x0000ffff;
+                   self.game_grid [i] &= 0xff00000f;
+                }
              }
           }
        }
@@ -1042,24 +1054,61 @@ aq.Grid = cc.Node.extend ({
        }
    },
 
-   fillParent: null,
-   fillGroups: null,
-
    // Take the fillGroups array, and create a set of Block objects for rendering, each one added
-   // to the fillParent node so we can dispose of them all in one go as appropriate
-   renderFillGroups: function (group_list, parent_node) {
+   // to a parent cluster node, then all the clusters added to a single parent so we can dispose 
+   // of them all in one go as appropriate
+   renderFillGroups: function (group_list, cluster_list, parent_node) {
        var self = this;
 
-       if (!parent_node || !group_list || group_list.length === 0) {
+       if (!parent_node) {
           return;
        }
 
+       if (!group_list || group_list.length === 0) {
+          return;
+       }
+       
+       if (!cluster_list || cluster_list.length === 0) {
+          return;
+       }       
+              
        // Clear any existing blocks
        parent_node.removeAllChildren (true);
 
-       for (var i = 0; i < group_list.length; i++) {
-          var block = self.createBlockFromTileDataGroup(group_list [i]);
-          parent_node.addChild (block);
+       // Create block nodes for each group, and add to an appropriate
+       // cluster node
+       var i;
+
+       for (i = 0; i < cluster_list.length; i++) {
+          if (!cluster_list [i].node) {
+             cluster_list [i].node = new cc.Node ();
+             parent_node.addChild (cluster_list [i].node);
+          }
+       }
+
+       // This works by simply checking for the grid_pos matches because
+       // any sub-triangles for a block are always going to match a 
+       // cluster at the same location.
+       var findCluster = function (block_cell) {
+          for (var j = 0; j < cluster_list.length; j++) {
+             for (var c = 0; c < cluster_list [j].cells.length; c++) {
+                var cluster_cell = cluster_list [j].cells [c];
+                if (cluster_cell.grid_pos === block_cell.grid_pos) {
+                   return cluster_list [j];
+                }
+             }
+          }
+
+          return null;
+       };
+
+       for (i = 0; i < group_list.length; i++) {
+          var block = self.createBlockFromTileDataGroup (group_list [i]);
+
+          // find the cluster this group belongs to, using it's first cell
+          var block_cell = group_list [i].cells [0];
+          var cluster = findCluster (block_cell);
+          cluster.node.addChild (block);
        }
 
        return parent_node;
@@ -1134,26 +1183,15 @@ aq.Grid = cc.Node.extend ({
    groupFloodFill: function () {
        var self = this;
 
-       self.fillGroups = self.gridFloodFill (self.group_grid, true);
+       // Work out all the block groups
+       var group_list = self.gridFloodFill (self.group_grid, true);
 
-       if (!self.fillParent) {
-         self.fillParent = new cc.Node ();
-         self.addChild (self.fillParent);
-       }
+       // And all the clusters
+       var cluster_list = self.gridFloodFill (self.cluster_grid, false);
 
        // Turn those groups into block nodes to render
-       self.renderFillGroups (self.fillGroups, self.fillParent);
+       self.renderFillGroups (group_list, cluster_list, self.block_root);
    },
-
-   clusterFloodFill: function () {
-       var self = this;
-
-       var clusters = self.gridFloodFill (self.cluster_grid, false);
-
-       // For each entry in the clusters array, we now need to create a
-       // node parent, and then attach each group node to it, so we end
-       // up with a tree structure, of groups grouped together as clusters       
-    },
 
    gridFloodFill: function (grid_data, group_by_color) {
        var self = this;

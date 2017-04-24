@@ -92,7 +92,11 @@ var GameLayer = cc.Layer.extend ({
    keyAction: function (keyCode, pressed) {
       var self = this;
       self.keysPressed [keyCode] = pressed;
-      self.keyPressIndicators [self.keyMap [keyCode]].setVisible (pressed);
+      try {
+         self.keyPressIndicators[self.keyMap[keyCode]].setVisible (pressed);
+      } catch (ex) {
+         // catch error for a key not in the keyPressIndicators array
+      }
    },
 
    clearKeys: function () {
@@ -364,9 +368,6 @@ var GameLayer = cc.Layer.extend ({
 
          // Fill the grid to generate the coloured block groups
          self.grid.groupFloodFill ();
-
-         // Also generate set of clusters
-         self.grid.clusterFloodFill ();
       };
 
       // Highlight the collision that just occured
