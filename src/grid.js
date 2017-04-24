@@ -73,6 +73,10 @@ aq.Grid = cc.Node.extend ({
    // t1 cluster num | t2 cluster num
    cluster_grid: null,
 
+   // When a block lands, a list of the cluster and group data is maintained
+   cluster_list: null,
+   group_list: null,
+
    // tmp 1 cell block for collision testing
    tmpBlock: null,
 
@@ -508,29 +512,6 @@ aq.Grid = cc.Node.extend ({
           can_move_right: can_move_right,
           can_move_to: can_move_to
        };
-   },
-
-   //
-   // Stack collapsing functions
-   //
-
-   // Check if there are any free floating clusters that need to fall/collapse
-   shouldCollapse: function () {
-      var self = this;
-
-      return false;
-   },
-
-   // Return true as long as collapsing should update
-   isCollapsing: function () {
-      var self = this;
-
-      return false;
-   },
-
-   // Update a collapsing stack, called from Game::update
-   updateCollapsing: function () {
-      var self = this;
    },
 
    //
@@ -1090,6 +1071,9 @@ aq.Grid = cc.Node.extend ({
        // any sub-triangles for a block are always going to match a 
        // cluster at the same location.
        var findCluster = function (block_cell) {
+
+          // This is the brute force method looping over the lists
+          /*
           for (var j = 0; j < cluster_list.length; j++) {
              for (var c = 0; c < cluster_list [j].cells.length; c++) {
                 var cluster_cell = cluster_list [j].cells [c];
@@ -1098,8 +1082,12 @@ aq.Grid = cc.Node.extend ({
                 }
              }
           }
+          */
 
-          return null;
+          // However, it's possible to just refer to the cluster_grid
+          var p = self.cluster_grid [block_cell.grid_pos];
+          p = (p & 0xffff) || ((p >> 16) & 0xffff);
+          return cluster_list [p - 1];    // note the grid index is 1 less than the cluster_num
        };
 
        for (i = 0; i < group_list.length; i++) {
@@ -1183,14 +1171,14 @@ aq.Grid = cc.Node.extend ({
    groupFloodFill: function () {
        var self = this;
 
-       // Work out all the block groups
-       var group_list = self.gridFloodFill (self.group_grid, true);
+       // Find all the clusters
+       self.cluster_list = self.gridFloodFill (self.cluster_grid, false);
 
-       // And all the clusters
-       var cluster_list = self.gridFloodFill (self.cluster_grid, false);
+       // Then work out all the block groups
+       self.group_list = self.gridFloodFill (self.group_grid, true);
 
        // Turn those groups into block nodes to render
-       self.renderFillGroups (group_list, cluster_list, self.block_root);
+       self.renderFillGroups (self.group_list, self.cluster_list, self.block_root);
    },
 
    gridFloodFill: function (grid_data, group_by_color) {
