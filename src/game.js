@@ -22,9 +22,8 @@ var GameLayer = cc.Layer.extend ({
    // collision test indicators
    collisionPoints: null,
 
-   // Previous frame movement flags
-   could_move_right: false,
-   could_move_left: false,
+   // Is the stack collapsing
+   isCollapsing: false,
 
    // keypress indicators
    keyPressIndicators: null,
@@ -146,27 +145,31 @@ var GameLayer = cc.Layer.extend ({
       var self = this;
 
       // Handle a collapsing stack. This takes president over normal block dropping and movement
-      if (self.grid.isCollapsing ()) {
+      if (self.isCollapsing) {
 
          self.handleCollapsing ();
 
-         if (!self.grid.isCollapsing ()) {
+         if (!self.isCollapsing) {
             self.nextBlock ();
          }
+      } else {
+         self.handleBlockMovement (self.block);
       }
-
-      self.handleBlockMovement ();
    },
 
    handleCollapsing: function () {
        var self = this;
-       self.grid.updateCollapsing ();
+
+       // See if any group blocks from the grid can move
+
+       self.isCollapsing = false;
    },
 
-   handleBlockMovement: function () {
+   // Returns true if the block movement has ended, or false if still potentially moving
+   handleBlockMovement: function (block) {
       var self = this;
       
-      if (!self.block) {
+      if (!block) {
          return;
       }
 
@@ -217,8 +220,8 @@ var GameLayer = cc.Layer.extend ({
       if (rotatePressed && self.rotateDelayMS >= aq.config.KEY_DELAY_MS) {
          self.rotateDelayMS = 0;
 
-         var potentialNewRotationAndPosition = self.block.getNewRotationAndPosition90 ();
-         collision = self.grid.collideBlock (self.block,
+         var potentialNewRotationAndPosition = block.getNewRotationAndPosition90 ();
+         collision = self.grid.collideBlock (block,
                                              potentialNewRotationAndPosition.position,
                                              potentialNewRotationAndPosition.rotation);
 
@@ -236,14 +239,14 @@ var GameLayer = cc.Layer.extend ({
             // csr = collision_sum_right, or number of collision points to the right of the falling block
             var collision_sum_right = ((collision & 0x0f) === GRID_RIGHT_EDGE_COLLISION) ? 1 : 0;
 
-            var collision_points = self.block.collision_points;
+            var collision_points = block.collision_points;
             if (collision_points && collision_points.length > 0) {
                // Sum the points to the left and right of the falling block where collisions occured
 
                // Take into account the block bounds within the grid_size area
-               var block_grid_size = self.block.getGridSize ();
-               var bounds = self.block.getTileBounds ();
-               var block_x = self.block.getPositionX ();
+               var block_grid_size = block.getGridSize ();
+               var bounds = block.getTileBounds ();
+               var block_x = block.getPositionX ();
                for (var i = 0; i < collision_points.length; i++) {
 
                   if (collision_points [i].grid_block_pos.x < block_x + (bounds.left * aq.config.BLOCK_SIZE)) {
@@ -268,24 +271,24 @@ var GameLayer = cc.Layer.extend ({
             // Move is appropriate, and no further collision
             if (move_x !== 0) {
                potentialNewRotationAndPosition.position.x += move_x;
-               collision = self.grid.collideBlock (self.block,
+               collision = self.grid.collideBlock (block,
                                                    potentialNewRotationAndPosition.position,
                                                    potentialNewRotationAndPosition.rotation);
             }
          }
 
          if (collision === NO_COLLISION) {
-            self.block.setNewRotationAndPosition (potentialNewRotationAndPosition);
+            block.setNewRotationAndPosition (potentialNewRotationAndPosition);
             willRotate = true;
          }
       }
 
-      self.grid.highlightBlockCells (self.block);
+      self.grid.highlightBlockCells (block);
 
       // dx,dy are the point (pixels) difference to move the block in one game update
       dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
 
-      var current_block_position = self.block.getPosition ();
+      var current_block_position = block.getPosition ();
       var new_block_position, fast_dy;
 
       // If we're fast dropping, check for a collision and only keep the dy update
@@ -293,7 +296,7 @@ var GameLayer = cc.Layer.extend ({
       if (dropPressed) {
          fast_dy = -(aq.config.BLOCK_SIZE * aq.config.FAST_BLOCK_DROP_RATE) / framesPerSecond;
          new_block_position = cc.p (current_block_position.x + dx, current_block_position.y + fast_dy);
-         var fast_drop_collision = self.grid.collideBlock (self.block, new_block_position);
+         var fast_drop_collision = self.grid.collideBlock (block, new_block_position);
          if ((fast_drop_collision & AXIS_COLLISION) === 0) {
             dy = fast_dy;
          }
@@ -305,37 +308,45 @@ var GameLayer = cc.Layer.extend ({
 
       // Adjust the y position if the block is aligned with the grid
       // This lets the blocks slide left and right into tight gaps
-      var aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
+      var aligned_pos = self.grid.getBlockAlignedGridPosition (block);
 
       // Sideways test, if left or right movement key is pressed
       var tmp_collision = 1;
       var tmp_dx, tmp_pos;
       if (leftPressed || rightPressed) {
          tmp_dx = (leftPressed ? -1 : 1) * aq.config.BLOCK_SIZE;
-         tmp_pos = self.block.getPosition ();
+         tmp_pos = block.getPosition ();
          if (Math.abs (tmp_pos.y - aligned_pos.y) <= alignedDistance) {
             tmp_pos.y = aligned_pos.y;
          }
          tmp_pos.x += tmp_dx;
-         tmp_collision = self.grid.collideBlock (self.block, tmp_pos);
+         tmp_collision = self.grid.collideBlock (block, tmp_pos);
       }
 
       var can_move_left = leftPressed && (tmp_collision === 0);
       var can_move_right = rightPressed && (tmp_collision === 0);
 
-      if (can_move_left && !self.could_move_left) {
+      if (typeof (block.could_move_left) === 'undefined') {
+         block.could_move_left = false;
+      }
+
+      if (typeof (block.could_move_right) === 'undefined') {
+         block.could_move_right = false;
+      }
+      
+      if (can_move_left && !block.could_move_left) {
          dx = tmp_dx;
       }
 
-      if (can_move_right && !self.could_move_right) {
+      if (can_move_right && !block.could_move_right) {
          dx = tmp_dx;
       }
 
-      self.could_move_left = can_move_left;
-      self.could_move_right = can_move_right;
+      block.could_move_left = can_move_left;
+      block.could_move_right = can_move_right;
 
       // Project the block sideways for a collision test
-      new_block_position = self.block.getPosition ();
+      new_block_position = block.getPosition ();
       new_block_position.x += dx;
 
       if (Math.abs (new_block_position.y - aligned_pos.y) <= alignedDistance) {
@@ -343,17 +354,17 @@ var GameLayer = cc.Layer.extend ({
       }
 
       // Test to see if the falling block can move sideways
-      if (self.grid.collideBlock (self.block, new_block_position)) {
+      if (self.grid.collideBlock (block, new_block_position)) {
          // If collision would occur, don't attempt the sideways move
          dx = 0;
       }
 
       // Test to see if the falling block can move straight down.
-      new_block_position = self.block.getPosition ();
+      new_block_position = block.getPosition ();
       new_block_position.y += dy;
 
       collision = NO_COLLISION;
-      collision = self.grid.collideBlock (self.block, new_block_position);
+      collision = self.grid.collideBlock (block, new_block_position);
 
       //
       // stick block in place
@@ -361,7 +372,7 @@ var GameLayer = cc.Layer.extend ({
       var stickBlock = function () {
 
          // If the falling block cannot move down (or slide), lock it in place
-         self.grid.insertBlockIntoGrid (self.block);
+         self.grid.insertBlockIntoGrid (block);
 
          // Allocate a new block for falling
          self.nextBlock ();
@@ -371,44 +382,44 @@ var GameLayer = cc.Layer.extend ({
       };
 
       // Highlight the collision that just occured
-      self.highlightCollision (self.block);
+      self.highlightCollision (block);
 
-      if (self.block.isSliding) {
+      if (block.isSliding) {
 
          // If the player has pressed the left or right button
          if (dx !== 0) {
             // Shift the block to the next grid aligned column, out of the slide
-            dx = self.block.isSliding.can_move_to.x - self.block.x;
+            dx = block.isSliding.can_move_to.x - block.x;
             // Take the block out of 'sliding' mode
-            self.block.isSliding = null;
+            block.isSliding = null;
          } else {
             // Otherwise handle the slope movement
-            if (self.block.isSliding.can_move_left) {
+            if (block.isSliding.can_move_left) {
                dx = dy;
-            } else if (self.block.isSliding.can_move_right) {
+            } else if (block.isSliding.can_move_right) {
                dx = -dy;
             }
          }
 
          // Update the position
-         self.moveBlockBy (dx, dy);
+         self.moveBlockBy (block, dx, dy);
 
          // if the block is still sliding (might have been a left/right move to stop it sliding)
-         if (self.block.isSliding) {
-            if (self.block.isSliding.can_move_left) {
+         if (block.isSliding) {
+            if (block.isSliding.can_move_left) {
                // it was going left
-               if (self.block.x <= self.block.isSliding.can_move_to.x) {
+               if (block.x <= block.isSliding.can_move_to.x) {
                   // fix to the exact position
-                  self.block.setPosition (self.block.isSliding.can_move_to);
+                  block.setPosition (block.isSliding.can_move_to);
                   // stop the 'sliding' mode
-                  self.block.isSliding = null;
+                  block.isSliding = null;
                }
-            } else if (self.block.isSliding.can_move_right) {
+            } else if (block.isSliding.can_move_right) {
                // or if it was going right
-               if (self.block.x >= self.block.isSliding.can_move_to.x) {
+               if (block.x >= block.isSliding.can_move_to.x) {
                   // fix to the exact position and stop the slide
-                  self.block.setPosition (self.block.isSliding.can_move_to);
-                  self.block.isSliding = null;
+                  block.setPosition (block.isSliding.can_move_to);
+                  block.isSliding = null;
                }
             }
          }
@@ -425,20 +436,20 @@ var GameLayer = cc.Layer.extend ({
                //
                // Handle sliding the block calculations
                //
-               var slide = self.grid.slideBlock (self.block);
+               var slide = self.grid.slideBlock (block);
 
                //
                // If the block can slide left or right, then send it off
                //
                if (slide.can_move_left || slide.can_move_right) {
-                  self.block.isSliding = slide;
+                  block.isSliding = slide;
 
                   // Align the block to the grid at the current position, to make sure
                   // that sliding moves correctly
-                  aligned_pos = self.grid.getBlockAlignedGridPosition (self.block);
-                  self.block.x = aligned_pos.x;
-                  if (aligned_pos.y < self.block.y) {
-                     self.block.y = aligned_pos.y;
+                  aligned_pos = self.grid.getBlockAlignedGridPosition (block);
+                  block.x = aligned_pos.x;
+                  if (aligned_pos.y < block.y) {
+                     block.y = aligned_pos.y;
                   }
 
                } else {
@@ -448,7 +459,7 @@ var GameLayer = cc.Layer.extend ({
                   // couldn't slide the block.  This could be because it's stuck in place between
                   // two slopes, or that this is a point collision which should cause a break
                   //
-                  var breaking = self.grid.breakBlock (self.block, new_block_position);
+                  var breaking = self.grid.breakBlock (block, new_block_position);
 
                   if (breaking) {
                      //
@@ -456,28 +467,28 @@ var GameLayer = cc.Layer.extend ({
                      // a stack collapse.  This will involve dropping free floating clusters
                      // down, with potential further breakages, until everything settles.
                      //
-                     if (!self.grid.shouldCollapse ()) {
-                        
-                        // If no collapse, then drop the next block
-                        self.nextBlock ();
-                     }
+                     self.isCollapsing = true;
                   } else {
                      // stick block in place
                      stickBlock ();
+                     return true;
                   }
                }
 
             } else if ((collision & AXIS_COLLISION) !== 0) {
                // axis collision means no sliding or breaking, so stick the block in place
                stickBlock ();
+               return true;
             }
 
          } else {
 
             // otherwise, no collision, so move it
-            self.moveBlockBy (dx, dy);
+            self.moveBlockBy (block, dx, dy);
          }
       }
+
+      return false;
    },
 
    // highlight a collision
@@ -522,20 +533,27 @@ var GameLayer = cc.Layer.extend ({
 
    // Move a block by 'delta' x and y pixel values
    // Return false if the block is not actually moved
-   moveBlockBy: function (dx, dy) {
+   moveBlockBy: function (block, dx, dy) {
       var self = this;
 
-      var new_block_position = self.block.getPosition ();
+      var new_block_position = block.getPosition ();
       new_block_position.x += dx;
       new_block_position.y += dy;
 
       self.block.setPosition (new_block_position);
    },
 
-   // Create a new random block, at the top middle of the game panel
+   // Create a new random block, at the top middle of the game panel, lso removing the 
+   // currently falling block
    nextBlock: function () {
        var self = this;
 
+       // Remove the old block
+       if (self.block) {
+          self.block.removeFromParent (true);
+       }
+
+       // Allocate a new one
        var grid_x = aq.config.GRID_WIDTH / 2;
        var grid_y = cc.winSize.height / aq.config.BLOCK_SIZE;
        var rnd_tile_num = aq.Block.getRandomTileNumber ();
@@ -543,30 +561,15 @@ var GameLayer = cc.Layer.extend ({
        if (self.blockCounter < BLOCK_SEQUENCE.length) {
           rnd_tile_num = BLOCK_SEQUENCE [self.blockCounter++];
        }
-       
-       self.newBlock (rnd_tile_num, grid_x, grid_y);
-   },
 
-   // Create a new block and add it to the game panel at the specified position.
-   // Removes the old (current) falling block.
-   // Also calls setFallingBlock as a side effect
-   newBlock: function (type, grid_x, grid_y) {
-      var self = this;
+       var new_block = new aq.Block (rnd_tile_num);
+       new_block.setPosition (grid_x * aq.config.BLOCK_SIZE, grid_y * aq.config.BLOCK_SIZE);
 
-      // Enable this when the grid clustering is working properly, and the grid is rendered using
-      // the cluster data.  Currently, the blocks are left in place where they land.
-      //
-      if (self.block) {
-         self.block.removeFromParent (true);
-      }
+       self.gamePanel.addChild (new_block, 3);
+       self.grid.setFallingBlock (new_block);
 
-      self.block = new aq.Block (type);
-      self.block.setPosition (grid_x * aq.config.BLOCK_SIZE, grid_y * aq.config.BLOCK_SIZE);
-
-      self.gamePanel.addChild (self.block, 3);
-      self.grid.setFallingBlock (self.block);
+       self.block = new_block;
    }
-
 });
 
 aq.scenes.GameScene = cc.Scene.extend ({
