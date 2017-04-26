@@ -3,7 +3,7 @@
 /* globals AXIS_COLLISION, SLOPE_COLLISION, NO_COLLISION, GRID_LEFT_EDGE_COLLISION, GRID_RIGHT_EDGE_COLLISION */
 
 // The first block that falls at the beginning
-var BLOCK_SEQUENCE = [];
+var BLOCK_SEQUENCE = [2,2,3,0];
 
 var GameLayer = cc.Layer.extend ({
 
@@ -157,12 +157,61 @@ var GameLayer = cc.Layer.extend ({
       }
    },
 
+   currentCluster: 0,
+   currentGroup: 0,
+   fallingGroup: null,
+
+   startCollapsing: function () {
+       var self = this;
+
+       self.isCollapsing = true;
+       self.currentCluster = 0;
+       self.currentGroup = 0;
+       self.fallingGroup = null;
+   },
+
    handleCollapsing: function () {
        var self = this;
 
-       // See if any group blocks from the grid can move
+       // Big question.  Does stack collapse happen at the cluster or group level?
+       // If at the cluster level, the large chunks will fall, but it may look less
+       // 'realistic', but if at the group level, it could take a lot longer to
+       // resolve a collapse as each block is going to fall individually.
+       
+       // See if any group blocks from the grid can move down
+       var clusters = self.grid.getClusters ();
+       var cluster = clusters [self.currentCluster];
+       var groups = cluster.getChildren ();
+       var group = groups [self.currentGroup];
+              
+       // TODO: Fix this.  Shit, I'll not look at this again until at least Tuesday next week now, bugger!
+                     
+       if (self.fallingGroup) {
+          var group_done = self.handleBlockMovement (self.fallingGroup);
+          if (group_done) {
+             self.fallingGroup = null;
 
-       self.isCollapsing = false;
+             if (++self.currentGroup >= groups.length) {
+                self.currentGroup = 0;
+                if (++self.currentCluster >= clusters.length) {
+                   self.currentCluster = 0;
+                   self.isCollapsing = false;
+                }
+             }
+          }
+       } else {
+
+          if (group) {
+             
+             if (!group.free) {
+                self.grid.freeBlock (group);
+                self.gamePanel.addChild (group, 3);
+                //self.grid.setFallingBlock (group);
+             }
+
+             self.fallingGroup = group;
+          }
+       }
    },
 
    // Returns true if the block movement has ended, or false if still potentially moving
@@ -467,7 +516,7 @@ var GameLayer = cc.Layer.extend ({
                      // a stack collapse.  This will involve dropping free floating clusters
                      // down, with potential further breakages, until everything settles.
                      //
-                     self.isCollapsing = true;
+                     self.startCollapsing ();
                   } else {
                      // stick block in place
                      stickBlock ();
@@ -540,7 +589,7 @@ var GameLayer = cc.Layer.extend ({
       new_block_position.x += dx;
       new_block_position.y += dy;
 
-      self.block.setPosition (new_block_position);
+      block.setPosition (new_block_position);
    },
 
    // Create a new random block, at the top middle of the game panel, lso removing the 
