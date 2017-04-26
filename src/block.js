@@ -443,11 +443,6 @@ aq.Block.getRandomTileNumber = function () {
    return rnd_tile_num;
 };
 
-// Static Block method to get the tile data for a given number
-aq.Block.getTileDataForNum = function (tile_num) {
-   return aq.Block.TILE_DATA [tile_num];
-};
-
 /**
  * Creates the cc.DrawNode geometry (using DrawNode.drawSegment) calls to render lines for the
  * block outline.  This is used by the grid for rendering large combined blocks.

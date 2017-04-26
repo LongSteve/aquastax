@@ -252,8 +252,6 @@ aq.Grid = cc.Node.extend ({
    getGridIndexPositionsForBlockCollision: function (block, pos, rot) {
       var self = this;
 
-      var tile_num = block.getTileNum ();
-
       var tile_bounds = block.getTileBounds (rot);
 
       var x, y;
@@ -263,7 +261,7 @@ aq.Grid = cc.Node.extend ({
 
       var indexes = [];
 
-      var tile = aq.Block.getTileDataForNum (tile_num);
+      var tile = block.getTileData ();
       var grid_size = tile.grid_size;
 
       var tile_cells_wide = tile_bounds.right - tile_bounds.left;
@@ -667,21 +665,33 @@ aq.Grid = cc.Node.extend ({
        for (var n in cluster_nodes) {
           var block = cluster_nodes[n].getChildByTag (group_index);
           if (block) {
-             block.removeFromParent (true);
-             // Loop over the group grid, and remove the data, along with the corresponding
-             // data from the game_grid
-             for (var i = 0; i < self.group_grid.length; i++) {
-                var group_data = self.group_grid [i];
-                if ((group_data & 0xffff) === group_index) {
-                   self.group_grid [i] &= 0xffff0000;
-                   self.game_grid [i] &= 0x00ff00f0;
-                }
+             self.freeBlock (block, group_index);
+          }
+       }
+   },
 
-                if (((group_data >> 16) & 0xffff) === group_index) {
-                   self.group_grid [i] &= 0x0000ffff;
-                   self.game_grid [i] &= 0xff00000f;
-                }
-             }
+   freeBlock: function (block, group_index) {
+       var self = this;
+
+       if (typeof (group_index) === 'undefined') {
+          group_index = block.getTag ();
+       }
+       
+       block.removeFromParent (true);
+       block.free = true;
+
+       // Loop over the group grid, and remove the data, along with the corresponding
+       // data from the game_grid
+       for (var i = 0; i < self.group_grid.length; i++) {
+          var group_data = self.group_grid [i];
+          if ((group_data & 0xffff) === group_index) {
+             self.group_grid [i] &= 0xffff0000;
+             self.game_grid [i] &= 0x00ff00f0;
+          }
+
+          if (((group_data >> 16) & 0xffff) === group_index) {
+             self.group_grid [i] &= 0x0000ffff;
+             self.game_grid [i] &= 0xff00000f;
           }
        }
    },
@@ -984,6 +994,8 @@ aq.Grid = cc.Node.extend ({
 
        block.setPosition (fixed_block_pos);
 
+       block.free = false;
+
        var x,y;
 
        var game_grid = self.game_grid;
@@ -1168,6 +1180,11 @@ aq.Grid = cc.Node.extend ({
        return block;
    },
 
+   getClusters: function () {
+       var self = this;
+       return self.block_root.getChildren ();
+   },
+
    groupFloodFill: function () {
        var self = this;
 
@@ -1333,7 +1350,7 @@ aq.Grid = cc.Node.extend ({
 
                 // For comparison purposes, shift the bits as necessary into a single triangle position
                 var tile_num = group_by_color ?  (self.game_grid [i] >> (24 - (t * 8))) & 0x0f : -1;
-                var color = group_by_color ? aq.Block.TILE_DATA [tile_num].color : cc.color (128, 128, 128, 128);
+                var color = (group_by_color && aq.Block.TILE_DATA [tile_num]) ? aq.Block.TILE_DATA [tile_num].color : cc.color (128, 128, 128, 128);
 
                 if ((self.game_grid [i] & (FILL_FLAG_SEEN_T1 << t)) === 0) {
                    var newGroup = {
