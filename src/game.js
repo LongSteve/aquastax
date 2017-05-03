@@ -3,7 +3,8 @@
 /* globals AXIS_COLLISION, SLOPE_COLLISION, NO_COLLISION, GRID_LEFT_EDGE_COLLISION, GRID_RIGHT_EDGE_COLLISION */
 
 // The first block that falls at the beginning
-var BLOCK_SEQUENCE = [2,2,3,0];
+var BLOCK_SEQUENCE = [2,2,4,1,3,5,6];
+//var BLOCK_SEQUENCE = [3,4,5,6];
 
 var GameLayer = cc.Layer.extend ({
 
@@ -157,18 +158,7 @@ var GameLayer = cc.Layer.extend ({
       }
    },
 
-   currentCluster: 0,
-   currentGroup: 0,
    fallingGroup: null,
-
-   startCollapsing: function () {
-       var self = this;
-
-       self.isCollapsing = true;
-       self.currentCluster = 0;
-       self.currentGroup = 0;
-       self.fallingGroup = null;
-   },
 
    handleCollapsing: function () {
        var self = this;
@@ -177,49 +167,49 @@ var GameLayer = cc.Layer.extend ({
        // If at the cluster level, the large chunks will fall, but it may look less
        // 'realistic', but if at the group level, it could take a lot longer to
        // resolve a collapse as each block is going to fall individually.
-       
-       // See if any group blocks from the grid can move down
-       var clusters = self.grid.getClusters ();
-       var cluster = clusters [self.currentCluster];
-       var groups = cluster.getChildren ();
-       var group = groups [self.currentGroup];
-              
-       // TODO: Fix this.  Shit, I'll not look at this again until at least Tuesday next week now, bugger!
-                     
+                        
+       var movement = 0;       
+                    
        if (self.fallingGroup) {
-          var group_done = self.handleBlockMovement (self.fallingGroup);
-          if (group_done) {
+          movement = self.handleBlockMovement (self.fallingGroup);
+          if (movement === 0) {
              self.fallingGroup = null;
+          }
+       } else {
+          self.grid.groupFloodFill ();       
+          var clusters = self.grid.getClusters ();
 
-             if (++self.currentGroup >= groups.length) {
-                self.currentGroup = 0;
-                if (++self.currentCluster >= clusters.length) {
-                   self.currentCluster = 0;
-                   self.isCollapsing = false;
+          for (var c = 0; c < clusters.length; c++) {
+             var cluster = clusters [c];
+             var groups = cluster.getChildren ();
+             for (var g = 0; g < groups.length; g++) {
+                var group = groups [g];
+                if (group) {
+                   if (!group.free) {
+                      self.grid.freeBlock (group);
+                      self.gamePanel.addChild (group, 3);
+                      self.fallingGroup = group;
+                      movement += self.handleBlockMovement (self.fallingGroup);
+                   }
+                }
+                if (movement > 0) {
+                   return;
                 }
              }
           }
-       } else {
 
-          if (group) {
-             
-             if (!group.free) {
-                self.grid.freeBlock (group);
-                self.gamePanel.addChild (group, 3);
-                //self.grid.setFallingBlock (group);
-             }
-
-             self.fallingGroup = group;
-          }
+          self.fallingGroup = null;
+          self.isCollapsing = false;
        }
    },
 
-   // Returns true if the block movement has ended, or false if still potentially moving
+   // Returns 0 if the block movement has ended, or 1 if still potentially moving and 2 if a collapse
+   // processing should occur or continue
    handleBlockMovement: function (block) {
       var self = this;
       
       if (!block) {
-         return;
+         return 0;
       }
 
       // Game update values
@@ -484,6 +474,8 @@ var GameLayer = cc.Layer.extend ({
             }
          }
 
+         return 1;
+
       } else {
 
          if (collision) {
@@ -512,6 +504,8 @@ var GameLayer = cc.Layer.extend ({
                      block.y = aligned_pos.y;
                   }
 
+                  return 1;
+
                } else {
 
                   //
@@ -522,33 +516,31 @@ var GameLayer = cc.Layer.extend ({
                   var breaking = self.grid.breakBlock (block, new_block_position);
 
                   if (breaking) {
-                     //
-                     // The falling block has broken a grid cluster, so we now need to handle
-                     // a stack collapse.  This will involve dropping free floating clusters
-                     // down, with potential further breakages, until everything settles.
-                     //
-                     self.startCollapsing ();
+                     // Potential collapse
+                     self.isCollapsing = true;
+                     return 2;
                   } else {
                      // stick block in place
                      stickBlock ();
-                     return true;
+                     return 0;
                   }
                }
 
             } else if ((collision & AXIS_COLLISION) !== 0) {
                // axis collision means no sliding or breaking, so stick the block in place
                stickBlock ();
-               return true;
+               return 0;
             }
 
          } else {
 
             // otherwise, no collision, so move it
             block.moveBy (dx, dy);
+            return 1;
          }
       }
 
-      return false;
+      return 0;
    },
 
    // highlight a collision
