@@ -104,6 +104,15 @@ aq.Block = cc.Node.extend ({
        return node;
    },
 
+   moveBy: function (dx, dy) {
+       var self = this;
+       var pos = self.getPosition ();
+       pos.x += dx;
+       pos.y += dy;
+
+       self.setPosition (pos);
+   },
+
    getTileData: function () {
        var self = this;
        return self.tile_data;

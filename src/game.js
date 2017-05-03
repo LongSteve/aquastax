@@ -243,6 +243,12 @@ var GameLayer = cc.Layer.extend ({
       var dx = 0;
       var dy = 0;
 
+      // Things happen slightly differently when collapsing
+      var collapse = self.isCollapsing;
+      if (collapse) {
+         leftPressed = rightPressed = rotatePressed = dropPressed = false;
+      }
+      
       // Move left or right
       if (self.moveDelayMS >= aq.config.KEY_DELAY_MS) {
          if (leftPressed) {
@@ -351,6 +357,11 @@ var GameLayer = cc.Layer.extend ({
          }
       }
 
+      // For a stack collapse, just drop the block real fast
+      if (collapse) {
+         dy = -(aq.config.BLOCK_SIZE >> 1);
+      }
+      
       // If the block is within 2 * the amount it moves by per frame, then
       // assume it's aligned with the grid
       var alignedDistance = (aq.config.BLOCK_SIZE * 2) / framesPerSecond;
@@ -451,7 +462,7 @@ var GameLayer = cc.Layer.extend ({
          }
 
          // Update the position
-         self.moveBlockBy (block, dx, dy);
+         block.moveBy (dx, dy);
 
          // if the block is still sliding (might have been a left/right move to stop it sliding)
          if (block.isSliding) {
@@ -533,7 +544,7 @@ var GameLayer = cc.Layer.extend ({
          } else {
 
             // otherwise, no collision, so move it
-            self.moveBlockBy (block, dx, dy);
+            block.moveBy (dx, dy);
          }
       }
 
@@ -578,18 +589,6 @@ var GameLayer = cc.Layer.extend ({
             self.gamePanel.addChild (hl, 200);
          }
       }
-   },
-
-   // Move a block by 'delta' x and y pixel values
-   // Return false if the block is not actually moved
-   moveBlockBy: function (block, dx, dy) {
-      var self = this;
-
-      var new_block_position = block.getPosition ();
-      new_block_position.x += dx;
-      new_block_position.y += dy;
-
-      block.setPosition (new_block_position);
    },
 
    // Create a new random block, at the top middle of the game panel, lso removing the 
