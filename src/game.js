@@ -30,6 +30,10 @@ var GameLayer = cc.Layer.extend ({
    keyPressIndicators: null,
    keyMap: null,
 
+   // Debug Data
+   debugGridClusters: 0,
+   debugGridGroups: 0,
+
    ctor: function () {
       var self = this;
 
@@ -64,6 +68,16 @@ var GameLayer = cc.Layer.extend ({
       self.gamePanel.addChild (self.moveHighlightR, 100);
 
       self.initKeyPressIndicators ();
+
+      self.debugGridClusters = new cc.LabelTTF ('Clusters: 0', 'Arial', 32);
+      self.debugGridClusters.setColor (cc.color.WHITE);
+      self.debugGridClusters.setPosition (100,100);
+      self.addChild (self.debugGridClusters);
+
+      self.debugGridGroups = new cc.LabelTTF ('Groups: 0', 'Arial', 32);
+      self.debugGridGroups.setColor (cc.color.GREEN);
+      self.debugGridGroups.setPosition (100,140);
+      self.addChild (self.debugGridGroups);
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -156,6 +170,14 @@ var GameLayer = cc.Layer.extend ({
       } else {
          self.handleBlockMovement (self.block);
       }
+
+      var cl = self.grid.getClusterList();
+      var l = cl ? cl.length : 0;
+      self.debugGridClusters.setString ('Clusters: ' + l);
+
+      var gl = self.grid.getGroupList();
+      l = gl ? gl.length : 0;
+      self.debugGridGroups.setString ('Groups: ' + l);
    },
 
    fallingGroup: null,
@@ -173,24 +195,37 @@ var GameLayer = cc.Layer.extend ({
        if (self.fallingGroup) {
           movement = self.handleBlockMovement (self.fallingGroup);
           if (movement === 0) {
+             self.fallingGroup.removeFromParent (true);
              self.fallingGroup = null;
+          } else {
+             self.grid.groupFloodFill ();
           }
        } else {
           self.grid.groupFloodFill ();       
-          var clusters = self.grid.getClusters ();
+          var clusters = self.grid.getClusterList ();
 
           for (var c = 0; c < clusters.length; c++) {
              var cluster = clusters [c];
-             var groups = cluster.getChildren ();
+             var groups = cluster.groups;
              for (var g = 0; g < groups.length; g++) {
                 var group = groups [g];
-                if (group) {
-                   if (!group.free) {
-                      self.grid.freeBlock (group);
-                      self.gamePanel.addChild (group, 3);
-                      self.fallingGroup = group;
-                      movement += self.handleBlockMovement (self.fallingGroup);
+                if (group && group.node) {
+                   var groupNode = group.node;
+                   group.node = null;
+                   groupNode.removeFromParent (false);
+                   //groupNode.setColor (cc.color (128,128,128,128));
+                   self.grid.removeGroupByIndex (group.group_index);
+                   self.gamePanel.addChild (groupNode, 3);
+                   self.fallingGroup = groupNode;
+
+                   var bm = self.handleBlockMovement (self.fallingGroup); 
+                   if (bm === 0) {
+                      self.fallingGroup.removeFromParent ();
+                      self.fallingGroup = null;
+                   } else {
+                      self.grid.groupFloodFill ();
                    }
+                   movement += bm;
                 }
                 if (movement > 0) {
                    return;
@@ -198,7 +233,13 @@ var GameLayer = cc.Layer.extend ({
              }
           }
 
+          self.grid.groupFloodFill ();
           self.fallingGroup = null;
+
+          // Now test for any loose clusters that can fall, otherwise, we get the 
+          // rare case of a group surrounding another group, and they 'hold' each
+          // other up.  By falling clusters, we get around this...
+
           self.isCollapsing = false;
        }
    },
@@ -211,7 +252,7 @@ var GameLayer = cc.Layer.extend ({
       if (!block) {
          return 0;
       }
-
+      
       // Game update values
       var framesPerSecond = cc.game.config.frameRate;
       var millisPerUpdate = 1000.0 / framesPerSecond;
@@ -328,7 +369,9 @@ var GameLayer = cc.Layer.extend ({
          }
       }
 
-      self.grid.highlightBlockCells (block);
+      if (!collapse) {
+         self.grid.highlightBlockCells (block);
+      }
 
       // dx,dy are the point (pixels) difference to move the block in one game update
       dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
@@ -424,15 +467,21 @@ var GameLayer = cc.Layer.extend ({
          // If the falling block cannot move down (or slide), lock it in place
          self.grid.insertBlockIntoGrid (block);
 
-         // Allocate a new block for falling
-         self.nextBlock ();
+         // If not collapsing
+         if (!collapse) {
 
-         // Fill the grid to generate the coloured block groups
-         self.grid.groupFloodFill ();
+            // Fill the grid to generate the coloured block groups
+            self.grid.groupFloodFill ();
+
+            // Allocate a new block for falling
+            self.nextBlock ();
+         }
       };
 
       // Highlight the collision that just occured
-      self.highlightCollision (block);
+      if (!collapse) {
+         self.highlightCollision (block);
+      }
 
       if (block.isSliding) {
 
@@ -518,6 +567,10 @@ var GameLayer = cc.Layer.extend ({
                   if (breaking) {
                      // Potential collapse
                      self.isCollapsing = true;
+
+                     // Remove the broken falling block straight away
+                     block.removeFromParent (true);
+
                      return 2;
                   } else {
                      // stick block in place

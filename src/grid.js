@@ -53,6 +53,9 @@ aq.Grid = cc.Node.extend ({
    // Root of a tree of clusters of block nodes (grouped)
    block_root: null,
 
+   // Tmp node for debugging
+   tmp_root: null,
+
    // The game grid is an single dimensional array of ints, starting at 0 bottom left.
    // Each entry uses the following bit pattern:
    //
@@ -103,6 +106,9 @@ aq.Grid = cc.Node.extend ({
       // block lands
       self.block_root = new cc.Node ();
       self.addChild (self.block_root);
+
+      self.tmp_root = new cc.Node ();
+      self.addChild (self.tmp_root, 100);
 
       if (COLLISION_DEBUGGING) {
          self.grid_pos_highlight = new cc.DrawNode();
@@ -650,35 +656,34 @@ aq.Grid = cc.Node.extend ({
        // test the group/block removal
        if (willBreak) {
           for (var bp in break_points) {
-             self.removeGroup (break_points [bp].grid_pos, break_points [bp].t_index);
+             self.removeGroupByGridPosition (break_points [bp].grid_pos, break_points [bp].t_index);
           }
        }
        
        return willBreak;
    },
 
-   removeGroup: function (grid_index, triangle_pos) {
+   removeGroupByGridPosition: function (grid_index, triangle_pos) {
        var self = this;
 
        var group_index = (self.group_grid [grid_index] >> (16 * triangle_pos)) & 0xffff;
-       var cluster_nodes = self.block_root.getChildren ();
-       for (var n in cluster_nodes) {
-          var block = cluster_nodes[n].getChildByTag (group_index);
-          if (block) {
-             self.freeBlock (block, group_index);
+       for (var n in self.cluster_list) {
+          for (var b in self.cluster_list [n].groups) {
+             var group = self.cluster_list[n].groups [b];
+             if (group && group.group_index === group_index) {
+                self.removeGroupByIndex (group_index);
+                if (group.node) {
+                   group.node.removeFromParent (true);
+                }
+                delete self.cluster_list[n].groups[b];
+             }
           }
        }
    },
 
-   freeBlock: function (block, group_index) {
+   // Remove a group from the grid, given it's index
+   removeGroupByIndex: function (group_index) {
        var self = this;
-
-       if (typeof (group_index) === 'undefined') {
-          group_index = block.getTag ();
-       }
-       
-       block.removeFromParent (true);
-       block.free = true;
 
        // Loop over the group grid, and remove the data, along with the corresponding
        // data from the game_grid
@@ -686,11 +691,13 @@ aq.Grid = cc.Node.extend ({
           var group_data = self.group_grid [i];
           if ((group_data & 0xffff) === group_index) {
              self.group_grid [i] &= 0xffff0000;
+             self.cluster_grid [i] &= 0xffff0000;
              self.game_grid [i] &= 0x00ff00f0;
           }
 
           if (((group_data >> 16) & 0xffff) === group_index) {
              self.group_grid [i] &= 0x0000ffff;
+             self.cluster_grid [i] &= 0x0000ffff;
              self.game_grid [i] &= 0xff00000f;
           }
        }
@@ -994,8 +1001,6 @@ aq.Grid = cc.Node.extend ({
 
        block.setPosition (fixed_block_pos);
 
-       block.free = false;
-
        var x,y;
 
        var game_grid = self.game_grid;
@@ -1047,41 +1052,57 @@ aq.Grid = cc.Node.extend ({
        }
    },
 
-   // Take the fillGroups array, and create a set of Block objects for rendering, each one added
-   // to a parent cluster node, then all the clusters added to a single parent so we can dispose 
-   // of them all in one go as appropriate
-   renderFillGroups: function (group_list, cluster_list, parent_node) {
+   debugRenderGrid: function () {
        var self = this;
 
-       if (!parent_node) {
-          return;
-       }
+       self.tmp_root.removeAllChildren ();
+
+       var block_size = aq.config.BLOCK_SIZE;
+
+       var tile, c;
+       var p = 0;
+
+       for (var y = 0; y < self.blocks_high * block_size; y += block_size) {
+          for (var x = 0; x < self.blocks_wide * block_size; x += block_size, p++) {
+             var d = self.game_grid [p];
+             if (d !== 0) {
+
+                var node = new cc.DrawNode ();
+                node.x = x;
+                node.y = y;
+
+                if ((d & 0x0f) !== 0) {
+                   tile = aq.Block.TILE_DATA [(d >> 24) & 0xff];
+                   c = cc.color (tile.color);
+                   c.a = 128;
+                   aq.drawTri (node, 0, 0, (d & 0x0f), c);
+                }
+
+                if ((d & 0xf0) !== 0) {
+                   tile = aq.Block.TILE_DATA [(d >> 16) & 0xff];
+                   c = cc.color (tile.color);
+                   c.a = 128;
+                   aq.drawTri (node, 0, 0, ((d >> 4) & 0x0f), c);
+                }
+
+                self.tmp_root.addChild (node, 500);
+             }
+          }
+      }
+   },
+
+   // Link groups together 'under' clusters, in a tree structure
+   linkGroupsToClusters: function (group_list, cluster_list) {
+       var self = this;
 
        if (!group_list || group_list.length === 0) {
           return;
        }
-       
+
        if (!cluster_list || cluster_list.length === 0) {
           return;
-       }       
-              
-       // Clear any existing blocks
-       parent_node.removeAllChildren (true);
-
-       // Create block nodes for each group, and add to an appropriate
-       // cluster node
-       var i;
-
-       for (i = 0; i < cluster_list.length; i++) {
-          if (!cluster_list [i].node) {
-             cluster_list [i].node = new cc.Node ();
-             parent_node.addChild (cluster_list [i].node);
-          }
        }
 
-       // This works by simply checking for the grid_pos matches because
-       // any sub-triangles for a block are always going to match a 
-       // cluster at the same location.
        var findCluster = function (block_cell) {
 
           // This is the brute force method looping over the lists
@@ -1102,13 +1123,44 @@ aq.Grid = cc.Node.extend ({
           return cluster_list [p - 1];    // note the grid index is 1 less than the cluster_num
        };
 
-       for (i = 0; i < group_list.length; i++) {
-          var block = self.createBlockFromTileDataGroup (group_list [i]);
+       var i;
 
+       for (i = 0; i < cluster_list.length; i++) {
+          cluster_list [i].groups = [];
+       }
+
+       for (i = 0; i < group_list.length; i++) {
           // find the cluster this group belongs to, using it's first cell
           var block_cell = group_list [i].cells [0];
           var cluster = findCluster (block_cell);
-          cluster.node.addChild (block);
+          cluster.groups.push (group_list [i]);
+          group_list [i].cluster = cluster;
+       }
+   },
+
+   // Take the groups and cluster lists, and create a set of Block objects for rendering, each one added
+   // to a parent cluster node, then all the clusters added to a single parent so we can dispose 
+   // of them all in one go
+   renderFillGroups: function (group_list, parent_node) {
+       var self = this;
+
+       if (!parent_node) {
+          return;
+       }
+
+       if (!group_list || group_list.length === 0) {
+          return;
+       }
+                     
+       // Clear any existing blocks
+       parent_node.removeAllChildren (true);
+
+       for (var i = 0; i < group_list.length; i++) {
+          if (!group_list [i].node) {
+             var block = self.createBlockFromTileDataGroup (group_list[i]);
+             group_list [i].node = block;
+             parent_node.addChild (block);
+          }
        }
 
        return parent_node;
@@ -1125,7 +1177,8 @@ aq.Grid = cc.Node.extend ({
           'id': 'group' + group.group_index,
           'flags': 'active',
           'color': group.color,
-          'anchors': [[0,0]]
+          'anchors': [[0,0]],
+          'tile_num': group.tile_num
        };
 
        // Work out the cell extents
@@ -1177,12 +1230,20 @@ aq.Grid = cc.Node.extend ({
        // Tag the block with the group index
        block.setTag (group.group_index);
 
+       // Attach the block to the group object
+       group.node = block;
+
        return block;
    },
 
-   getClusters: function () {
+   getClusterList: function () {
        var self = this;
-       return self.block_root.getChildren ();
+       return self.cluster_list;
+   },
+
+   getGroupList: function () {
+       var self = this;
+       return self.group_list;
    },
 
    groupFloodFill: function () {
@@ -1194,8 +1255,11 @@ aq.Grid = cc.Node.extend ({
        // Then work out all the block groups
        self.group_list = self.gridFloodFill (self.group_grid, true);
 
-       // Turn those groups into block nodes to render
-       self.renderFillGroups (self.group_list, self.cluster_list, self.block_root);
+       // Link the groups under clusters
+       self.linkGroupsToClusters (self.group_list, self.cluster_list);
+
+       // Create a set of group nodes, for rendering
+       self.renderFillGroups (self.group_list, self.block_root);
    },
 
    gridFloodFill: function (grid_data, group_by_color) {
