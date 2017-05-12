@@ -40,6 +40,7 @@ aq.Block = cc.Node.extend ({
       // Custom tile_data passed in
       if (tile_num === -1 && tile_data instanceof Object) {
          self.tile_data = tile_data;
+         self.tile_num = tile_data.tile_num;
 
          // Only need one rotation for a custom block
          self.drawNodes = [
@@ -67,13 +68,14 @@ aq.Block = cc.Node.extend ({
    },
 
    /**
-    * Create a cc.DrawNode to render a given tile number and rotation.
+    * Create a cc.DrawNode to render this block at a given
+    * rotation.  If a node is already passed in, re-use it.
     *
-    * @param tile_num tile number (0 - aq.Block.TILE_DATA.length)
     * @param rotation rotation number (0 - 3)
+    * @param node a cc.DrawNode to clear
     * @return a cc.DrawNode to add to the scene
     */
-   createTileNodeAtRotation: function (rotation) {
+   createTileNodeAtRotation: function (rotation, node) {
        var self = this;
 
        var dx = 0;
@@ -81,7 +83,11 @@ aq.Block = cc.Node.extend ({
 
        var grid_size = self.tile_data.grid_size;
 
-       var node = new cc.DrawNode ();
+       if (node) {
+          node.clear ();
+       } else {
+          node = new cc.DrawNode ();
+       }
 
        for (var i = 0; i < grid_size * grid_size; i++) {
           var tris = self.tile_data.grid_data [rotation][i];
@@ -191,6 +197,12 @@ aq.Block = cc.Node.extend ({
       self.drawNodes [rotationAndRotation.rotation].setVisible (true);
 
       self.rot = rotationAndRotation.rotation;
+   },
+
+   setColor: function (col) {
+       var self = this;
+       self.tile_data.color = col;
+       self.createTileNodeAtRotation (0, self.drawNodes [0]);
    },
 
    /**
