@@ -1022,6 +1022,11 @@ aq.Grid = cc.Node.extend ({
 
              var tile_num = block.getTileNum ();
 
+             // TEMP: A cluster has a tile_num of -1
+             if (tile_num === -1) {
+                tile_num = 8;
+             }
+             
              if (block_grid_pos !== 0)
              {
                 if ((block_grid_pos & 0x0f) !== 0)

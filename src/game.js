@@ -3,8 +3,35 @@
 /* globals AXIS_COLLISION, SLOPE_COLLISION, NO_COLLISION, GRID_LEFT_EDGE_COLLISION, GRID_RIGHT_EDGE_COLLISION */
 
 // The first block that falls at the beginning
-var BLOCK_SEQUENCE = [2,2,4,1,3,5,6];
+//var BLOCK_SEQUENCE = [2,2,4,1,3,5,6];
 //var BLOCK_SEQUENCE = [3,4,5,6];
+var BLOCK_SEQUENCE = [6];
+
+// This array is a list of blocks that get inserted into the grid at startup, handy for testing
+var IX = 6;
+var IY = 3;
+var INITIAL_GRID = [
+   // tile_num, rotation, x, y
+/*
+   [0, 0, 0, 0],
+   [1, 0, 1, 0],
+   [2, 0, 3, 0],
+   [3, 0, 5, 0],
+   [4, 0, 6, 0],
+   [5, 0, 8, 0],
+   [6, 0, 10, 0],
+   [7, 0, 11, 0],
+*/
+   [1, 1, IX-2, 0],
+   [1, 3, IX-1, 1],
+   [2, 3, IX, IY],
+   [2, 2, IX+2, IY],
+   [2, 0, IX, IY+2],
+   [2, 1, IX+2, IY+2],
+   [0, 0, IX+2, IY+1],
+   [6, 0, IX+1, IY+1],
+   [7, 2, IX+1, IY+1]
+];
 
 var GameLayer = cc.Layer.extend ({
 
@@ -79,6 +106,21 @@ var GameLayer = cc.Layer.extend ({
       self.debugGridGroups.setPosition (100,140);
       self.addChild (self.debugGridGroups);
 
+      if (INITIAL_GRID.length > 0) {
+         for (var i = 0; i < INITIAL_GRID.length; i++) {
+            var GR = INITIAL_GRID [i];
+            var new_block = new aq.Block (GR [0]);
+            new_block.setNewRotationAndPosition ({
+               rotation: GR [1], 
+               position: cc.p (GR [2] * aq.config.BLOCK_SIZE, GR [3] * aq.config.BLOCK_SIZE)
+            });
+            self.gamePanel.addChild (new_block, 3);
+            self.grid.insertBlockIntoGrid (new_block);
+            new_block.removeFromParent (true);
+         }
+         self.grid.groupFloodFill ();
+      }
+      
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
          onKeyPressed: function (keyCode) {
@@ -178,9 +220,12 @@ var GameLayer = cc.Layer.extend ({
       var gl = self.grid.getGroupList();
       l = gl ? gl.length : 0;
       self.debugGridGroups.setString ('Groups: ' + l);
+
+      self.grid.debugRenderGrid ();
    },
 
    fallingGroup: null,
+   fallingCluster: null,
 
    handleCollapsing: function () {
        var self = this;
@@ -197,6 +242,14 @@ var GameLayer = cc.Layer.extend ({
           if (movement === 0) {
              self.fallingGroup.removeFromParent (true);
              self.fallingGroup = null;
+          } else {
+             self.grid.groupFloodFill ();
+          }
+       } else if (self.fallingCluster) {
+          movement = self.handleBlockMovement (self.fallingCluster);
+          if (movement === 0) {
+             self.fallingCluster.removeFromParent (true);
+             self.fallingCluster = null;
           } else {
              self.grid.groupFloodFill ();
           }
@@ -239,6 +292,42 @@ var GameLayer = cc.Layer.extend ({
           // Now test for any loose clusters that can fall, otherwise, we get the 
           // rare case of a group surrounding another group, and they 'hold' each
           // other up.  By falling clusters, we get around this...
+
+          movement = 0;
+          
+          clusters = self.grid.getClusterList ();
+
+          for (c = 0; c < clusters.length; c++) {
+             cluster = clusters [c];
+             // TODO: Implement this properly, as createBlockFromCluster
+             var clusterNode = self.grid.createBlockFromTileDataGroup (cluster);
+             self.gamePanel.addChild (clusterNode, 3);
+             self.fallingCluster = clusterNode;
+
+             // remove the cluster. this must happen before movement testing
+             for (g = 0; g < cluster.groups.length; g++) {
+                group = groups [g];
+                if (group) {
+                   self.grid.removeGroupByIndex (group.group_index);
+                }
+             }
+
+             bm = self.handleBlockMovement (self.fallingCluster);
+             if (bm === 0) {
+                self.fallingCluster.removeFromParent ();
+                self.fallingCluster = null;
+             } else {
+                self.grid.groupFloodFill ();
+             }
+             movement += bm;
+          }
+          if (movement > 0) {
+             return;
+          }
+
+          self.grid.groupFloodFill ();
+          self.fallingGroup = null;
+          self.fallingCluster = null;
 
           self.isCollapsing = false;
        }
