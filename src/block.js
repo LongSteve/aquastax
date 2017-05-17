@@ -450,6 +450,15 @@ aq.Block.TILE_DATA = [
       'grid_size': 2,
       'grid_data': [[0x0,0x0,
                      0x4,0x1]]
+   },
+   // A temporary tile used by the cluster falling code to indicate a falling cluster
+   {
+      'id': 'tile8',
+      'flags': 'active',
+      'color': '#ffffff',
+      'anchors': [[-1,-1]],
+      'grid_size': 1,
+      'grid_data': [[0x31]]
    }
 ];
 
@@ -460,7 +469,8 @@ aq.Block.getTileCount = function () {
 
 // Static Block method to just return a random tile number
 aq.Block.getRandomTileNumber = function () {
-   var rnd_tile_num = Math.floor (Math.random () * aq.Block.TILE_DATA.length);
+   var NUM_USER_TILES = aq.Block.TILE_DATA.length - 1;
+   var rnd_tile_num = Math.floor (Math.random () * NUM_USER_TILES);
    return rnd_tile_num;
 };
 
