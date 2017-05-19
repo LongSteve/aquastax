@@ -237,6 +237,10 @@ var GameLayer = cc.Layer.extend ({
                         
        var movement = 0;       
                     
+       var bm;
+       var clusters, cluster, c;
+       var groups, group, g;
+                           
        if (self.fallingGroup) {
           movement = self.handleBlockMovement (self.fallingGroup);
           if (movement === 0) {
@@ -255,23 +259,22 @@ var GameLayer = cc.Layer.extend ({
           }
        } else {
           self.grid.groupFloodFill ();       
-          var clusters = self.grid.getClusterList ();
+          clusters = self.grid.getClusterList ();
 
-          for (var c = 0; c < clusters.length; c++) {
-             var cluster = clusters [c];
-             var groups = cluster.groups;
-             for (var g = 0; g < groups.length; g++) {
-                var group = groups [g];
+          for (c = 0; c < clusters.length; c++) {
+             cluster = clusters [c];
+             groups = cluster.groups;
+             for (g = 0; g < groups.length; g++) {
+                group = groups [g];
                 if (group && group.node) {
                    var groupNode = group.node;
                    group.node = null;
                    groupNode.removeFromParent (false);
-                   //groupNode.setColor (cc.color (128,128,128,128));
                    self.grid.removeGroupByIndex (group.group_index);
                    self.gamePanel.addChild (groupNode, 3);
                    self.fallingGroup = groupNode;
 
-                   var bm = self.handleBlockMovement (self.fallingGroup); 
+                   bm = self.handleBlockMovement (self.fallingGroup); 
                    if (bm === 0) {
                       self.fallingGroup.removeFromParent ();
                       self.fallingGroup = null;
@@ -304,13 +307,24 @@ var GameLayer = cc.Layer.extend ({
              self.gamePanel.addChild (clusterNode, 3);
              self.fallingCluster = clusterNode;
 
+             var cluster_pos = self.fallingCluster.getPosition ();
+
              // remove the cluster. this must happen before movement testing
              for (g = 0; g < cluster.groups.length; g++) {
-                group = groups [g];
+                group = cluster.groups [g];
                 if (group) {
                    self.grid.removeGroupByIndex (group.group_index);
                 }
+                // Switch the group nodes to be children of the new falling cluster
+                if (group.node) {
+                   group.node.removeFromParent (false);
+                   self.fallingCluster.addChild (group.node);
+                   group.node.x -= cluster_pos.x;
+                   group.node.y -= cluster_pos.y;
+                }
              }
+
+             self.fallingCluster.isCluster = true;
 
              bm = self.handleBlockMovement (self.fallingCluster);
              if (bm === 0) {
@@ -554,7 +568,19 @@ var GameLayer = cc.Layer.extend ({
       var stickBlock = function () {
 
          // If the falling block cannot move down (or slide), lock it in place
-         self.grid.insertBlockIntoGrid (block);
+         if (block.isCluster) {
+            var p = block.getPosition ();
+            var blocks = block.getChildren ();
+            for (var b = 0; b < blocks.length; b++) {
+               var blk = blocks [b];
+               if (blk.tile_data) {
+                  blk.setPosition (cc.p (p.x + blk.x, p.y + blk.y));
+                  self.grid.insertBlockIntoGrid (blk);
+               }
+            }
+         } else {
+            self.grid.insertBlockIntoGrid (block);
+         }
 
          // If not collapsing
          if (!collapse) {
