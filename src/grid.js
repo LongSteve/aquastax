@@ -1,7 +1,7 @@
 'use strict';
 
 // Set this to enable various collision debug visualisations
-var COLLISION_DEBUGGING       = true;
+var COLLISION_DEBUGGING       = false;
 
 var AXIS_COLLISION            = (1 << 8);
 var SLOPE_COLLISION           = (1 << 9);
