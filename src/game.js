@@ -220,8 +220,6 @@ var GameLayer = cc.Layer.extend ({
       var gl = self.grid.getGroupList();
       l = gl ? gl.length : 0;
       self.debugGridGroups.setString ('Groups: ' + l);
-
-      self.grid.debugRenderGrid ();
    },
 
    fallingGroup: null,
@@ -248,6 +246,7 @@ var GameLayer = cc.Layer.extend ({
              self.fallingGroup = null;
           } else {
              self.grid.groupFloodFill ();
+             return;
           }
        } else if (self.fallingCluster) {
           movement = self.handleBlockMovement (self.fallingCluster);
@@ -256,95 +255,96 @@ var GameLayer = cc.Layer.extend ({
              self.fallingCluster = null;
           } else {
              self.grid.groupFloodFill ();
-          }
-       } else {
-          self.grid.groupFloodFill ();       
-          clusters = self.grid.getClusterList ();
-
-          for (c = 0; c < clusters.length; c++) {
-             cluster = clusters [c];
-             groups = cluster.groups;
-             for (g = 0; g < groups.length; g++) {
-                group = groups [g];
-                if (group && group.node) {
-                   var groupNode = group.node;
-                   group.node = null;
-                   groupNode.removeFromParent (false);
-                   self.grid.removeGroupByIndex (group.group_index);
-                   self.gamePanel.addChild (groupNode, 3);
-                   self.fallingGroup = groupNode;
-
-                   bm = self.handleBlockMovement (self.fallingGroup); 
-                   if (bm === 0) {
-                      self.fallingGroup.removeFromParent ();
-                      self.fallingGroup = null;
-                   } else {
-                      self.grid.groupFloodFill ();
-                   }
-                   movement += bm;
-                }
-                if (movement > 0) {
-                   return;
-                }
-             }
-          }
-
-          self.grid.groupFloodFill ();
-          self.fallingGroup = null;
-
-          // Now test for any loose clusters that can fall, otherwise, we get the 
-          // rare case of a group surrounding another group, and they 'hold' each
-          // other up.  By falling clusters, we get around this...
-
-          movement = 0;
-          
-          clusters = self.grid.getClusterList ();
-
-          for (c = 0; c < clusters.length; c++) {
-             cluster = clusters [c];
-             // TODO: Implement this properly, as createBlockFromCluster
-             var clusterNode = self.grid.createBlockFromTileDataGroup (cluster);
-             self.gamePanel.addChild (clusterNode, 3);
-             self.fallingCluster = clusterNode;
-
-             var cluster_pos = self.fallingCluster.getPosition ();
-
-             // remove the cluster. this must happen before movement testing
-             for (g = 0; g < cluster.groups.length; g++) {
-                group = cluster.groups [g];
-                if (group) {
-                   self.grid.removeGroupByIndex (group.group_index);
-                }
-                // Switch the group nodes to be children of the new falling cluster
-                if (group.node) {
-                   group.node.removeFromParent (false);
-                   self.fallingCluster.addChild (group.node);
-                   group.node.x -= cluster_pos.x;
-                   group.node.y -= cluster_pos.y;
-                }
-             }
-
-             self.fallingCluster.isCluster = true;
-
-             bm = self.handleBlockMovement (self.fallingCluster);
-             if (bm === 0) {
-                self.fallingCluster.removeFromParent ();
-                self.fallingCluster = null;
-             } else {
-                self.grid.groupFloodFill ();
-             }
-             movement += bm;
-          }
-          if (movement > 0) {
              return;
           }
-
-          self.grid.groupFloodFill ();
-          self.fallingGroup = null;
-          self.fallingCluster = null;
-
-          self.isCollapsing = false;
        }
+
+       self.grid.groupFloodFill ();       
+       clusters = self.grid.getClusterList ();
+
+       for (c = 0; c < clusters.length; c++) {
+          cluster = clusters [c];
+          groups = cluster.groups;
+          for (g = 0; g < groups.length; g++) {
+             group = groups [g];
+             if (group && group.node) {
+                var groupNode = group.node;
+                group.node = null;
+                groupNode.removeFromParent (false);
+                self.grid.removeGroupByIndex (group.group_index);
+                self.gamePanel.addChild (groupNode, 3);
+                self.fallingGroup = groupNode;
+
+                bm = self.handleBlockMovement (self.fallingGroup); 
+                if (bm === 0) {
+                   self.fallingGroup.removeFromParent ();
+                   self.fallingGroup = null;
+                } else {
+                   self.grid.groupFloodFill ();
+                }
+                movement += bm;
+             }
+             if (movement > 0) {
+                return;
+             }
+          }
+       }
+
+       self.grid.groupFloodFill ();
+       self.fallingGroup = null;
+
+       // Now test for any loose clusters that can fall, otherwise, we get the 
+       // rare case of a group surrounding another group, and they 'hold' each
+       // other up.  By falling clusters, we get around this...
+
+       movement = 0;
+       
+       clusters = self.grid.getClusterList ();
+
+       for (c = 0; c < clusters.length; c++) {
+          cluster = clusters [c];
+          // TODO: Implement this properly, as createBlockFromCluster
+          var clusterNode = self.grid.createBlockFromTileDataGroup (cluster);
+          self.gamePanel.addChild (clusterNode, 3);
+          self.fallingCluster = clusterNode;
+
+          var cluster_pos = self.fallingCluster.getPosition ();
+
+          // remove the cluster. this must happen before movement testing
+          for (g = 0; g < cluster.groups.length; g++) {
+             group = cluster.groups [g];
+             if (group) {
+                self.grid.removeGroupByIndex (group.group_index);
+             }
+             // Switch the group nodes to be children of the new falling cluster
+             if (group.node) {
+                group.node.removeFromParent (false);
+                self.fallingCluster.addChild (group.node);
+                group.node.x -= cluster_pos.x;
+                group.node.y -= cluster_pos.y;
+             }
+          }
+
+          self.fallingCluster.isCluster = true;
+
+          bm = self.handleBlockMovement (self.fallingCluster);
+          if (bm === 0) {
+             self.fallingCluster.removeFromParent ();
+             self.fallingCluster = null;
+          } else {
+             self.grid.groupFloodFill ();
+          }
+          movement += bm;
+       }
+       if (movement > 0) {
+          return;
+       }
+
+       self.grid.groupFloodFill ();
+       self.fallingGroup = null;
+       self.fallingCluster = null;
+
+       self.isCollapsing = false;
    },
 
    // Returns 0 if the block movement has ended, or 1 if still potentially moving and 2 if a collapse

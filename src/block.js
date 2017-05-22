@@ -450,15 +450,6 @@ aq.Block.TILE_DATA = [
       'grid_size': 2,
       'grid_data': [[0x0,0x0,
                      0x4,0x1]]
-   },
-   // A temporary tile used by the cluster falling code to indicate a falling cluster
-   {
-      'id': 'tile8',
-      'flags': 'active',
-      'color': '#ffffff',
-      'anchors': [[-1,-1]],
-      'grid_size': 1,
-      'grid_data': [[0x31]]
    }
 ];
 

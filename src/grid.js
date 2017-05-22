@@ -1021,11 +1021,6 @@ aq.Grid = cc.Node.extend ({
              var block_grid_pos = tile_data.grid_data [block.rot][block_pos];
 
              var tile_num = block.getTileNum ();
-
-             // TEMP: A cluster has a tile_num of -1
-             if (tile_num === -1) {
-                tile_num = 8;
-             }
              
              if (block_grid_pos !== 0)
              {
@@ -1419,7 +1414,8 @@ aq.Grid = cc.Node.extend ({
 
                 // For comparison purposes, shift the bits as necessary into a single triangle position
                 var tile_num = group_by_color ?  (self.game_grid [i] >> (24 - (t * 8))) & 0x0f : -1;
-                var color = (group_by_color && aq.Block.TILE_DATA [tile_num]) ? aq.Block.TILE_DATA [tile_num].color : cc.color (128, 128, 128, 128);
+                // use a fully transparent marker color when no tile data is available. Might be a cluster
+                var color = (group_by_color && aq.Block.TILE_DATA [tile_num]) ? aq.Block.TILE_DATA [tile_num].color : cc.color (255, 0, 255, 0);
 
                 if ((self.game_grid [i] & (FILL_FLAG_SEEN_T1 << t)) === 0) {
                    var newGroup = {
