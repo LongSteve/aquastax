@@ -303,7 +303,7 @@ var GameLayer = cc.Layer.extend ({
 
        for (c = 0; c < clusters.length; c++) {
           cluster = clusters [c];
-          // TODO: Implement this properly, as createBlockFromCluster
+          // Although this creates a 'block', it's graphic is transparent
           var clusterNode = self.grid.createBlockFromTileDataGroup (cluster);
           self.gamePanel.addChild (clusterNode, 3);
           self.fallingCluster = clusterNode;
