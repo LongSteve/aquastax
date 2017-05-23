@@ -21,6 +21,9 @@ aq.Block = cc.Node.extend ({
    // Block rotation (0 - 3)
    rot: 0,
 
+   // Boundaries (calculated at block creation)
+   boundaries: null,
+
    // Could collision data be recorded for this block
    collision_reporting_enabled: true,
 
@@ -36,6 +39,9 @@ aq.Block = cc.Node.extend ({
 
       // First rotation
       self.rot = 0;
+
+      // Allocate the boundary data to be cached
+      self.boundaries = [];
 
       // Custom tile_data passed in
       if (tile_num === -1 && tile_data instanceof Object) {
@@ -243,7 +249,16 @@ aq.Block = cc.Node.extend ({
          rotation = self.rot;
       }
 
-      // TODO: Calculate this once at startup and cache the values
+      if (!self.boundaries [rotation]) {
+         self.boundaries [rotation] = self.calculateTileBounds (rotation);
+      }
+
+      return self.boundaries [rotation];
+   },
+
+   calculateTileBounds: function (rotation) {
+      var self = this;
+
       var grid_size = self.tile_data.grid_size;
       var grid_data = self.tile_data.grid_data;
 
@@ -460,7 +475,7 @@ aq.Block.getTileCount = function () {
 
 // Static Block method to just return a random tile number
 aq.Block.getRandomTileNumber = function () {
-   var NUM_USER_TILES = aq.Block.TILE_DATA.length - 1;
+   var NUM_USER_TILES = aq.Block.TILE_DATA.length;
    var rnd_tile_num = Math.floor (Math.random () * NUM_USER_TILES);
    return rnd_tile_num;
 };

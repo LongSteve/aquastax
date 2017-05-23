@@ -594,9 +594,11 @@ var GameLayer = cc.Layer.extend ({
       };
 
       // Highlight the collision that just occured
+      /*
       if (!collapse) {
          self.highlightCollision (block);
       }
+      */
 
       if (block.isSliding) {
 
