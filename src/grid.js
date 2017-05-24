@@ -1074,14 +1074,12 @@ aq.Grid = cc.Node.extend ({
                 if ((d & 0x0f) !== 0) {
                    tile = aq.Block.TILE_DATA [(d >> 24) & 0xff];
                    c = cc.color (tile.color);
-                   c.a = 128;
                    aq.drawTri (node, 0, 0, (d & 0x0f), c);
                 }
 
                 if ((d & 0xf0) !== 0) {
                    tile = aq.Block.TILE_DATA [(d >> 16) & 0xff];
                    c = cc.color (tile.color);
-                   c.a = 128;
                    aq.drawTri (node, 0, 0, ((d >> 4) & 0x0f), c);
                 }
 

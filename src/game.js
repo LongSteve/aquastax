@@ -7,23 +7,16 @@
 //var BLOCK_SEQUENCE = [3,4,5,6];
 var BLOCK_SEQUENCE = [6];
 
+// Disable this to prevent blocks from dropping automatically
+var BLOCK_DROPPING = false;
+
 // This array is a list of blocks that get inserted into the grid at startup, handy for testing
-var IX = 6;
-var IY = 3;
+var TEST_LAYOUT = true;
+
+var IX = 0;
+var IY = 0;
 var INITIAL_GRID = [
    // tile_num, rotation, x, y
-/*
-   [0, 0, 0, 0],
-   [1, 0, 1, 0],
-   [2, 0, 3, 0],
-   [3, 0, 5, 0],
-   [4, 0, 6, 0],
-   [5, 0, 8, 0],
-   [6, 0, 10, 0],
-   [7, 0, 11, 0],
-*/
-   [1, 1, IX-2, 0],
-   [1, 3, IX-1, 1],
    [2, 3, IX, IY],
    [2, 2, IX+2, IY],
    [2, 0, IX, IY+2],
@@ -31,6 +24,25 @@ var INITIAL_GRID = [
    [0, 0, IX+2, IY+1],
    [6, 0, IX+1, IY+1],
    [7, 2, IX+1, IY+1]
+];
+
+var VSPACER = [
+   [0, 0, IX+4, IY],
+   [0, 2, IX+3, IY+1],
+   [3, 0, IX+4, IY+3]
+];
+
+var HSPACER = [
+   [3, 0, IX, IY],
+   [6, 1, IX+1, IY-1],
+   [6, 3, IX+2, IY],
+   [6, 1, IX+4, IY-1],
+   [6, 3, IX+5, IY],
+   [6, 1, IX+7, IY-1],
+   [6, 3, IX+8, IY],
+   [6, 1, IX+10, IY-1],
+   [6, 3, IX+11, IY],
+   [3, 0, IX+13, IY]
 ];
 
 var GameLayer = cc.Layer.extend ({
@@ -106,17 +118,29 @@ var GameLayer = cc.Layer.extend ({
       self.debugGridGroups.setPosition (100,140);
       self.addChild (self.debugGridGroups);
 
-      if (INITIAL_GRID.length > 0) {
-         for (var i = 0; i < INITIAL_GRID.length; i++) {
-            var GR = INITIAL_GRID [i];
-            var new_block = new aq.Block (GR [0]);
-            new_block.setNewRotationAndPosition ({
-               rotation: GR [1], 
-               position: cc.p (GR [2] * aq.config.BLOCK_SIZE, GR [3] * aq.config.BLOCK_SIZE)
-            });
-            self.gamePanel.addChild (new_block, 3);
-            self.grid.insertBlockIntoGrid (new_block);
-            new_block.removeFromParent (true);
+      if (TEST_LAYOUT) {
+         var doBlock = function (GR, x, y) {
+            for (var i = 0; i < GR.length; i++) {
+               var gr = GR [i];
+               var new_block = new aq.Block (gr[0]);
+               new_block.setNewRotationAndPosition ({
+                  rotation: gr [1], 
+                  position: cc.p ((x + gr [2]) * aq.config.BLOCK_SIZE, (y + gr [3]) * aq.config.BLOCK_SIZE)
+               });
+               self.gamePanel.addChild (new_block, 3);
+               self.grid.insertBlockIntoGrid (new_block);
+               new_block.removeFromParent (true);
+            }
+         };
+
+         for (var y = 0; y < 15; y += 5) {
+            for (var x = 0; x < 15; x += 5) {
+               doBlock (INITIAL_GRID, x, y);
+               if (x < 10) {
+                  doBlock (VSPACER, x, y);
+               }
+            }
+            doBlock (HSPACER, 0, y + 4);
          }
          self.grid.groupFloodFill ();
       }
@@ -477,8 +501,10 @@ var GameLayer = cc.Layer.extend ({
       }
 
       // dx,dy are the point (pixels) difference to move the block in one game update
-      dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
-
+      var normal_dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond; 
+      if (BLOCK_DROPPING) {
+         dy = normal_dy;
+      }
       var current_block_position = block.getPosition ();
       var new_block_position, fast_dy;
 
@@ -490,6 +516,8 @@ var GameLayer = cc.Layer.extend ({
          var fast_drop_collision = self.grid.collideBlock (block, new_block_position);
          if ((fast_drop_collision & AXIS_COLLISION) === 0) {
             dy = fast_dy;
+         } else {
+            dy = normal_dy;
          }
       }
 
