@@ -96,7 +96,7 @@ aq.Grid = cc.Node.extend ({
       self.group_grid = new Array (wide * high * 2);
       self.cluster_grid = new Array (wide * high * 2);
 
-      self.tmpBlock = new aq.Block (3);
+      self.tmpBlock = new aq.Block (false, 3);
 
       // Add the grid outline
       self.addChild (self.createLineGridNode ());
@@ -1139,7 +1139,7 @@ aq.Grid = cc.Node.extend ({
    // Take the groups and cluster lists, and create a set of Block objects for rendering, each one added
    // to a parent cluster node, then all the clusters added to a single parent so we can dispose 
    // of them all in one go
-   renderFillGroups: function (group_list, parent_node) {
+   renderFillGroups: function (group_list, parent_node, render) {
        var self = this;
 
        if (!parent_node) {
@@ -1155,7 +1155,7 @@ aq.Grid = cc.Node.extend ({
 
        for (var i = 0; i < group_list.length; i++) {
           if (!group_list [i].node) {
-             var block = self.createBlockFromTileDataGroup (group_list[i]);
+             var block = self.createBlockFromTileDataGroup (group_list[i], render);
              group_list [i].node = block;
              parent_node.addChild (block);
           }
@@ -1166,9 +1166,13 @@ aq.Grid = cc.Node.extend ({
 
    // Given a combined cell 'group', make a Block object, like the predefined tiles within Block.js
    // but using the generated block data from the grid.
-   createBlockFromTileDataGroup: function (group) {
+   createBlockFromTileDataGroup: function (group, render) {
        var self = this;
 
+       if (typeof (render) === 'undefined') {
+          render = false;
+       }
+       
        var cells = group.cells;
 
        var tile_data = {
@@ -1222,7 +1226,7 @@ aq.Grid = cc.Node.extend ({
        tile_data.grid_data [0] = grid_data;
 
        // Create a block from this tile_data for returning
-       var block = new aq.Block (-1, tile_data);
+       var block = new aq.Block (render, -1, tile_data, true);
        block.setPosition (min_x * aq.config.BLOCK_SIZE, min_y * aq.config.BLOCK_SIZE);
 
        // Tag the block with the group index
@@ -1244,7 +1248,7 @@ aq.Grid = cc.Node.extend ({
        return self.group_list;
    },
 
-   groupFloodFill: function () {
+   groupFloodFill: function (render) {
        var self = this;
 
        // Find all the clusters
@@ -1257,7 +1261,7 @@ aq.Grid = cc.Node.extend ({
        self.linkGroupsToClusters (self.group_list, self.cluster_list);
 
        // Create a set of group nodes, for rendering
-       self.renderFillGroups (self.group_list, self.block_root);
+       self.renderFillGroups (self.group_list, self.block_root, render);
    },
 
    gridFloodFill: function (grid_data, group_by_color) {

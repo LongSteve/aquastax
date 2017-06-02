@@ -8,10 +8,13 @@
 var BLOCK_SEQUENCE = [6];
 
 // Disable this to prevent blocks from dropping automatically
-var BLOCK_DROPPING = false;
+var BLOCK_DROPPING = true;
+
+// Fill the grid with alternating triangles to test the rendering
+var TRIANGLE_TEST = false;
 
 // This array is a list of blocks that get inserted into the grid at startup, handy for testing
-var TEST_LAYOUT = true;
+var TEST_LAYOUT = false;
 
 var IX = 0;
 var IY = 0;
@@ -44,6 +47,9 @@ var HSPACER = [
    [6, 3, IX+11, IY],
    [3, 0, IX+13, IY]
 ];
+
+// Define TEST_GRID to fill in the grid at the start
+var TEST_GRID = [33688612,33688612,67111938,117902372,117836849,67374129,67374129,50531377,33688642,84216881,84216881,16845873,16845890,16845890,33688612,67374099,67374099,117771313,101059603,67177508,3072,33688642,33688642,84347953,16780291,16845873,33688642,17239076,33688612,33688612,84216851,84216851,50531377,16845860,16845860,84216881,84216881,117443620,33688625,33688642,33688642,117771313,33688612,33688612,33688612,67374129,67374129,16845890,16845890,83889201,3108,3091,33688625,33688625,84216851,84216851,33688625,33688612,3072,67374116,3121,101059650,17173540,50531377,33688625,3138,3121,3108,16845890,16845890,33688625,33688625,67374099,67374099,67112002,3121,3121,33688625,33688625,33688625,67374129,67374129,101059650,17173540,33688612,33688612,33688642,67374099,67374099,461860,3108,33688625,33688625,33688642,67570724,16845873,84216881,84216881,33688612,33688642,33688642,50531377,3072,117836849,3091,50531377,33688642,33688642,117509169,16845873,84282417,3072,3072,3072,3072,3072,3072,101059603,33688642,16845890,16845890,16845843,17173553,3072,101059603,3072,0,0,0,0,3072,33688642,33688642,101059650,17173540,16845843,101059603,3072,3072,0,0,0,0,0,0,3072,3072,67374129,67374129,3072,3072,0,0,0,0,0,0,0,0,0,0,67111940,3072,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
 var GameLayer = cc.Layer.extend ({
 
@@ -118,18 +124,21 @@ var GameLayer = cc.Layer.extend ({
       self.debugGridGroups.setPosition (100,140);
       self.addChild (self.debugGridGroups);
 
+      if (typeof (TEST_GRID) !== "undefined") {
+         self.grid.game_grid = TEST_GRID;
+         self.grid.groupFloodFill (true); 
+      }
+
       if (TEST_LAYOUT) {
          var doBlock = function (GR, x, y) {
             for (var i = 0; i < GR.length; i++) {
                var gr = GR [i];
-               var new_block = new aq.Block (gr[0]);
+               var new_block = new aq.Block (true, gr[0]);
                new_block.setNewRotationAndPosition ({
                   rotation: gr [1], 
                   position: cc.p ((x + gr [2]) * aq.config.BLOCK_SIZE, (y + gr [3]) * aq.config.BLOCK_SIZE)
                });
-               self.gamePanel.addChild (new_block, 3);
                self.grid.insertBlockIntoGrid (new_block);
-               new_block.removeFromParent (true);
             }
          };
 
@@ -142,7 +151,44 @@ var GameLayer = cc.Layer.extend ({
             }
             doBlock (HSPACER, 0, y + 4);
          }
-         self.grid.groupFloodFill ();
+         self.grid.groupFloodFill (true);
+      }
+
+      if (TRIANGLE_TEST) {
+         var tiles = [
+         {
+            'id': 'tileA',
+            'flags': 'active',
+            'color': '#ffffff',
+            'anchors': [[-1,-1]],
+            'grid_size': 1,
+            'grid_data': [[0x03]],
+            'tile_num': 0
+         },
+         {
+            'id': 'tileB',
+            'flags': 'active',
+            'color': '#000000',
+            'anchors': [[-1,-1]],
+            'grid_size': 1,
+            'grid_data': [[0x01]],
+            'tile_num': 1
+         }];
+         var i = 0;
+         for (var y = 0; y < 15; y++) {
+            for (var x = 0; x < blocks_wide; x++) {
+               var p = cc.p (x * aq.config.BLOCK_SIZE, y * aq.config.BLOCK_SIZE);
+
+               var t1 = new aq.Block (true, -1, tiles [i++ & 1]);
+               t1.setPosition (p);
+               self.grid.insertBlockIntoGrid (t1);
+
+               var t2 = new aq.Block (true, -1, tiles [i++ & 1]);
+               t2.setPosition (p);
+               self.grid.insertBlockIntoGrid (t2);
+            }
+         }
+         self.grid.groupFloodFill (true);
       }
       
       cc.eventManager.addListener ({
@@ -328,7 +374,7 @@ var GameLayer = cc.Layer.extend ({
        for (c = 0; c < clusters.length; c++) {
           cluster = clusters [c];
           // Although this creates a 'block', it's graphic is transparent
-          var clusterNode = self.grid.createBlockFromTileDataGroup (cluster);
+          var clusterNode = self.grid.createBlockFromTileDataGroup (cluster, false);
           self.gamePanel.addChild (clusterNode, 3);
           self.fallingCluster = clusterNode;
 
@@ -364,7 +410,7 @@ var GameLayer = cc.Layer.extend ({
           return;
        }
 
-       self.grid.groupFloodFill ();
+       self.grid.groupFloodFill (true);
        self.fallingGroup = null;
        self.fallingCluster = null;
 
@@ -614,7 +660,7 @@ var GameLayer = cc.Layer.extend ({
          if (!collapse) {
 
             // Fill the grid to generate the coloured block groups
-            self.grid.groupFloodFill ();
+            self.grid.groupFloodFill (true);
 
             // Allocate a new block for falling
             self.nextBlock ();
@@ -800,7 +846,7 @@ var GameLayer = cc.Layer.extend ({
           rnd_tile_num = BLOCK_SEQUENCE [self.blockCounter++];
        }
 
-       var new_block = new aq.Block (rnd_tile_num);
+       var new_block = new aq.Block (true, rnd_tile_num);
        new_block.setPosition (grid_x * aq.config.BLOCK_SIZE, grid_y * aq.config.BLOCK_SIZE);
 
        self.gamePanel.addChild (new_block, 3);
