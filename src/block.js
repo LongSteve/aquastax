@@ -28,7 +28,7 @@ aq.Block = cc.Node.extend ({
    collision_reporting_enabled: true,
 
    // Construct a Block from a given pre-defined tile number, or a dynamically created tile_data object
-   ctor: function (tile_num, tile_data) {
+   ctor: function (render, tile_num, tile_data, breaker) {
       var self = this;
 
       // super init first
@@ -49,27 +49,36 @@ aq.Block = cc.Node.extend ({
          self.tile_num = tile_data.tile_num;
 
          // Only need one rotation for a custom block
-         self.drawNodes = [
-            self.createTileNodeAtRotation (0)
-         ];
+         if (render) {
+            self.drawNodes = [
+               self.createTileNodeAtRotation (0)
+            ];
+         }
       } else {
          // Or using one of the pre-defined tiles
          self.tile_data = aq.Block.TILE_DATA [tile_num];
 
          // Make the set of drawNodes corresponding to each rotation
-         self.drawNodes = [
-            self.createTileNodeAtRotation (0),
-            self.createTileNodeAtRotation (1),
-            self.createTileNodeAtRotation (2),
-            self.createTileNodeAtRotation (3),
-         ];
+         if (render) {
+            if (breaker) {
+               console.log ('break here');
+            }
+            self.drawNodes = [
+               self.createTileNodeAtRotation (0),
+               self.createTileNodeAtRotation (1),
+               self.createTileNodeAtRotation (2),
+               self.createTileNodeAtRotation (3),
+            ];
+         }
       }
 
-      for (var n = 0; n < self.drawNodes.length; n++) {
-         if (n > 0) {
-            self.drawNodes[n].setVisible (false);
+      if (self.drawNodes) {
+         for (var n = 0; n < self.drawNodes.length; n++) {
+            if (n > 0) {
+               self.drawNodes[n].setVisible (false);
+            }
+            self.addChild (self.drawNodes [n]);
          }
-         self.addChild (self.drawNodes [n]);
       }
    },
 
@@ -199,8 +208,10 @@ aq.Block = cc.Node.extend ({
 
       self.setPosition (rotationAndRotation.position);
 
-      self.drawNodes [self.rot].setVisible (false);      // hide old rotation
-      self.drawNodes [rotationAndRotation.rotation].setVisible (true);
+      if (self.drawNodes) {
+         self.drawNodes[self.rot].setVisible (false);      // hide old rotation
+         self.drawNodes [rotationAndRotation.rotation].setVisible (true);
+      }
 
       self.rot = rotationAndRotation.rotation;
    },
@@ -208,7 +219,9 @@ aq.Block = cc.Node.extend ({
    setColor: function (col) {
        var self = this;
        self.tile_data.color = col;
-       self.createTileNodeAtRotation (0, self.drawNodes [0]);
+       if (self.drawNodes) {
+          self.createTileNodeAtRotation (0, self.drawNodes[0]);
+       }
    },
 
    /**
