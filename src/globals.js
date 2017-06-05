@@ -49,7 +49,8 @@ aq.drawTri = function (node, x, y, type, color) {
       break;
    }
 
-   node.drawPoly (triangle, cc.color (color), 4, true);
+   var c = cc.color (color);
+   node.drawPoly (triangle, c, 0, c);
 };
 
 /**

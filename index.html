@@ -31,10 +31,14 @@
     <link rel="stylesheet" type="text/css" href="index.css"/>
 </head>
 <body>
+    <!-- Include one or the other of these when running a standalone pre-packaged Cocos2d-JS script -->
+    <!-- and remove the include for CCBoot.js                                                       -->
     <script src="js/cocos2d-js-v3.13.js"></script>
+    <!-- <script src="js/cocos2d-js-v3.15-min.js"></script> -->
     <script src="res/loading.js"></script>
     <canvas id="gameCanvas" width="480" height="720"></canvas>
-    <!--<script src="frameworks/cocos2d-html5/CCBoot.js"></script> -->
+    <!-- Include this when running directly from the source -->
+    <!-- <script src="frameworks/cocos2d-html5/CCBoot.js"></script> -->
     <script cocos src="config.js"></script>
     <script cocos src="main.js"></script>
 </body>

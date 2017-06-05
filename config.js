@@ -40,6 +40,18 @@ aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR = 3.0;
 aq.config.BLOCK_SIZE = 50;
 
 /**
+ * aq.config.BLOCK_OUTLINE_COLOR is the color to render the 
+ * block outlines in 
+ */
+aq.config.BLOCK_OUTLINE_COLOR = {r:0,g:0,b:0,a:255};
+
+/**
+ * aq.config.BLOCK_OUTLINE_WIDTH is the width in pixels to 
+ * render the block outlines.  Set to 0 to disable. 
+ */
+aq.config.BLOCK_OUTLINE_WIDTH = 2;
+
+/**
  * aq.config.GRID_SIZE is how many blocks fit across the bottom of the
  * gameplay area.
  */

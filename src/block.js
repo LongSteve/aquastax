@@ -504,8 +504,8 @@ aq.Block.createBlockOutline = function (node, tile_data, rotation) {
 
     var block_size = aq.config.BLOCK_SIZE;
 
-    var outline_color = cc.color (0,0,0,255);
-    var outline_width = 2;
+    var outline_color = aq.config.BLOCK_OUTLINE_COLOR;
+    var outline_width = aq.config.BLOCK_OUTLINE_WIDTH;
 
     // Does the cell contain the specific triangle of the given type
     var has_tri = function (cell, type) {
