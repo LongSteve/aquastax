@@ -16,6 +16,9 @@ var TRIANGLE_TEST = false;
 // This array is a list of blocks that get inserted into the grid at startup, handy for testing
 var TEST_LAYOUT = false;
 
+// Show the keypresses
+var SHOW_KEYPRESS_INDICATORS = false;
+
 var IX = 0;
 var IY = 0;
 var INITIAL_GRID = [
@@ -92,7 +95,7 @@ var GameLayer = cc.Layer.extend ({
       var w = block_size * blocks_wide;
       var h = cc.winSize.height;
 
-      var gamePanel = new cc.LayerColor (cc.color (128,0,0,128), w, h);
+      var gamePanel = new cc.LayerColor (cc.color (128,0,0,255), w, h);
       gamePanel.x = (cc.winSize.width - w) / 2;
       gamePanel.y = 0;
 
@@ -220,10 +223,12 @@ var GameLayer = cc.Layer.extend ({
    keyAction: function (keyCode, pressed) {
       var self = this;
       self.keysPressed [keyCode] = pressed;
-      try {
-         self.keyPressIndicators[self.keyMap[keyCode]].setVisible (pressed);
-      } catch (ex) {
-         // catch error for a key not in the keyPressIndicators array
+      if (SHOW_KEYPRESS_INDICATORS) {
+         try {
+            self.keyPressIndicators[self.keyMap[keyCode]].setVisible (pressed);
+         } catch (ex) {
+            // catch error for a key not in the keyPressIndicators array
+         }
       }
    },
 
@@ -238,6 +243,10 @@ var GameLayer = cc.Layer.extend ({
    initKeyPressIndicators: function () {
        var self = this;
 
+       if (!SHOW_KEYPRESS_INDICATORS) {
+          return;
+       }
+       
        // Create DrawNode objects to show the up,down,left and right key pressed states
        var i;
 

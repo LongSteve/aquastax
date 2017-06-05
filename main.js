@@ -12,7 +12,7 @@ cc.game.onStart = function () {
    // Disable the retina display support, setting the DevicePixelRatio to 1.0 to avoid the unusual
    // slowdown in Chrome when running at 2.0 ratio.
    // TODO: See if this can be set dynamically while the game is running, and add an option for it
-   cc.view.enableRetina (false);
+   cc.view.enableRetina (true);
 
    // Setup the resolution policy and design resolution size
    cc.view.setDesignResolutionSize (aq.config.DESIGN_WIDTH, aq.config.DESIGN_HEIGHT, cc.ResolutionPolicy.SHOW_ALL);
