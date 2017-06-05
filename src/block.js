@@ -28,8 +28,10 @@ aq.Block = cc.Node.extend ({
    collision_reporting_enabled: true,
 
    // Construct a Block from a given pre-defined tile number, or a dynamically created tile_data object
-   ctor: function (render, tile_num, tile_data, breaker) {
+   ctor: function (render, tile_num, tile_data) {
       var self = this;
+
+      render = true;
 
       // super init first
       self._super ();
@@ -60,9 +62,6 @@ aq.Block = cc.Node.extend ({
 
          // Make the set of drawNodes corresponding to each rotation
          if (render) {
-            if (breaker) {
-               console.log ('break here');
-            }
             self.drawNodes = [
                self.createTileNodeAtRotation (0),
                self.createTileNodeAtRotation (1),

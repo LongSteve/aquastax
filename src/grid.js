@@ -1226,7 +1226,7 @@ aq.Grid = cc.Node.extend ({
        tile_data.grid_data [0] = grid_data;
 
        // Create a block from this tile_data for returning
-       var block = new aq.Block (render, -1, tile_data, true);
+       var block = new aq.Block (render, -1, tile_data);
        block.setPosition (min_x * aq.config.BLOCK_SIZE, min_y * aq.config.BLOCK_SIZE);
 
        // Tag the block with the group index
