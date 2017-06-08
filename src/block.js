@@ -215,14 +215,6 @@ aq.Block = cc.Node.extend ({
       self.rot = rotationAndRotation.rotation;
    },
 
-   setColor: function (col) {
-       var self = this;
-       self.tile_data.color = col;
-       if (self.drawNodes) {
-          self.createTileNodeAtRotation (0, self.drawNodes[0]);
-       }
-   },
-
    /**
     * Work out the number of grid cells from the bottom left that are empty
     * of filled tile triangles.  eg.
