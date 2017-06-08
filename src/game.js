@@ -8,7 +8,7 @@
 var BLOCK_SEQUENCE = [6];
 
 // Disable this to prevent blocks from dropping automatically
-var BLOCK_DROPPING = true;
+var BLOCK_DROPPING = false;
 
 // Fill the grid with alternating triangles to test the rendering
 var TRIANGLE_TEST = false;
@@ -66,6 +66,9 @@ var GameLayer = cc.Layer.extend ({
    // currently falling block
    block: null,
 
+   // height of the camera
+   cameraHeight: 0,
+
    // count of dropped blocks
    blockCounter: 0,
 
@@ -99,7 +102,7 @@ var GameLayer = cc.Layer.extend ({
       gamePanel.x = (cc.winSize.width - w) / 2;
       gamePanel.y = 0;
 
-      var blocks_high = Math.ceil (h / block_size);
+      var blocks_high = Math.ceil ((h * 1.2) / block_size);
 
       self.addChild (gamePanel, 0);
 
@@ -238,6 +241,9 @@ var GameLayer = cc.Layer.extend ({
       self.keysPressed [cc.KEY.down] = false;
       self.keysPressed [cc.KEY.left] = false;
       self.keysPressed [cc.KEY.right] = false;
+
+      self.keysPressed [cc.KEY.w] = false;
+      self.keysPressed [cc.KEY.s] = false;
    },
 
    initKeyPressIndicators: function () {
@@ -282,6 +288,8 @@ var GameLayer = cc.Layer.extend ({
    update: function () {
       var self = this;
 
+      self.handleCameraMovement ();
+             
       // Handle a collapsing stack. This takes president over normal block dropping and movement
       if (self.isCollapsing) {
 
@@ -301,6 +309,30 @@ var GameLayer = cc.Layer.extend ({
       var gl = self.grid.getGroupList();
       l = gl ? gl.length : 0;
       self.debugGridGroups.setString ('Groups: ' + l);
+   },
+
+   handleCameraMovement: function () {
+       var self = this;
+
+       var CAMERA_MOVEMENT_RATE = 10;
+
+       var framesPerSecond = cc.game.config.frameRate;
+       var cameraDy = (aq.config.BLOCK_SIZE * CAMERA_MOVEMENT_RATE) / framesPerSecond; 
+       var deltaCamera = 0;
+
+       // Currently, just move the camera with keys, but ultimately it will focus on
+       // the lowest gumbler in the scene, moving up or down with them
+       if (self.keysPressed [cc.KEY.w]) {
+          deltaCamera = cameraDy;
+       } else if (self.keysPressed [cc.KEY.s]) {
+          deltaCamera = -cameraDy;
+       }
+       self.cameraHeight += deltaCamera;
+       if (self.cameraHeight < 0) {
+          self.cameraHeight = 0;
+       }
+
+       self.grid.y = -self.cameraHeight;
    },
 
    fallingGroup: null,
@@ -845,13 +877,11 @@ var GameLayer = cc.Layer.extend ({
        var self = this;
 
        // Remove the old block
-       if (self.block) {
-          self.block.removeFromParent (true);
-       }
+       self.grid.clearFallingBlock ();
 
        // Allocate a new one
        var grid_x = aq.config.GRID_WIDTH / 2;
-       var grid_y = cc.winSize.height / aq.config.BLOCK_SIZE;
+       var grid_y = (cc.winSize.height + self.cameraHeight) / aq.config.BLOCK_SIZE;
        var rnd_tile_num = aq.Block.getRandomTileNumber ();
 
        if (self.blockCounter < BLOCK_SEQUENCE.length) {
@@ -861,7 +891,6 @@ var GameLayer = cc.Layer.extend ({
        var new_block = new aq.Block (true, rnd_tile_num);
        new_block.setPosition (grid_x * aq.config.BLOCK_SIZE, grid_y * aq.config.BLOCK_SIZE);
 
-       self.gamePanel.addChild (new_block, 3);
        self.grid.setFallingBlock (new_block);
 
        self.block = new_block;

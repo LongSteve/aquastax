@@ -182,6 +182,15 @@ aq.Grid = cc.Node.extend ({
    setFallingBlock: function (node) {
       var self = this;
       self.falling_block = node;
+      self.addChild (node, 3);
+   },
+
+   clearFallingBlock: function () {
+      var self = this;
+      if (self.falling_block) {
+         self.falling_block.removeFromParent (true);
+         self.falling_block = null;
+      }
    },
 
    // Create a cc.DrawNode for the red grid outline, useful for debug (for now)
