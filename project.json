@@ -3,7 +3,7 @@
 
     "debugMode" : 0,
     "showFPS" : true,
-    "frameRate" : 60.01,
+    "frameRate" : 60.0,
     "noCache" : false,
     "id" : "gameCanvas",
     "renderMode" : 0,
