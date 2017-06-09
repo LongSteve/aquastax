@@ -38,6 +38,12 @@ aq.Grid = cc.Node.extend ({
    // number of cell block high
    blocks_high: 0,
 
+   // count of cells in the grid arrays
+   grid_cell_count: 0,
+
+   // base y position of the grid, might become different from 'y' if the bottom is clipped
+   base_y: 0,
+
    // node for highlighting the current falling block position
    grid_pos_highlight: null,
 
@@ -55,6 +61,9 @@ aq.Grid = cc.Node.extend ({
 
    // Tmp node for debugging
    tmp_root: null,
+
+   // Base line for debugging the camera movement
+   base_line: null,
 
    // The game grid is an single dimensional array of ints, starting at 0 bottom left.
    // Each entry uses the following bit pattern:
@@ -92,14 +101,20 @@ aq.Grid = cc.Node.extend ({
       self.blocks_wide = wide;
       self.blocks_high = high;
 
-      self.game_grid = new Array (wide * high * 2);
-      self.group_grid = new Array (wide * high * 2);
-      self.cluster_grid = new Array (wide * high * 2);
+      self.grid_cell_count = wide * high * 2;
+      self.game_grid = new Array (self.grid_cell_count);
+      self.group_grid = new Array (self.grid_cell_count);
+      self.cluster_grid = new Array (self.grid_cell_count);
 
       self.tmpBlock = new aq.Block (false, 3);
 
       // Add the grid outline
       self.addChild (self.createLineGridNode ());
+
+      // Draw a line for the base of the grid
+      self.base_line = new cc.DrawNode ();
+      self.base_line.drawSegment (cc.p (-aq.config.BLOCK_SIZE,0), cc.p (aq.config.BLOCK_SIZE * (wide + 2), 0), 2, cc.color.BLUE);
+      self.addChild (self.base_line);
 
       // Create the block root node.  The tree under this root
       // gets re-created by the flood fill routines each time a
@@ -191,6 +206,60 @@ aq.Grid = cc.Node.extend ({
          self.falling_block.removeFromParent (true);
          self.falling_block = null;
       }
+   },
+
+   moveToCamera: function (cameraY) {
+      var self = this;
+
+      // Under normal circumstances, as the camera moves up, stack goes below the screen
+      // and there needs to be a limit of how many rows that can drop off the bottom and
+      // remain in memory.  In some fixed levels, this could be all possible rows in the
+      // level.  In the infinite mode, the value needs to be set to something so that the
+      // memory is conserved.  This value limits the distance the camera can move back
+      // down, since if a row is clipped off the bottom, it no longer exists.
+      var MAX_GRID_ROWS_BELOW_CAMERA = 2;
+
+      var old_y = self.base_y;
+
+      self.base_y = -cameraY;
+
+      // Update the render position the camera delta
+      self.y -= (old_y - self.base_y);
+
+      // limit the camera movement down so the base isn't up the screen
+      var MAX_RENDER_Y = MAX_GRID_ROWS_BELOW_CAMERA * aq.config.BLOCK_SIZE;
+      if (self.y > MAX_RENDER_Y) {
+         self.y = MAX_RENDER_Y;
+      }
+      
+      var rows_below_camera = Math.floor ((Math.abs (self.y)) / aq.config.BLOCK_SIZE);
+      if (self.y < 0 && rows_below_camera > MAX_GRID_ROWS_BELOW_CAMERA) {
+         // Need to clip
+         var rows_to_clip = rows_below_camera - MAX_GRID_ROWS_BELOW_CAMERA;
+         
+         // Clip off the number of rows from the bottom of the grid.  Should usually be one
+         // might might be more if the camera moves really fast
+         self.clipBottomRows (rows_to_clip);
+      }
+   },
+
+   // Clip off a number of rows from the bottom of the grid, shifting everything as necessary
+   clipBottomRows: function (rows) {
+      var self = this;
+
+      var array_cells_to_drop = rows * self.blocks_wide;
+      var grid_size = self.blocks_wide * self.blocks_high;
+      for (var i = 0; i < self.grid_cell_count - array_cells_to_drop; i++) {
+         self.game_grid [i] = self.game_grid [i + array_cells_to_drop];
+         self.group_grid [i] = self.group_grid [i + array_cells_to_drop];
+         self.cluster_grid [i] = self.cluster_grid [i + array_cells_to_drop];
+      } 
+
+      // shift the render positions
+      var delta_y = rows * aq.config.BLOCK_SIZE;
+      self.y += delta_y;
+      self.falling_block.y -= delta_y;
+      self.groupFloodFill (true);
    },
 
    // Create a cc.DrawNode for the red grid outline, useful for debug (for now)
