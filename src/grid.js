@@ -217,7 +217,7 @@ aq.Grid = cc.Node.extend ({
       // level.  In the infinite mode, the value needs to be set to something so that the
       // memory is conserved.  This value limits the distance the camera can move back
       // down, since if a row is clipped off the bottom, it no longer exists.
-      var MAX_GRID_ROWS_BELOW_CAMERA = 2;
+      var MAX_GRID_ROWS_BELOW_CAMERA = 4;
 
       var old_y = self.base_y;
 
@@ -227,9 +227,9 @@ aq.Grid = cc.Node.extend ({
       self.y -= (old_y - self.base_y);
 
       // limit the camera movement down so the base isn't up the screen
-      var MAX_RENDER_Y = MAX_GRID_ROWS_BELOW_CAMERA * aq.config.BLOCK_SIZE;
-      if (self.y > MAX_RENDER_Y) {
-         self.y = MAX_RENDER_Y;
+      // Set this to something * aq.config.BLOCK_SIZE to view rows under the base of the grid
+       if (self.y > 0) {
+         self.y = 0;
       }
       
       var rows_below_camera = Math.floor ((Math.abs (self.y)) / aq.config.BLOCK_SIZE);
@@ -246,14 +246,18 @@ aq.Grid = cc.Node.extend ({
    // Clip off a number of rows from the bottom of the grid, shifting everything as necessary
    clipBottomRows: function (rows) {
       var self = this;
-
+      var i;
       var array_cells_to_drop = rows * self.blocks_wide;
-      var grid_size = self.blocks_wide * self.blocks_high;
-      for (var i = 0; i < self.grid_cell_count - array_cells_to_drop; i++) {
+      for (i = 0; i < self.grid_cell_count - array_cells_to_drop; i++) {
          self.game_grid [i] = self.game_grid [i + array_cells_to_drop];
          self.group_grid [i] = self.group_grid [i + array_cells_to_drop];
          self.cluster_grid [i] = self.cluster_grid [i + array_cells_to_drop];
       } 
+      for (i = self.grid_cell_count - array_cells_to_drop; i < self.grid_cell_count; i++) {
+         self.game_grid [i] = 0;
+         self.group_grid [i] = 0;
+         self.cluster_grid [i] = 0;
+      }
 
       // shift the render positions
       var delta_y = rows * aq.config.BLOCK_SIZE;
@@ -1224,13 +1228,14 @@ aq.Grid = cc.Node.extend ({
           return;
        }
 
+       // Clear any existing blocks
+       parent_node.removeAllChildren (true);
+
+       // Bail if there's nothing to draw
        if (!group_list || group_list.length === 0) {
           return;
        }
                      
-       // Clear any existing blocks
-       parent_node.removeAllChildren (true);
-
        for (var i = 0; i < group_list.length; i++) {
           if (!group_list [i].node) {
              var block = self.createBlockFromTileDataGroup (group_list[i], render);
