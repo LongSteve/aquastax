@@ -40,6 +40,12 @@ aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR = 3.0;
 aq.config.BLOCK_SIZE = 50;
 
 /**
+ * aq.config.GRID_SIZE is how many blocks fit across the bottom of the
+ * gameplay area.
+ */
+aq.config.GRID_WIDTH = 14;
+
+/**
  * aq.config.BLOCK_OUTLINE_COLOR is the color to render the 
  * block outlines in 
  */
@@ -50,12 +56,6 @@ aq.config.BLOCK_OUTLINE_COLOR = {r:0,g:0,b:0,a:255};
  * render the block outlines.  Set to 0 to disable. 
  */
 aq.config.BLOCK_OUTLINE_WIDTH = 2;
-
-/**
- * aq.config.GRID_SIZE is how many blocks fit across the bottom of the
- * gameplay area.
- */
-aq.config.GRID_WIDTH = 14;
 
 /**
  * Millisecond delay for keyboard being held down and actions repeating
@@ -71,6 +71,11 @@ aq.config.NORMAL_BLOCK_DROP_RATE = 1;
  * Block drop rate when fast dropping
  */
 aq.config.FAST_BLOCK_DROP_RATE = 20;
+
+/*
+ * Camera movement rate in blocks per second
+*/
+aq.config.CAMERA_MOVEMENT_RATE = 10;
 
 /**
  * Freeze the aq.config object so we don't go adding to it all over the code

@@ -322,10 +322,8 @@ var GameLayer = cc.Layer.extend ({
    handleCameraMovement: function () {
        var self = this;
 
-       var CAMERA_MOVEMENT_RATE = 10;
-
        var framesPerSecond = cc.game.config.frameRate;
-       var cameraDy = (aq.config.BLOCK_SIZE * CAMERA_MOVEMENT_RATE) / framesPerSecond; 
+       var cameraDy = (aq.config.BLOCK_SIZE * aq.config.CAMERA_MOVEMENT_RATE) / framesPerSecond; 
        var deltaCamera = 0;
 
        // Currently, just move the camera with keys, but ultimately it will focus on

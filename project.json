@@ -9,6 +9,8 @@
     "renderMode" : 0,
     "engineDir":"frameworks/cocos2d-html5",
 
+    "retina": false,
+
     "modules" : ["cocos2d"],
 
     "jsList" : [
