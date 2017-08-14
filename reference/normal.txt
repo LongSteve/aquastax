@@ -1,0 +1,2287 @@
+# One controllable LARGE Gumbler (FULL ANIM SET)
+
+KEY COLOUR
+255,0,255
+
+BACKGROUND
+COLOUR 192,192,192
+
+IMAGES
+##
+# GUMBLER walk
+##
+R1 LARGE_gumbler_walk_R01.png
+R2 LARGE_gumbler_walk_R02.png
+R3 LARGE_gumbler_walk_R03.png
+R4 LARGE_gumbler_walk_R04.png
+R5 LARGE_gumbler_walk_R05.png
+R6 LARGE_gumbler_walk_R06.png
+L1 LARGE_gumbler_walk_R01.png MIRROR
+L2 LARGE_gumbler_walk_R02.png MIRROR
+L3 LARGE_gumbler_walk_R03.png MIRROR
+L4 LARGE_gumbler_walk_R04.png MIRROR
+L5 LARGE_gumbler_walk_R05.png MIRROR
+L6 LARGE_gumbler_walk_R06.png MIRROR
+##
+# GUMBLER climb
+##
+cl1 LARGE_gumbler_climb_01.png
+cl2 LARGE_gumbler_climb_02.png
+cl3 LARGE_gumbler_climb_03.png
+cl4 LARGE_gumbler_climb_04.png
+cl5 LARGE_gumbler_climb_05.png
+cl6 LARGE_gumbler_climb_06.png
+cl7 LARGE_gumbler_climb_07.png
+cl8 LARGE_gumbler_climb_01.png MIRROR
+cl9 LARGE_gumbler_climb_02.png MIRROR
+cl10 LARGE_gumbler_climb_03.png MIRROR
+cl11 LARGE_gumbler_climb_04.png MIRROR
+cl12 LARGE_gumbler_climb_05.png MIRROR
+cl13 LARGE_gumbler_climb_06.png MIRROR
+cl14 LARGE_gumbler_climb_07.png MIRROR
+##
+# GUMBLER climb up top RIGHT
+##
+cltopR1 LARGE_gumbler_climbtop_01.png
+cltopR2 LARGE_gumbler_climbtop_02.png
+cltopR3 LARGE_gumbler_climbtop_03.png
+cltopR4 LARGE_gumbler_climbtop_04.png
+cltopR5 LARGE_gumbler_climbtop_05.png
+cltopR6 LARGE_gumbler_climbtop_06.png
+cltopR7 LARGE_gumbler_climbtop_07.png
+cltopR8 LARGE_gumbler_climbtop_08.png
+cltopR9 LARGE_gumbler_climbtop_09.png
+cltopR10 LARGE_gumbler_climbtop_10.png
+cltopR11 LARGE_gumbler_climbtop_11.png
+cltopR12 LARGE_gumbler_climbtop_12.png
+cltopR13 LARGE_gumbler_climbtop_13.png
+cltopR14 LARGE_gumbler_climbtop_14.png
+cltopR15 LARGE_gumbler_climbtop_15.png
+cltopR16 LARGE_gumbler_climbtop_16.png
+cltopR17 LARGE_gumbler_climbtop_17.png
+##
+# GUMBLER climb up top LEFT
+##
+cltopL1 LARGE_gumbler_climbtop_01.png MIRROR
+cltopL2 LARGE_gumbler_climbtop_02.png MIRROR
+cltopL3 LARGE_gumbler_climbtop_03.png MIRROR
+cltopL4 LARGE_gumbler_climbtop_04.png MIRROR
+cltopL5 LARGE_gumbler_climbtop_05.png MIRROR
+cltopL6 LARGE_gumbler_climbtop_06.png MIRROR
+cltopL7 LARGE_gumbler_climbtop_07.png MIRROR
+cltopL8 LARGE_gumbler_climbtop_08.png MIRROR
+cltopL9 LARGE_gumbler_climbtop_09.png MIRROR
+cltopL10 LARGE_gumbler_climbtop_10.png MIRROR
+cltopL11 LARGE_gumbler_climbtop_11.png MIRROR
+cltopL12 LARGE_gumbler_climbtop_12.png MIRROR
+cltopL13 LARGE_gumbler_climbtop_13.png MIRROR
+cltopL14 LARGE_gumbler_climbtop_14.png MIRROR
+cltopL15 LARGE_gumbler_climbtop_15.png MIRROR
+cltopL16 LARGE_gumbler_climbtop_16.png MIRROR
+cltopL17 LARGE_gumbler_climbtop_17.png MIRROR
+##
+# GUMBLER stand to climb TRANSITION (from standing to climbing)
+##
+clt1 LARGE_gumbler_climb_trans_01.png
+clt2 LARGE_gumbler_climb_trans_02.png
+clt3 LARGE_gumbler_climb_trans_03.png
+##
+# GUMBLER victory
+##
+vic1 LARGE_gumbler_victory_01.png
+vic2 LARGE_gumbler_victory_02.png
+vic3 LARGE_gumbler_victory_03.png
+vic4 LARGE_gumbler_victory_04.png
+vic5 LARGE_gumbler_victory_05.png
+##
+# GUMBLER hand over hand right (climbing moving right)
+##
+handR1 LARGE_gumbler_handover_01.png
+handR2 LARGE_gumbler_handover_02.png
+handR3 LARGE_gumbler_handover_03.png
+handR4 LARGE_gumbler_handover_04.png
+handR5 LARGE_gumbler_handover_05.png
+handR6 LARGE_gumbler_handover_06.png
+handR7 LARGE_gumbler_handover_07.png
+handR8 LARGE_gumbler_handover_08.png
+##
+# GUMBLER hand over hand left (climbing moving left)
+##
+handL1 LARGE_gumbler_handover_01.png MIRROR
+handL2 LARGE_gumbler_handover_02.png MIRROR
+handL3 LARGE_gumbler_handover_03.png MIRROR
+handL4 LARGE_gumbler_handover_04.png MIRROR
+handL5 LARGE_gumbler_handover_05.png MIRROR
+handL6 LARGE_gumbler_handover_06.png MIRROR
+handL7 LARGE_gumbler_handover_07.png MIRROR
+handL8 LARGE_gumbler_handover_08.png MIRROR
+##
+# GUMBLER drowning
+##
+drown1 LARGE_gumbler_drown_01.png
+drown2 LARGE_gumbler_drown_02.png
+drown3 LARGE_gumbler_drown_03.png
+drown4 LARGE_gumbler_drown_04.png
+drown5 LARGE_gumbler_drown_05.png
+drown6 LARGE_gumbler_drown_06.png
+drown7 LARGE_gumbler_drown_07.png
+drown8 LARGE_gumbler_drown_08.png
+##
+# GUMBLER drown down bubbles (bubbles of death)
+##
+bubbles1 LARGE_gumbler_drown_down_bubbles_01.png CENTRE 7,45
+bubbles2 LARGE_gumbler_drown_down_bubbles_02.png CENTRE 7,47
+bubbles3 LARGE_gumbler_drown_down_bubbles_03.png CENTRE 7,50
+bubbles4 LARGE_gumbler_drown_down_bubbles_04.png CENTRE 7,52
+bubbles5 LARGE_gumbler_drown_down_bubbles_05.png CENTRE 7,53
+bubbles6 LARGE_gumbler_drown_down_bubbles_06.png CENTRE 7,30
+bubbles7 LARGE_gumbler_drown_down_bubbles_07.png CENTRE 7,37
+bubbles8 LARGE_gumbler_drown_down_bubbles_08.png CENTRE 7,43
+##
+# GUMBLER waiting (static frame - as same as first turn frame)
+##
+wait1 LARGE_gumbler_turn_01.png
+##
+# GUMBLER turn around
+##
+turn1 LARGE_gumbler_turn_01.png
+turn2 LARGE_gumbler_turn_02.png
+turn3 LARGE_gumbler_turn_03.png
+turn4 LARGE_gumbler_turn_04.png
+turn5 LARGE_gumbler_turn_05.png
+turn6 LARGE_gumbler_turn_06.png
+turn7 LARGE_gumbler_turn_07.png
+turn8 LARGE_gumbler_turn_08.png
+##
+# GUMBLER sit down TRANSITION right (from standing up to sitting down facing right)
+##
+sitdownR1 LARGE_gumbler_sit_trans_01.png CENTRE 6,31
+sitdownR2 LARGE_gumbler_sit_trans_02.png CENTRE 6,31
+sitdownR3 LARGE_gumbler_sit_trans_03.png CENTRE 6,31
+##
+# GUMBLER sit down TRANSITION left (from standing up to sitting down facing leftt)
+##
+sitdownL1 LARGE_gumbler_sit_trans_01.png CENTRE 6,31 MIRROR
+sitdownL2 LARGE_gumbler_sit_trans_02.png CENTRE 6,31 MIRROR
+sitdownL3 LARGE_gumbler_sit_trans_03.png CENTRE 6,31 MIRROR
+###
+# GUMBLER stand up TRANSITION right (from sitting down right to standing up facing wall)
+##
+standR1 LARGE_gumbler_stand_trans_01.png CENTRE 11,24
+standR2 LARGE_gumbler_stand_trans_02.png CENTRE 11,24
+standR3 LARGE_gumbler_stand_trans_03.png CENTRE 11,24
+standR4 LARGE_gumbler_climbtop_16.png CENTRE 11,31
+standR5 LARGE_gumbler_climbtop_17.png CENTRE 11,31
+###
+# GUMBLER stand up TRANSITION left (from sitting down left to standing up facing wall)
+##
+standL1 LARGE_gumbler_stand_trans_01.png CENTRE 11,24 MIRROR
+standL2 LARGE_gumbler_stand_trans_02.png CENTRE 11,24 MIRROR
+standL3 LARGE_gumbler_stand_trans_03.png CENTRE 11,24 MIRROR
+standL4 LARGE_gumbler_climbtop_16.png CENTRE 11,31 MIRROR
+standL5 LARGE_gumbler_climbtop_17.png CENTRE 11,31 MIRROR
+##
+# GUMBLER hanging straight (hanging with two hands static frame)
+##
+hangst1 LARGE_gumbler_hangstraight_01.png
+##
+# GUMBLER hanging swaping hands LEFT to RIGHT
+##
+hangswapL1 LARGE_gumbler_hang_swap_01.png CENTRE 20,25
+##
+# GUMBLER hanging swaping hands RIGHT to LEFT
+##
+hangswapR1 LARGE_gumbler_hang_swap_01.png CENTRE 20,25 MIRROR
+##
+# GUMBLER hanging TRANSITION (from climb to hanging straight)
+##
+hangon1 LARGE_gumbler_hangon_01.png
+hangon2 LARGE_gumbler_hangon_02.png
+##
+# GUMBLER falling (spinning)
+##
+fallspin1 LARGE_gumbler_fallspin_01.png
+fallspin2 LARGE_gumbler_fallspin_02.png
+fallspin3 LARGE_gumbler_fallspin_03.png
+fallspin4 LARGE_gumbler_fallspin_04.png
+fallspin5 LARGE_gumbler_fallspin_05.png
+fallspin6 LARGE_gumbler_fallspin_06.png
+fallspin7 LARGE_gumbler_fallspin_07.png
+fallspin8 LARGE_gumbler_fallspin_08.png
+fallspin9 LARGE_gumbler_fallspin_09.png
+fallspin10 LARGE_gumbler_fallspin_10.png
+##
+# GUMBLER bounce (after falling)
+##
+bounce1 LARGE_gumbler_bounce_01.png
+bounce2 LARGE_gumbler_bounce_02.png
+bounce3 LARGE_gumbler_bounce_03.png
+bounce4 LARGE_gumbler_bounce_04.png
+bounce5 LARGE_gumbler_bounce_05.png
+bounce6 LARGE_gumbler_bounce_06.png
+bounce7 LARGE_gumbler_bounce_07.png
+bounce8 LARGE_gumbler_bounce_08.png
+bounce9 LARGE_gumbler_bounce_09.png
+bounce10 LARGE_gumbler_bounce_10.png
+bounce11 LARGE_gumbler_bounce_11.png
+##
+# GUMBLER get up (after a fall)
+##
+getup1 LARGE_gumbler_getup_01.png
+getup2 LARGE_gumbler_getup_02.png
+getup3 LARGE_gumbler_getup_03.png
+getup4 LARGE_gumbler_getup_04.png
+getup5 LARGE_gumbler_getup_05.png
+getup6 LARGE_gumbler_getup_06.png
+getup7 LARGE_gumbler_getup_07.png
+getup8 LARGE_gumbler_getup_08.png
+getup9 LARGE_gumbler_getup_09.png
+getup10 LARGE_gumbler_getup_10.png
+##
+# GUMBLER shake head (after a fall)
+##
+shakehead1 LARGE_gumbler_timeout_yawn_10.png
+shakehead2 LARGE_gumbler_turn_01.png
+shakehead3 LARGE_gumbler_timeout_yawn_10.png MIRROR
+##
+# GUMBLER exit leap (leave level)
+##
+exit1 LARGE_gumbler_exitleap_01.png
+exit2 LARGE_gumbler_exitleap_02.png
+exit3 LARGE_gumbler_exitleap_03.png
+exit4 LARGE_gumbler_exitleap_04.png
+exit5 LARGE_gumbler_exitleap_05.png
+exit6 LARGE_gumbler_exitleap_06.png
+exit7 LARGE_gumbler_exitleap_07.png
+exit8 LARGE_gumbler_exitleap_08.png
+exit9 LARGE_gumbler_exitleap_01.png
+exit10 LARGE_gumbler_exitleap_10.png
+exit11 LARGE_gumbler_exitleap_11.png
+exit12 LARGE_gumbler_exitleap_12.png
+exit13 LARGE_gumbler_exitleap_13.png
+exit14 LARGE_gumbler_exitleap_14.png
+exit15 LARGE_gumbler_exitleap_15.png
+exit16 LARGE_gumbler_exitleap_16.png
+exit17 LARGE_gumbler_exitleap_17.png
+exit18 LARGE_gumbler_exitleap_18.png
+exit19 LARGE_gumbler_exitleap_19.png
+##
+# GUMBLER TIMEOUT asleep
+##
+sleep1 LARGE_gumbler_timeout_sleep_01.png CENTRE 8,29
+sleep2 LARGE_gumbler_timeout_sleep_02.png CENTRE 8,29
+sleep3 LARGE_gumbler_timeout_sleep_03.png CENTRE 8,29
+##
+# GUMBLER TIMEOUT asleep ZZZZ
+##
+zzz1 LARGE_gumbler_timeout_zzz_01.png CENTRE -9,58
+zzz2 LARGE_gumbler_timeout_zzz_02.png CENTRE -9,58
+zzz3 LARGE_gumbler_timeout_zzz_03.png CENTRE -9,58
+zzz4 LARGE_gumbler_timeout_zzz_04.png CENTRE -9,58
+zzz5 LARGE_gumbler_timeout_zzz_05.png CENTRE -9,58
+##
+# GUMBLER TIME OUT look around w/ binos
+##
+look1 LARGE_gumbler_timeout_look_01.png
+look2 LARGE_gumbler_timeout_look_02.png
+look3 LARGE_gumbler_timeout_look_03.png
+look4 LARGE_gumbler_timeout_look_04.png
+look5 LARGE_gumbler_timeout_look_05.png
+look6 LARGE_gumbler_timeout_look_06.png
+look7 LARGE_gumbler_timeout_look_07.png
+look8 LARGE_gumbler_timeout_look_08.png
+look9 LARGE_gumbler_timeout_look_09.png
+look10 LARGE_gumbler_timeout_look_10.png
+look11 LARGE_gumbler_timeout_look_11.png
+look12 LARGE_gumbler_timeout_look_12.png
+look13 LARGE_gumbler_timeout_look_13.png
+look14 LARGE_gumbler_timeout_look_01.png MIRROR
+look15 LARGE_gumbler_timeout_look_02.png MIRROR
+look16 LARGE_gumbler_timeout_look_03.png MIRROR
+look17 LARGE_gumbler_timeout_look_04.png MIRROR
+look18 LARGE_gumbler_timeout_look_05.png MIRROR
+look19 LARGE_gumbler_timeout_look_06.png MIRROR
+look20 LARGE_gumbler_timeout_look_07.png MIRROR
+look21 LARGE_gumbler_timeout_look_08.png MIRROR
+look22 LARGE_gumbler_timeout_look_09.png MIRROR
+look23 LARGE_gumbler_timeout_look_10.png MIRROR
+look24 LARGE_gumbler_timeout_look_11.png MIRROR
+look25 LARGE_gumbler_timeout_look_12.png MIRROR
+look26 LARGE_gumbler_timeout_look_13.png MIRROR
+##
+# GUMBLER TIME OUT look up w/ binos
+##
+lookup1 LARGE_gumbler_timeout_lookup_01.png CENTRE 11,35
+lookup2 LARGE_gumbler_timeout_lookup_02.png CENTRE 11,35
+lookup3 LARGE_gumbler_timeout_lookup_03.png CENTRE 11,35
+lookup4 LARGE_gumbler_timeout_lookup_04.png CENTRE 11,35
+lookup5 LARGE_gumbler_timeout_lookup_02.png CENTRE 11,35 MIRROR
+lookup6 LARGE_gumbler_timeout_lookup_01.png CENTRE 11,35 MIRROR
+##
+# GUMBLER TIME OUT sitting down kicking his legs facing RIGHT
+##
+sitR1 LARGE_gumbler_timeout_sit_01.png CENTRE 6,23
+sitR2 LARGE_gumbler_timeout_sit_02.png CENTRE 6,23
+sitR3 LARGE_gumbler_timeout_sit_03.png CENTRE 6,23
+sitR4 LARGE_gumbler_timeout_sit_04.png CENTRE 6,23
+sitR5 LARGE_gumbler_timeout_sit_05.png CENTRE 6,23
+sitR6 LARGE_gumbler_timeout_sit_06.png CENTRE 6,23
+sitR7 LARGE_gumbler_timeout_sit_07.png CENTRE 6,23
+sitR8 LARGE_gumbler_timeout_sit_08.png CENTRE 6,23
+sitR9 LARGE_gumbler_timeout_sit_09.png CENTRE 6,23
+sitR10 LARGE_gumbler_timeout_sit_10.png CENTRE 6,23
+sitR11 LARGE_gumbler_timeout_sit_11.png CENTRE 6,23
+##
+# GUMBLER TIME OUT sitting down kicking his legs facing LEFT
+##
+sitL1 LARGE_gumbler_timeout_sit_01.png CENTRE 6,23 MIRROR
+sitL2 LARGE_gumbler_timeout_sit_02.png CENTRE 6,23 MIRROR
+sitL3 LARGE_gumbler_timeout_sit_03.png CENTRE 6,23 MIRROR
+sitL4 LARGE_gumbler_timeout_sit_04.png CENTRE 6,23 MIRROR
+sitL5 LARGE_gumbler_timeout_sit_05.png CENTRE 6,23 MIRROR
+sitL6 LARGE_gumbler_timeout_sit_06.png CENTRE 6,23 MIRROR
+sitL7 LARGE_gumbler_timeout_sit_07.png CENTRE 6,23 MIRROR
+sitL8 LARGE_gumbler_timeout_sit_08.png CENTRE 6,23 MIRROR
+sitL9 LARGE_gumbler_timeout_sit_09.png CENTRE 6,23 MIRROR
+sitL10 LARGE_gumbler_timeout_sit_10.png CENTRE 6,23 MIRROR
+sitL11 LARGE_gumbler_timeout_sit_11.png CENTRE 6,23 MIRROR
+##
+# GUMBLER TIME OUT sitting eating a chicken facing RIGHT
+##
+eatR1 LARGE_gumbler_timeout_eat_01.png CENTRE 6,30
+eatR2 LARGE_gumbler_timeout_eat_02.png CENTRE 6,30
+eatR3 LARGE_gumbler_timeout_eat_03.png CENTRE 6,30
+eatR4 LARGE_gumbler_timeout_eat_04.png CENTRE 6,30
+eatR5 LARGE_gumbler_timeout_eat_05.png CENTRE 6,30
+eatR6 LARGE_gumbler_timeout_eat_06.png CENTRE 6,30
+eatR7 LARGE_gumbler_timeout_eat_07.png CENTRE 6,30
+##
+# GUMBLER TIME OUT sitting eating a chicken facing LEFT
+##
+eatL1 LARGE_gumbler_timeout_eat_01.png CENTRE 6,30 MIRROR
+eatL2 LARGE_gumbler_timeout_eat_02.png CENTRE 6,30 MIRROR
+eatL3 LARGE_gumbler_timeout_eat_03.png CENTRE 6,30 MIRROR
+eatL4 LARGE_gumbler_timeout_eat_04.png CENTRE 6,30 MIRROR
+eatL5 LARGE_gumbler_timeout_eat_05.png CENTRE 6,30 MIRROR
+eatL6 LARGE_gumbler_timeout_eat_06.png CENTRE 6,30 MIRROR
+eatL7 LARGE_gumbler_timeout_eat_07.png CENTRE 6,30 MIRROR
+##
+# GUMBLER TIME OUT cast off RIGHT
+##
+fishcastR1 LARGE_gumbler_timeout_cast_01.png CENTRE 6,31
+fishcastR2 LARGE_gumbler_timeout_cast_02.png CENTRE 6,31
+fishcastR3 LARGE_gumbler_timeout_sit_08.png CENTRE 6,15
+fishcastR4 LARGE_gumbler_timeout_sit_08.png CENTRE 6,15
+##
+# GUMBLER TIME OUT cast off LEFT
+##
+fishcastL1 LARGE_gumbler_timeout_cast_01.png CENTRE 6,31 MIRROR
+fishcastL2 LARGE_gumbler_timeout_cast_02.png CENTRE 6,31 MIRROR
+fishcastL3 LARGE_gumbler_timeout_sit_08.png CENTRE 6,15 MIRROR
+fishcastL4 LARGE_gumbler_timeout_sit_08.png CENTRE 6,15 MIRROR
+##
+# GUMBLER TIME OUT fishing RIGHT
+##
+fishwaitR1 LARGE_gumbler_timeout_sit_08.png CENTRE 6,23
+##
+# GUMBLER TIME OUT fishing LEFT
+##
+fishwaitL1 LARGE_gumbler_timeout_sit_08.png CENTRE 6,23 MIRROR
+##
+# GUMBLER TIME OUT fishing rod RIGHT
+##
+fishwaitrodR1 LARGE_gumbler_timeout_fish__rod_01.png CENTRE 1,12
+fishwaitrodR2 LARGE_gumbler_timeout_fish__rod_02.png CENTRE 1,12
+fishwaitrodR3 LARGE_gumbler_timeout_fish__rod_03.png CENTRE 1,12
+fishwaitrodR4 LARGE_gumbler_timeout_fish__rod_04.png CENTRE 1,12
+##
+# GUMBLER TIME OUT fishing rod LEFT
+##
+fishwaitrodL1 LARGE_gumbler_timeout_fish__rod_01.png CENTRE 1,12 MIRROR
+fishwaitrodL2 LARGE_gumbler_timeout_fish__rod_02.png CENTRE 1,12 MIRROR
+fishwaitrodL3 LARGE_gumbler_timeout_fish__rod_03.png CENTRE 1,12 MIRROR
+fishwaitrodL4 LARGE_gumbler_timeout_fish__rod_04.png CENTRE 1,12 MIRROR
+##
+# GUMBLER TIME OUT fishing reel in RIGHT
+##
+fishreelR1 LARGE_gumbler_timeout_fishreel_01.png CENTRE 8,37
+fishreelR2 LARGE_gumbler_timeout_fishreel_02.png CENTRE 8,37
+fishreelR3 LARGE_gumbler_timeout_fishreel_03.png CENTRE 8,37
+fishreelR4 LARGE_gumbler_timeout_fishreel_04.png CENTRE 8,37
+fishreelR5 LARGE_gumbler_timeout_fishreel_05.png CENTRE 8,37
+fishreelR6 LARGE_gumbler_timeout_fishreel_06.png CENTRE 8,37
+fishreelR7 LARGE_gumbler_timeout_fishreel_07.png CENTRE 8,37
+##
+# GUMBLER TIME OUT fishing reel in LEFT
+##
+fishreelL1 LARGE_gumbler_timeout_fishreel_01.png CENTRE 8,37 MIRROR
+fishreelL2 LARGE_gumbler_timeout_fishreel_02.png CENTRE 8,37 MIRROR
+fishreelL3 LARGE_gumbler_timeout_fishreel_03.png CENTRE 8,37 MIRROR
+fishreelL4 LARGE_gumbler_timeout_fishreel_04.png CENTRE 8,37 MIRROR
+fishreelL5 LARGE_gumbler_timeout_fishreel_05.png CENTRE 8,37 MIRROR
+fishreelL6 LARGE_gumbler_timeout_fishreel_06.png CENTRE 8,37 MIRROR
+fishreelL7 LARGE_gumbler_timeout_fishreel_07.png CENTRE 8,37 MIRROR
+##
+# GUMBLER TIME OUT fishing reel in walking RIGHT
+##
+fishwalkR1 LARGE_gumbler_timeout_fishreel_07.png CENTRE 22,37
+fishwalkR2 LARGE_gumbler_timeout_fishreel_walk_01.png
+fishwalkR3 LARGE_gumbler_timeout_fishreel_walk_02.png
+fishwalkR4 LARGE_gumbler_timeout_fishreel_walk_03.png
+fishwalkR5 LARGE_gumbler_timeout_fishreel_walk_04.png
+##
+# GUMBLER TIME OUT fishing reel in walking LEFT
+##
+fishwalkL1 LARGE_gumbler_timeout_fishreel_07.png CENTRE 22,37 MIRROR
+fishwalkL2 LARGE_gumbler_timeout_fishreel_walk_01.png MIRROR
+fishwalkL3 LARGE_gumbler_timeout_fishreel_walk_02.png MIRROR
+fishwalkL4 LARGE_gumbler_timeout_fishreel_walk_03.png MIRROR
+fishwalkL5 LARGE_gumbler_timeout_fishreel_walk_04.png MIRROR
+##
+# GUMBLER TIME OUT yawing
+##
+yawn1 LARGE_gumbler_timeout_yawn_01.png
+yawn2 LARGE_gumbler_timeout_yawn_02.png
+yawn3 LARGE_gumbler_timeout_yawn_03.png
+yawn4 LARGE_gumbler_timeout_yawn_04.png
+yawn5 LARGE_gumbler_timeout_yawn_05.png
+yawn6 LARGE_gumbler_timeout_yawn_06.png
+yawn7 LARGE_gumbler_timeout_yawn_07.png
+yawn8 LARGE_gumbler_timeout_yawn_08.png
+yawn9 LARGE_gumbler_timeout_yawn_09.png
+yawn10 LARGE_gumbler_timeout_yawn_10.png
+##
+# GUMBLER TIME OUT jiggy dance (get down to that hidden beat)
+##
+jiggy1 LARGE_gumbler_turn_01.png
+jiggy2 LARGE_gumbler_turn_02.png
+jiggy3 LARGE_gumbler_timeout_jiggy_01.png CENTRE 9,29
+jiggy4 LARGE_gumbler_turn_02.png MIRROR
+jiggy5 LARGE_gumbler_timeout_jiggy_01.png CENTRE 9,29 MIRROR
+##
+# GUMBLER TIME OUT booty dance (shake that booty Mama!)
+##
+booty1 LARGE_gumbler_turn_05.png
+booty2 LARGE_gumbler_turn_04.png
+booty3 LARGE_gumbler_timeout_booty_01.png CENTRE 14,31
+booty4 LARGE_gumbler_turn_06.png
+booty5 LARGE_gumbler_timeout_booty_01.png CENTRE 14,31 MIRROR
+##
+# GUMBLER TIMEOUT waving
+##
+waving1 LARGE_gumbler_timeout_wave_01.png CENTRE 8,31
+waving2 LARGE_gumbler_timeout_wave_02.png CENTRE 8,31
+waving3 LARGE_gumbler_timeout_wave_03.png CENTRE 8,31
+waving4 LARGE_gumbler_timeout_wave_04.png CENTRE 8,31
+waving5 LARGE_gumbler_timeout_wave_05.png CENTRE 8,31
+waving6 LARGE_gumbler_timeout_wave_06.png CENTRE 8,31
+waving7 LARGE_gumbler_timeout_wave_07.png CENTRE 8,31
+##
+# GUMBLER wave to wait TRANSITION
+##
+wavetrans1 LARGE_gumbler_timeout_wave_trans_01.png CENTRE 8,31
+wavetrans2 LARGE_gumbler_timeout_wave_trans_02.png CENTRE 8,31
+##
+# GUMBLER TIME OUT hanging on with one (left) arm
+##
+hangL1 LARGE_gumbler_hanging_01.png
+hangL2 LARGE_gumbler_hanging_02.png
+hangL3 LARGE_gumbler_hanging_03.png
+hangL4 LARGE_gumbler_hanging_04.png
+hangL5 LARGE_gumbler_hanging_05.png
+hangL6 LARGE_gumbler_hanging_06.png
+##
+# GUMBLER TIME OUT hanging on with one (right) arm
+##
+hangR1 LARGE_gumbler_hanging_01.png MIRROR
+hangR2 LARGE_gumbler_hanging_02.png MIRROR
+hangR3 LARGE_gumbler_hanging_03.png MIRROR
+hangR4 LARGE_gumbler_hanging_04.png MIRROR
+hangR5 LARGE_gumbler_hanging_05.png MIRROR
+hangR6 LARGE_gumbler_hanging_06.png MIRROR
+##
+# GUMBLER hang to climb TRANSITION (from hanging on with LEFT arm to climbing)
+##
+hangrecoverL1 LARGE_gumbler_hang_trans_01.png CENTRE 16,33
+hangrecoverL2 LARGE_gumbler_hang_trans_02.png CENTRE 16,33
+hangrecoverL3 LARGE_gumbler_hang_trans_03.png CENTRE 16,33
+hangrecoverL4 LARGE_gumbler_hang_trans_04.png CENTRE 16,33
+hangrecoverL5 LARGE_gumbler_hang_trans_05.png CENTRE 16,33
+hangrecoverL6 LARGE_gumbler_hang_trans_06.png CENTRE 16,33
+hangrecoverL7 LARGE_gumbler_hang_trans_07.png CENTRE 16,33
+hangrecoverL8 LARGE_gumbler_hang_trans_08.png CENTRE 16,33
+hangrecoverL9 LARGE_gumbler_hang_trans_09.png CENTRE 16,33
+hangrecoverL10 LARGE_gumbler_hang_trans_10.png CENTRE 16,33
+##
+# GUMBLER hang to climb TRANSITION (from hanging on with RIGHT arm to climbing)
+##
+hangrecoverR1 LARGE_gumbler_hang_trans_01.png CENTRE 16,33 MIRROR
+hangrecoverR2 LARGE_gumbler_hang_trans_02.png CENTRE 16,33 MIRROR
+hangrecoverR3 LARGE_gumbler_hang_trans_03.png CENTRE 16,33 MIRROR
+hangrecoverR4 LARGE_gumbler_hang_trans_04.png CENTRE 16,33 MIRROR
+hangrecoverR5 LARGE_gumbler_hang_trans_05.png CENTRE 16,33 MIRROR
+hangrecoverR6 LARGE_gumbler_hang_trans_06.png CENTRE 16,33 MIRROR
+hangrecoverR7 LARGE_gumbler_hang_trans_07.png CENTRE 16,33 MIRROR
+hangrecoverR8 LARGE_gumbler_hang_trans_08.png CENTRE 16,33 MIRROR
+hangrecoverR9 LARGE_gumbler_hang_trans_09.png CENTRE 16,33 MIRROR
+hangrecoverR10 LARGE_gumbler_hang_trans_10.png CENTRE 16,33 MIRROR
+##
+# GUMBLER TIME OUT twisting and waiting
+##
+twist1 LARGE_gumbler_turn_01.png
+twist2 LARGE_gumbler_timeout_twist_01.png
+twist3 LARGE_gumbler_timeout_twist_02.png
+twist4 LARGE_gumbler_timeout_twist_03.png
+twist5 LARGE_gumbler_turn_01.png
+twist6 LARGE_gumbler_timeout_twist_01.png MIRROR
+twist7 LARGE_gumbler_timeout_twist_02.png MIRROR
+twist8 LARGE_gumbler_timeout_twist_03.png MIRROR
+##
+# GUMBLER Panic right (run around like a fool on cheap speed)
+##
+panicR1 LARGE_gumbler_panic_01.png
+panicR2 LARGE_gumbler_panic_02.png
+##
+# GUMBLER Panic left (run around like a fool on cheap speed)
+##
+panicL1 LARGE_gumbler_panic_01.png MIRROR
+panicL2 LARGE_gumbler_panic_02.png MIRROR
+#
+
+#LAYOUT LARGE_hang_guide.png 39,40
+#LAYOUT LARGE_guide.png 45,33
+#LAYOUT LARGE_guide.png 45,1
+#LAYOUT LARGE_guide.png 74,33
+#LAYOUT LARGE_guide.png 74,1
+#LAYOUT line.png 39,60
+#LAYOUT line.png 39,90
+
+START
+#gumbler1 wait 1 60,90 FOCUS
+gumbler1 hangstraight 1 60,94 FOCUS
+
+STATES
+wait
+sleep
+zzz
+walk_right
+walk_left
+victory
+exit
+null
+climb_up
+climb_down
+climb_left
+climb_right
+hang_twohand
+hang_lefthand
+hang_righthand
+knock
+fall
+fall_short
+land
+drown
+drown_down
+bubbles
+timeout_sit_left
+timeout_sit_right
+timeout_fish_left
+timeout_fish_right
+timeout_reel_left
+timeout_reel_right
+timeout_eat_left
+timeout_eat_right
+timeout_wave
+timeout_look1
+timeout_look2
+timeout_look3
+timeout_look4
+timeout_look5
+timeout_look6
+timeout_look7
+timeout_look8
+timeout_jiggy
+timeout_booty
+timeout_twist
+panic_left
+panic_right
+
+#
+# Global animation transitions that can occur from any current animation
+#
+
+GLOBALS
+
+KEY ONCE K2
+ALL drown,1
+
+KEY ONCE K8
+ALL fallspin,1
+
+KEY ONCE K1
+ALL knockspin,1
+
+ANIM
+right
+MAJOR STATE
+walk_right
+FRAMES
+R1 R2 R3 R4 R5 R6
+SPEED
+SPEEDALL 10
+MOVE
+ALL 3,0
+
+KEY LEFT
+left,1 left,2 left,3 left,4 left,5 left,6
+
+KEY ONCE UP
+ALL Rturn2climb,1
+
+KEY ONCE SPACE
+ALL Rturn,1
+
+KEY ONCE DOWN
+ALL stand2sitR,1
+
+KEY ONCE RETURN
+ALL climbtopdownR,1 OFFSET 0,20
+
+
+ANIM
+left
+MAJOR STATE
+walk_left
+FRAMES
+L1 L2 L3 L4 L5 L6
+SPEED
+SPEEDALL 10
+MOVE
+ALL -3,0
+
+KEY RIGHT
+right,1 right,2 right,3 right,4 right,5 right,6
+
+KEY ONCE UP
+ALL Lturn2climb,1
+
+KEY ONCE SPACE
+ALL Lturn,1
+
+KEY ONCE DOWN
+ALL stand2sitL,1
+
+KEY ONCE RETURN
+ALL climbtopdownR,1 OFFSET 0,20
+
+
+ANIM
+climb
+MAJOR STATE
+climb_up
+FRAMES
+cl1 cl2 cl3 cl4 cl5 cl6 cl7 cl8 cl9 cl10 cl11 cl12 cl13 cl14
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,-2
+
+KEY ONCE RIGHT
+ALL handright,2
+
+KEY ONCE LEFT
+ALL handleft,2
+
+KEY ONCE SPACE
+ALL climbtopL,1 OFFSET 0,-2
+
+KEY ONCE DOWN
+climbdown,1 climbdown,14 climbdown,13 climbdown,12 climbdown,11 climbdown,10 climbdown,9 climbdown,8 climbdown,7 climbdown,6 climbdown,5 climbdown,4 climbdown,3 climbdown,2
+
+KEY ONCE UP
+ALL climb2hangstraight,1
+
+KEY ONCE K5
+ALL fallshort,1
+
+
+ANIM
+climb2hangstraight
+TO STATE
+hang_twohand
+FRAMES
+hangon1 hangon2
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR hangstraight,1
+MOVE
+ALL 0,0
+
+
+ANIM
+hangstraight
+MAJOR STATE
+hang_twohand
+FRAMES
+hangst1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE UP
+ALL climb,1
+
+KEY ONCE UP
+ALL climbdown,6
+
+KEY ONCE RETURN
+ALL climbtopupR,1 OFFSET 0,-2
+
+KEY ONCE LEFT
+ALL handleft,1 OFFSET -1,-1
+
+KEY ONCE RIGHT
+ALL handright,1 OFFSET 1,-1
+
+KEY ONCE K4
+ALL hangstraight2hangL,1 OFFSET -8,-9
+
+KEY ONCE K6
+ALL hangstraight2hangR,1 OFFSET 8,-9
+
+KEY ONCE K5
+ALL fallshort,1
+
+ANIM
+climbtopupL
+TO STATE
+wait
+FRAMES
+cltopL1 cltopL2 cltopL3 cltopL4 cltopL5 cltopL6 cltopL7 cltopL8 cltopL9 cltopL10 cltopL11 cltopL12 cltopL13 cltopL14 cltopL15 cltopL16 cltopL17
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR turnback2frontR,1 OFFSET 0,-28
+MOVE
+0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,-3 0,-1 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0
+
+ANIM
+climbtopupR
+TO STATE
+wait
+FRAMES
+cltopR1 cltopR2 cltopR3 cltopR4 cltopR5 cltopR6 cltopR7 cltopR8 cltopR9 cltopR10 cltopR11 cltopR12 cltopR13 cltopR14 cltopR15 cltopR16 cltopR17
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR turnback2frontL,1 OFFSET 0,-28
+MOVE
+0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,-3 0,-1 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0
+
+ANIM
+fallshort
+MAJOR STATE
+fall_short
+FRAMES
+hangst1
+SPEED
+SPEEDALL 10
+MOVE
+0,4
+ADVANCE
+LINEAR wait,1
+
+ANIM
+fallspin
+MAJOR STATE
+fall
+FRAMES
+fallspin10 fallspin9 fallspin8 fallspin7 fallspin6 fallspin5 fallspin4 fallspin3 fallspin2 fallspin1
+SPEED
+SPEEDALL 5
+MOVE
+ALL 0,4
+
+KEY ONCE SPACE
+ALL bounce,1
+
+ANIM
+bounce
+TO STATE
+wait
+FRAMES
+bounce1 bounce2 bounce3 bounce4 bounce5 bounce6 bounce7 bounce8 bounce9 bounce10 bounce11
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR getup,1
+MOVE
+0,4 0,4 0,4 0,4 0,0 0,0 0,0 0,0 0,0 0,0 0,1
+
+ANIM
+getup
+TO STATE
+wait
+FRAMES
+getup1 getup2 getup3 getup4 getup5 getup6 getup7 getup8 getup9 getup10
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR shakehead,1 OFFSET 0,-1
+MOVE
+ALL 0,0
+
+
+ANIM
+shakehead
+TO STATE
+wait
+FRAMES
+shakehead2 shakehead3 shakehead2 shakehead1 shakehead2 shakehead3 shakehead2 shakehead1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR wait,1
+MOVE
+ALL 0,0
+
+
+ANIM
+exitleap
+TO STATE
+exit
+FRAMES
+exit1 exit2 exit3 exit4 exit5 exit6 exit7 exit8 exit9 exit10 exit11 exit12 exit13 exit14 exit15 exit16 exit17 exit18 exit19
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR exitover,1
+MOVE
+ALL 0,0
+
+ANIM
+exitover
+MAJOR STATE
+null
+FRAMES
+exit16
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE RETURN
+wait,1
+
+ANIM
+climbtopR
+TO STATE
+wait
+FRAMES
+cltopR1 cltopR2 cltopR3 cltopR4 cltopR5 cltopR6 cltopR7 cltopR8 cltopR9 cltopR10 cltopR11 cltopR12 cltopR13 cltopR14 cltopR15 cltopR16 cltopR17
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR turnback2frontR,1 OFFSET 0,-28
+MOVE
+ALL 0,0
+
+
+ANIM
+climbtopL
+TO STATE
+wait
+FRAMES
+cltopL1 cltopL2 cltopL3 cltopL4 cltopL5 cltopL6 cltopL7 cltopL8 cltopL9 cltopL10 cltopL11 cltopL12 cltopL13 cltopL14 cltopL15 cltopL16 cltopL17
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR turnback2frontL,1 OFFSET 0,-28
+MOVE
+ALL 0,0
+
+
+ANIM
+climbtopdownR
+TO STATE
+climb_down
+FRAMES
+cltopR17 cltopR16 cltopR15 cltopR14 cltopR13 cltopR12 cltopR11 cltopR10 cltopR9 cltopR8 cltopR7 cltopR6 cltopR5 cltopR4 cltopR3 cltopR2
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR climbdown,2 OFFSET 0,5
+MOVE
+0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,1 0,2 0,0 0,0 0,0 0,0 0,0
+
+
+ANIM
+climbdown
+MAJOR STATE
+climb_down
+FRAMES
+cl14 cl13 cl12 cl11 cl10 cl9 cl8 cl7 cl6 cl5 cl4 cl3 cl2 cl1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,2
+
+KEY RIGHT
+ALL handright,2
+
+KEY LEFT
+ALL handleft,2
+
+KEY UP
+climb,1 climb,14 climb,13 climb,12 climb,11 climb,10 climb,9 climb,8 climb,7 climb,6 climb,5 climb,4 climb,3 climb,2
+
+KEY ONCE DOWN
+ALL climb2hangstraight,1
+
+KEY ONCE K5
+ALL fallshort,1
+
+KEY ONCE SPACE
+ALL climbtopL,1
+
+ANIM
+handright
+MAJOR STATE
+climb_right
+FRAMES
+handR1 handR2 handR3 handR4 handR5 handR6 handR7 handR8
+SPEED
+SPEEDALL 15
+MOVE
+0,0 0,0 0,0 0,0 1,0 0,0 1,0 1,0
+
+KEY ONCE LEFT
+handleft,1 --> --> --> --> --> --> -->
+
+KEY ONCE UP
+ALL climb,2
+
+KEY ONCE DOWN
+ALL climbdown,2
+
+KEY ONCE SPACE
+ALL climbtopR,1
+
+KEY ONCE RETURN
+ALL hangstraight,1 OFFSET 0,1
+
+KEY ONCE K5
+ALL fallshort,1
+
+
+ANIM
+handleft
+MAJOR STATE
+climb_left
+FRAMES
+handL1 handL2 handL3 handL4 handL5 handL6 handL7 handL8
+SPEED
+SPEEDALL 15
+MOVE
+0,0 0,0 0,0 0,0 -1,0 0,0 -1,0 -1,0
+
+KEY ONCE RIGHT
+handright,1 --> --> --> --> --> --> -->
+
+KEY ONCE UP
+ALL climb,9
+
+KEY ONCE DOWN
+ALL climbdown,9
+
+KEY ONCE SPACE
+ALL climbtopL,1
+
+KEY ONCE RETURN
+ALL hangstraight,1 OFFSET 0,1
+
+KEY ONCE K5
+ALL fallshort,1
+
+
+ANIM
+drown
+MAJOR STATE
+drown
+FRAMES
+drown1 drown2 drown3 drown4 drown5 drown6 drown7 drown8
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+KEY ONCE DOWN
+ALL drowndown,1
+
+ANIM
+drowndown
+MAJOR STATE
+drown_down
+FRAMES
+drown1 drown2 drown3 drown4 drown5 drown6 drown7 drown8
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,1
+OVERLAY
+bubbles
+
+KEY ONCE SPACE
+ALL exitover,1
+
+ANIM
+bubbles
+MAJOR STATE
+null
+FRAMES
+bubbles1 bubbles2 bubbles3 bubbles4 bubbles5 bubbles6 bubbles7 bubbles8
+SPEED
+SPEEDALL 15
+ADVANCE
+LINEAR bubbles,1
+MOVE
+ALL 0,1
+
+ANIM
+TIMEOUTtwist
+MAJOR STATE
+timeout_twist
+FRAMES
+twist1 twist2 twist3 twist4 twist5 twist6 twist7 twist8
+ADVANCE
+LINEAR wait,1
+SPEED
+30 30 40 30 30 30 40 30
+MOVE
+ALL 0,0
+
+ANIM
+wait
+MAJOR STATE
+wait
+FRAMES
+wait1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE LEFT
+ALL turnL,1
+
+KEY ONCE RIGHT
+ALL turnR,1
+
+KEY ONCE UP
+ALL turnfront2backR,1
+
+KEY ONCE SPACE
+ALL victory,1
+
+KEY ONCE K1
+ALL stand2sitL,1
+
+KEY ONCE RETURN
+ALL TIMEOUTlook,1
+
+KEY ONCE RETURN
+ALL TIMEOUTlookroundR,1
+
+KEY ONCE RETURN
+ALL TIMEOUTlookroundL,1
+
+KEY ONCE RETURN
+ALL TIMEOUTlookroundslowR,1
+
+KEY ONCE RETURN
+ALL TIMEOUTlookroundslowL,1
+
+KEY ONCE RETURN
+ALL TIMEOUTlookR,1
+
+KEY ONCE RETURN
+ALL TIMEOUTlookL,1
+
+KEY ONCE RETURN
+ALL TIMEOUTlookup,1
+
+KEY ONCE K3
+ALL stand2sitR,1
+
+KEY ONCE SPACE
+ALL sleep,1
+
+KEY ONCE K2
+ALL panicL,1
+
+KEY ONCE K4
+ALL panicR,1
+
+KEY ONCE K7
+ALL wait2wave,1
+
+KEY ONCE K9
+ALL TIMEOUTjiggy,1
+
+KEY ONCE K9
+ALL TIMEOUTbooty,1
+
+KEY ONCE K5
+ALL TIMEOUTtwist,1
+
+KEY ONCE DOWN
+ALL climbtopdownR,1 OFFSET 0,28
+
+ANIM
+sleep
+MAJOR STATE
+sleep
+FRAMES
+sleep1 sleep1 sleep1 sleep1 sleep1 sleep2 sleep2 sleep2 sleep2 sleep2 sleep3 sleep3 sleep3 sleep3 sleep3
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+OVERLAY
+zzz
+
+
+KEY ONCE SPACE
+ALL yawn,1
+
+
+ANIM
+zzz
+MAJOR STATE
+null
+FRAMES
+zzz1 zzz2 zzz3 zzz4 zzz5
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR zzz,1
+MOVE
+ALL 0,0
+
+ANIM
+yawn
+TO STATE
+wait
+FRAMES
+yawn1 yawn2 yawn3 yawn4 yawn5 yawn4 yawn5 yawn6 yawn7 yawn8 yawn9 yawn10 yawn1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+ANIM
+panicR
+MAJOR STATE
+panic_right
+FRAMES
+panicR1 panicR2 panicR1 panicR2 panicR1 panicR2 panicR1 panicR2 panicR1 panicR2
+SPEED
+SPEEDALL 15
+ADVANCE
+LINEAR wait,1
+MOVE ALL 0,0
+
+ANIM
+panicL
+MAJOR STATE
+panic_left
+FRAMES
+panicL1 panicL2 panicL1 panicL2 panicL1 panicL2 panicL1 panicL2 panicL1 panicL2
+SPEED
+SPEEDALL 15
+ADVANCE
+LINEAR wait,1
+MOVE ALL 0,0
+
+ANIM
+hangL
+MAJOR STATE
+hang_lefthand
+FRAMES
+hangL1 hangL2 hangL3 hangL4 hangL5 hangL6 hangL5 hangL4 hangL3 hangL2
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE UP
+--> --> --> --> --> hangL2climb,1 OFFSET -5,-13--> --> --> -->
+
+KEY ONCE LEFT
+--> --> --> --> --> hangL2climbtopL,1 --> --> --> -->
+
+KEY ONCE RETURN
+--> --> --> --> --> hangL2hangstraight,1 OFFSET -5,-13 --> --> --> -->
+
+KEY ONCE SPACE
+--> --> --> --> --> --> --> --> --> hangL2swap,1 OFFSET -5,-13
+
+KEY ONCE DOWN
+--> --> --> --> --> hangL2climbdown,1 --> --> --> -->
+
+KEY ONCE RIGHT
+--> --> --> --> --> --> --> --> --> hangL2hangR,1
+
+KEY ONCE K7
+handleft,1 OFFSET 2,-5 --> --> --> --> --> --> --> --> -->
+
+KEY ONCE K9
+handright,1 OFFSET 4,-5 --> --> --> --> --> --> --> --> -->
+
+ANIM
+hangR2climbtopR
+TO STATE
+wait
+FRAMES
+hangrecoverR1 hangrecoverR2 hangrecoverR3 hangrecoverR4 hangrecoverR5 hangrecoverR6 hangrecoverR7 hangrecoverR8
+ADVANCE
+LINEAR climbtopupR,1 OFFSET -13,-4
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangL2climbtopL
+TO STATE
+wait
+FRAMES
+hangrecoverL1 hangrecoverL2 hangrecoverL3 hangrecoverL4 hangrecoverL5 hangrecoverL6 hangrecoverL7 hangrecoverL8
+ADVANCE
+LINEAR climbtopupL,1 OFFSET 1,-4
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangR
+MAJOR STATE
+hang_righthand
+FRAMES
+hangR1 hangR2 hangR3 hangR4 hangR5 hangR6 hangR5 hangR4 hangR3 hangR2
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE UP
+--> --> --> --> --> hangR2climb,1 OFFSET 5,-13 --> --> --> -->
+
+KEY ONCE RIGHT
+--> --> --> --> --> hangR2climbtopR,1 OFFSET -1,0 --> --> --> -->
+
+KEY ONCE RETURN
+--> --> --> --> --> hangR2hangstraight,1 OFFSET 5,-13 --> --> --> -->
+
+KEY ONCE SPACE
+--> --> --> --> --> --> --> --> --> hangR2swap,1 OFFSET 5,-13
+
+KEY ONCE DOWN
+--> --> --> --> --> hangR2climbdown,1 --> --> --> -->
+
+KEY ONCE LEFT
+--> --> --> --> --> --> --> --> --> hangR2hangL,1 OFFSET -1,0
+
+KEY ONCE K7
+handleft,1 OFFSET -4,-5 --> --> --> --> --> --> --> --> -->
+
+KEY ONCE K9
+handright,1 OFFSET -2,-5 --> --> --> --> --> --> --> --> -->
+
+
+ANIM
+hangR2hangstraight
+TO STATE
+hang_twohand
+FRAMES
+hangrecoverR1 hangrecoverR2 hangrecoverR3 hangrecoverR4 hangrecoverR5 hangrecoverR6 hangrecoverR7 hangrecoverR8
+ADVANCE
+LINEAR hangstraight,1 OFFSET -8,9
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangR2swap
+TO STATE
+hang_lefthand
+FRAMES
+hangrecoverR7 hangrecoverR8 hangswapL1
+ADVANCE
+LINEAR hangL,1 OFFSET -11,13
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangL2swap
+TO STATE
+hang_righthand
+FRAMES
+hangrecoverL7 hangrecoverL8 hangswapR1
+ADVANCE
+LINEAR hangR,1 OFFSET 11,13
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangL2hangstraight
+TO STATE
+hang_twohand
+FRAMES
+hangrecoverL1 hangrecoverL2 hangrecoverL3 hangrecoverL4 hangrecoverL5 hangrecoverL6 hangrecoverL7 hangrecoverL8
+ADVANCE
+LINEAR hangstraight,1 OFFSET 8,9
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangL2hangR
+TO STATE
+hang_righthand
+FRAMES
+hangrecoverL6 hangrecoverL7 hangrecoverL8 hangrecoverR8 hangrecoverR7 hangrecoverR6
+ADVANCE
+LINEAR hangR,1 OFFSET 1,0
+SPEED
+SPEEDALL 10
+MOVE
+0,0 0,0 0,0 8,0 0,0 0,0
+
+
+ANIM
+hangR2hangL
+TO STATE
+hang_lefthand
+FRAMES
+hangrecoverR6 hangrecoverR7 hangrecoverR8 hangrecoverL8 hangrecoverL7 hangrecoverL6
+ADVANCE
+LINEAR hangL,1
+SPEED
+SPEEDALL 10
+MOVE
+0,0 0,0 0,0 -8,0 0,0 0,0
+
+
+ANIM
+hangstraight2hangL
+TO STATE
+hang_lefthand
+FRAMES
+hangrecoverL8 hangrecoverL7
+ADVANCE
+LINEAR hangL,1  OFFSET 5,13
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangstraight2hangR
+TO STATE
+hang_righthand
+FRAMES
+hangrecoverR8 hangrecoverR7
+ADVANCE
+LINEAR hangR,1 OFFSET -5,13
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangL2climb
+TO STATE
+climb_up
+FRAMES
+hangrecoverL1 hangrecoverL2 hangrecoverL3 hangrecoverL4 hangrecoverL5 hangrecoverL6 hangrecoverL7 hangrecoverL8 hangrecoverL9 hangrecoverL10
+ADVANCE
+LINEAR climb,1 OFFSET 8,6
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangR2climb
+TO STATE
+climb_up
+FRAMES
+hangrecoverR1 hangrecoverR2 hangrecoverR3 hangrecoverR4 hangrecoverR5 hangrecoverR6 hangrecoverR7 hangrecoverR8 hangrecoverR9 hangrecoverR10
+ADVANCE
+LINEAR climb,7 OFFSET -8,6
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+hangL2climbdown
+TO STATE
+climb_down
+FRAMES
+hangrecoverL1 hangrecoverL2 hangrecoverL3 hangrecoverL4 hangrecoverL5 hangrecoverL6 hangrecoverL7 hangrecoverL8 hangrecoverL9 hangrecoverL10
+ADVANCE
+LINEAR climbdown,1 OFFSET 1,-8
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+ANIM
+hangR2climbdown
+TO STATE
+climb_down
+FRAMES
+hangrecoverR1 hangrecoverR2 hangrecoverR3 hangrecoverR4 hangrecoverR5 hangrecoverR6 hangrecoverR7 hangrecoverR8 hangrecoverR9 hangrecoverR10
+ADVANCE
+LINEAR climbdown,1 OFFSET 1,-8
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+fishwaitR
+MAJOR STATE
+timeout_fish_right
+FRAMES
+fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1
+SPEED
+150 10 10 10
+MOVE
+ALL 0,0
+OVERLAY
+fishwaitrodR
+
+KEY ONCE RETURN
+ALL fishreelR,1 OFFSET -5,0
+
+KEY ONCE SPACE
+ALL fishreelinlineR,1
+
+
+ANIM
+fishreelinlineR
+TO STATE
+wait
+FRAMES
+fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR sit2standR,1
+MOVE
+ALL 0,0
+OVERLAY
+fishlineupR
+
+
+ANIM
+fishreelinlineL
+TO STATE
+wait
+FRAMES
+fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR sit2standL,1
+MOVE
+ALL 0,0
+OVERLAY
+fishlineupL
+
+
+ANIM
+fishreelR
+MAJOR STATE
+timeout_reel_right
+FRAMES
+fishreelR1 fishreelR2 fishreelR3 fishreelR4 fishreelR5 fishreelR6 fishreelR7
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE LEFT
+ALL fishwalkR,1 OFFSET 14,0
+
+
+ANIM
+fishcastR
+TO STATE
+timeout_fish_right
+FRAMES
+fishcastR1 fishcastR2
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishcastlineR,1
+MOVE
+ALL 0,0
+
+ANIM
+fishcastlineR
+TO STATE
+timeout_fish_right
+FRAMES
+fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1 fishwaitR1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishwaitR,1
+MOVE
+ALL 0,0
+OVERLAY
+fishrodlineR
+
+ANIM
+fishcastlineL
+TO STATE
+timeout_fish_left
+FRAMES
+fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishwaitL,1
+MOVE
+ALL 0,0
+OVERLAY
+fishrodlineL
+
+
+ANIM
+fishcastL
+TO STATE
+timeout_fish_left
+FRAMES
+fishcastL1 fishcastL2
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishcastlineL,1
+MOVE
+ALL 0,0
+
+
+ANIM
+fishwaitrodR
+MAJOR STATE
+null
+FRAMES
+fishwaitrodR1 fishwaitrodR2 fishwaitrodR3 fishwaitrodR4
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishwaitrodR,1
+MOVE
+ALL 0,0
+
+
+ANIM
+fishrodlineR
+MAJOR STATE
+null
+FRAMES
+fishwaitrodR1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishrodlineR,1
+MOVE
+ALL 0,0
+
+
+ANIM
+fishrodlineL
+MAJOR STATE
+null
+FRAMES
+fishwaitrodL1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishrodlineL,1
+MOVE
+ALL 0,0
+
+
+ANIM
+fishlineupR
+MAJOR STATE
+null
+FRAMES
+fishwaitrodR1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishlineupR,1
+MOVE
+ALL 0,0
+
+
+ANIM
+fishlineupL
+MAJOR STATE
+null
+FRAMES
+fishwaitrodL1
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishlineupL,1
+MOVE
+ALL 0,0
+
+
+ANIM
+fishwaitrodL
+MAJOR STATE
+null
+FRAMES
+fishwaitrodL1 fishwaitrodL2 fishwaitrodL3 fishwaitrodL4
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishwaitrodL,1
+MOVE
+ALL 0,0
+
+
+ANIM
+fishwaitL
+MAJOR STATE
+timeout_fish_left
+FRAMES
+fishwaitL1 fishwaitL1 fishwaitL1 fishwaitL1
+SPEED
+150 10 10 10
+MOVE
+ALL 0,0
+OVERLAY
+fishwaitrodL
+
+KEY ONCE RETURN
+ALL fishreelL,1 OFFSET 5,0
+
+KEY ONCE SPACE
+ALL fishreelinlineL,1
+
+
+ANIM
+fishreelL
+MAJOR STATE
+timeout_reel_left
+FRAMES
+fishreelL1 fishreelL2 fishreelL3 fishreelL4 fishreelL5 fishreelL6 fishreelL7
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE RIGHT
+ALL fishwalkL,1 OFFSET -14,0
+
+
+ANIM
+fishwalkR
+TO STATE
+wait
+FRAMES
+fishwalkR1 fishwalkR2 fishwalkR3 fishwalkR4 fishwalkR5 fishwalkR1 fishwalkR2 fishwalkR3 fishwalkR4 fishwalkR5
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishflapR,1
+MOVE
+0,0 0,0 -5,0 -2,0 -1,0 0,0 0,0 -5,0 -2,0 -1,0
+
+ANIM
+fishflapR
+TO STATE
+wait
+FRAMES
+fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1
+SPEED
+10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 50
+ADVANCE
+LINEAR Rturn,1 OFFSET -7,0
+MOVE
+0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0
+
+
+ANIM
+fishwalkL
+TO STATE
+wait
+FRAMES
+fishwalkL1 fishwalkL2 fishwalkL3 fishwalkL4 fishwalkL5 fishwalkL1 fishwalkL2 fishwalkL3 fishwalkL4 fishwalkL5
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR fishflapL,1
+MOVE
+0,0 0,0 5,0 2,0 1,0 0,0 0,0 5,0 2,0 1,0
+
+ANIM
+fishflapL
+TO STATE
+wait
+FRAMES
+fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1
+SPEED
+10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 50
+ADVANCE
+LINEAR Lturn,1 OFFSET 7,0
+MOVE
+0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0
+
+
+
+ANIM
+victory
+MAJOR STATE
+victory
+FRAMES
+vic1 vic2 vic3 vic4 vic5
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+
+KEY ONCE UP
+--> --> --> --> exitleap,1
+
+ANIM
+waving
+MAJOR STATE
+timeout_wave
+FRAMES
+waving1 waving2 waving3 waving4 waving5 waving6 waving7 waving6 waving5 waving4 waving3 waving2 waving1 waving2 waving3 waving4 waving5 waving6 waving7 waving6 waving5 waving4 waving3 waving2
+SPEED
+SPEEDALL 10
+ADVANCE
+LINEAR wave2wait,1
+MOVE
+ALL 0,0
+
+
+ANIM
+wave2wait
+TO STATE
+wait
+FRAMES
+waving4 waving6 wavetrans1 wavetrans2
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+wait2wave
+TO STATE
+timeout_wave
+FRAMES
+wavetrans2 wavetrans1 waving7 waving6 waving5 waving4 waving3 waving2
+ADVANCE
+LINEAR waving,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+stand2sitR
+TO STATE
+timeout_sit_right
+FRAMES
+sitdownR1 sitdownR2 sitdownR3
+ADVANCE
+LINEAR sitR,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+stand2sitL
+TO STATE
+timeout_sit_left
+FRAMES
+sitdownL1 sitdownL2 sitdownL3
+ADVANCE
+LINEAR sitL,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+sitR
+MAJOR STATE
+timeout_sit_right
+FRAMES
+sitR1 sitR2 sitR3 sitR4 sitR5 sitR6 sitR6 sitR7 sitR8 sitR9 sitR10 sitR11
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE K9
+--> --> --> --> --> --> --> sit2standR,1 --> --> --> -->
+
+KEY ONCE K5
+--> --> --> --> --> --> --> eatR,1 --> --> --> -->
+
+KEY ONCE K6
+--> --> --> --> --> --> --> fishcastR,1 --> --> --> -->
+
+
+ANIM
+sitL
+MAJOR STATE
+timeout_sit_left
+FRAMES
+sitL1 sitL2 sitL3 sitL4 sitL5 sitL6 sitL6 sitL7 sitL8 sitL9 sitL10 sitL11
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+KEY ONCE K7
+--> --> --> --> --> --> --> sit2standL,1 --> --> --> -->
+
+KEY ONCE K5
+--> --> --> --> --> --> --> eatL,1 --> --> --> -->
+
+KEY ONCE K4
+--> --> --> --> --> --> --> fishcastL,1 --> --> --> -->
+
+
+ANIM
+sit2standR
+TO STATE
+wait
+FRAMES
+standR1 standR2 standR3 standR4 standR5
+ADVANCE
+LINEAR turnback2frontwithwalkL,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+sit2standL
+TO STATE
+wait
+FRAMES
+standL1 standL2 standL3 standL4 standL5
+ADVANCE
+LINEAR turnback2frontwithwalkR,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+eatR
+MAJOR STATE
+timeout_eat_right
+FRAMES
+eatR3 eatR2 eatR3 eatR2 eatR3 eatR2 eatR3 eatR4 eatR1 eatR1 eatR1 eatR1 eatR1 eatR1 eatR1 eatR1 eatR1 eatR1 eatR6 eatR7 eatR6 eatR7 eatR6 eatR7
+ADVANCE
+LINEAR sitR,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+
+ANIM
+eatL
+MAJOR STATE
+timeout_eat_left
+FRAMES
+eatL3 eatL2 eatL3 eatL2 eatL3 eatL2 eatL3 eatL4 eatL1 eatL1 eatL1 eatL1 eatL1 eatL1 eatL1 eatL1 eatL1 eatL1 eatL6 eatL7 eatL6 eatL7 eatL6 eatL7
+ADVANCE
+LINEAR sitL,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+
+ANIM
+TIMEOUTlook
+MAJOR STATE
+timeout_look1
+FRAMES
+look1 look1 look1 look2 look2 look3 look4 look5 look6 look7 look7 look8 look8 look9 look9 look11 look11 look12 look12 look12 look12 look11 look11 look9 look9 look10 look9 look10 look9 look8 look8 look7 look7 look13 look13 look2 look2 look1 look1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTlookroundR
+# quick look round RIGHT
+MAJOR STATE
+timeout_look2
+FRAMES
+look1 look1 look1 look2 look2 look3 look4 look5 look6 look7 look7 lookup1 lookup1 lookup3 lookup3 lookup6 lookup6 look12 look26 look26 look15 look15 look14 look14
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTlookroundslowR
+# slow look round RIGHT
+MAJOR STATE
+timeout_look3
+FRAMES
+look1 look1 look1 look2 look2 look3 look4 look5 look6 look7 look7 lookup1 lookup1 lookup1 lookup1 lookup1 lookup1 lookup1 lookup1 lookup3 lookup3 lookup3 lookup3 lookup3 lookup3 lookup3 lookup3 lookup6 lookup6 lookup6 lookup6 lookup6 lookup6 lookup6 look12 look26 look26 look15 look15 look14 look14
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTlookroundslowL
+# slow look round LEFT
+MAJOR STATE
+timeout_look4
+FRAMES
+look14 look14 look14 look15 look16 look16 look17 look18 look19 look20 look20 lookup6 lookup6 lookup6 lookup6 lookup6 lookup6 lookup3 lookup3 lookup3 lookup3 lookup3 lookup3 lookup1 lookup1 lookup1 lookup1 lookup1 lookup1 look25 look13 look13 look2 look2 look1 look1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTlookroundL
+# quick look round LEFT
+MAJOR STATE
+timeout_look5
+FRAMES
+look14 look14 look14 look15 look16 look16 look17 look18 look19 look20 look20 lookup6 lookup6 lookup3 lookup3 lookup1 lookup1 look25 look13 look13 look2 look2 look1 look1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTlookR
+# looking right
+MAJOR STATE
+timeout_look6
+FRAMES
+look1 look1 look1 look2 look2 look3 look4 look5 look6 look7 look7 look7 look7 look7 look7 look7 look7 look7 look7 look7 look7 look13 look13 look2 look2 look1 look1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTlookL
+# looking left
+MAJOR STATE
+timeout_look7
+FRAMES
+look14 look14 look14 look15 look15 look16 look17 look18 look19 look20 look20 look20 look20 look20 look20 look20 look20 look20 look20 look20 look20 look26 look26 look15 look15 look14 look14
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTlookup
+# look up at the blocks
+MAJOR STATE
+timeout_look8
+FRAMES
+look1 look1 look1 look2 look2 look3 look4 look5 look6 look7 look7 lookup2 lookup2 lookup4 lookup4 lookup4 lookup4 lookup4 lookup4 lookup4 lookup4 lookup1 look7 look13 look13 look2 look2 look1 look1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 15
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTjiggy
+MAJOR STATE
+timeout_jiggy
+FRAMES
+jiggy1 jiggy2 jiggy3 jiggy2 jiggy3 jiggy2 jiggy1 jiggy4 jiggy5 jiggy4 jiggy5 jiggy4 jiggy1 jiggy2 jiggy3 jiggy2 jiggy3 jiggy2 jiggy1 jiggy4 jiggy5 jiggy4 jiggy5 jiggy4
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 20
+MOVE
+ALL 0,0
+
+ANIM
+TIMEOUTbooty
+MAJOR STATE
+timeout_booty
+FRAMES
+booty1 booty2 booty3 booty2 booty3 booty2 booty1 booty4 booty5 booty4 booty5 booty4
+ADVANCE
+LINEAR turnback2frontR,1
+SPEED
+SPEEDALL 20
+MOVE
+ALL 0,0
+
+ANIM
+turnR
+TO STATE
+walk_right
+FRAMES
+turn1 turn2 turn3
+ADVANCE
+LINEAR right,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+turnL
+TO STATE
+walk_left
+FRAMES
+turn1 turn8 turn7
+ADVANCE
+LINEAR left,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+Rturn
+TO STATE
+wait
+FRAMES
+turn3 turn2 turn1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+Lturn
+TO STATE
+wait
+FRAMES
+turn7 turn8 turn1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+Rturn2climb
+TO STATE
+climb_up
+FRAMES
+turn3 turn4 turn5 clt1 clt2 clt3
+ADVANCE
+LINEAR climb,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+Lturn2climb
+TO STATE
+climb_up
+FRAMES
+turn7 turn6 turn5 clt1 clt2 clt3
+ADVANCE
+LINEAR climb,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+climb2turnR
+TO STATE
+walk_right
+FRAMES
+turn5 turn4 turn3
+ADVANCE
+LINEAR right,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+climb2turnL
+TO STATE
+walk_left
+FRAMES
+turn5 turn6 turn7
+ADVANCE
+LINEAR left,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+turnback2frontR
+TO STATE
+wait
+FRAMES
+turn5 turn4 turn3 turn2 turn1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+turnback2frontL
+TO STATE
+wait
+FRAMES
+turn5 turn6 turn7 turn8 turn1
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+
+ANIM
+turnfront2backR
+TO STATE
+climb_up
+FRAMES
+turn1 turn2 turn3 turn4 turn5 clt1 clt2 clt3
+ADVANCE
+LINEAR climb,1 OFFSET 0,2
+SPEED
+SPEEDALL 10
+MOVE
+ALL 0,0
+
+ANIM
+turnback2frontwithwalkL
+TO STATE
+wait
+FRAMES
+turn5 turn6 turn7 L1 L2 L3 turn8
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 10
+MOVE
+0,0 0,0 0,0 -2,0 -2,0 -2,0 0,0
+
+ANIM
+turnback2frontwithwalkR
+TO STATE
+wait
+FRAMES
+turn5 turn4 turn3 R1 R2 R3 turn2
+ADVANCE
+LINEAR wait,1
+SPEED
+SPEEDALL 10
+MOVE
+0,0 0,0 0,0 2,0 2,0 2,0 0,0
+
+ANIM
+knockspin
+MAJOR STATE
+knock
+FRAMES
+fallspin10 fallspin9 fallspin8 fallspin7 fallspin6 fallspin5 fallspin4 fallspin3 fallspin2 fallspin1
+SPEED
+SPEEDALL 5
+MOVE
+ALL 0,0
+
+KEY ONCE RETURN
+fallspin,1 fallspin,2 fallspin,3 fallspin,4 fallspin,5 fallspin,6 fallspin,7 fallspin,8 fallspin,9 fallspin,10
+
