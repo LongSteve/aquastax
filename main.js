@@ -6,6 +6,12 @@ cc.game.onStart = function () {
       document.body.removeChild (document.getElementById ('cocosLoading'));
    }
 
+   // Run the main Gumbler sprite setup routine
+   aq.spritey.gumbler ();
+
+   // Dump the sprite data for debugging purposes
+   aq.spritey.dump ();
+
    // Adjust viewport meta
    cc.view.adjustViewPort (true);
 

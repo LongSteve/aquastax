@@ -1,7 +1,7 @@
 {
     "project_type": "javascript",
 
-    "debugMode" : 0,
+    "debugMode" : 1,
     "showFPS" : true,
     "frameRate" : 60.0,
     "noCache" : false,
@@ -20,6 +20,15 @@
         "src/menu.js",
         "src/game.js",
         "src/grid.js",
-        "src/block.js"
+        "src/block.js",
+        "src/spritey/spritey.js",
+        "src/spritey/object/base.js",
+        "src/spritey/object/key.js",
+        "src/spritey/object/transition.js",
+        "src/spritey/object/anim.js",
+        "src/spritey/object/state.js",
+        "src/spritey/object/color.js",
+        "src/spritey/object/image.js",
+        "src/spritey/gumbler.js"
     ]
 }
