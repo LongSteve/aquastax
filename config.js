@@ -12,6 +12,7 @@
 
 var aq = aq || {
    'scenes': {},
+   'spritey': {},
    'config': {}
 };
 
