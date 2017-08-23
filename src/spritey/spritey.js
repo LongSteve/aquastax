@@ -11,7 +11,7 @@ aq.spritey.dump = function () {
       if (object_list [o]) {
          var object = object_list [o];
          // Not sure I like this, but it's a shortcoming of the simple class/object structure I adopted
-         if (object._name === 'Image') {
+         if (object._type === 'Image') {
             image_count++;
          } else {
             cc.log (o + ' : ' + object.description ());
