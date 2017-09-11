@@ -87,6 +87,10 @@ aq.spritey.gumbler = function gumbler () {
                   }
                }
             }
+            if (anim.advance) {
+               var to_anim = aq.spritey.animations [anim.advance.name];
+               anim.advance.to_anim = to_anim;
+            }
          }
       }
    };
@@ -140,29 +144,6 @@ aq.spritey.gumbler = function gumbler () {
          }
          return image_map [item];
       });
-
-      // Create an Animation from the frames (which reference images)
-      var sprite_frames = [];
-      for (var f = 0; f < current_anim.frames.length; f++) {
-         var spritey_frame = current_anim.frames [f];
-         var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
-         if (spritey_frame.mirror) {
-            
-            var mirror_rect = cc_sprite_frame.getRect ();
-            mirror_rect.x += mirror_rect.width;
-            mirror_rect.width = -mirror_rect.width;
-            cc_sprite_frame.setRect (mirror_rect);
-
-            cc_sprite_frame = cc_sprite_frame.clone ();
-         }
-         sprite_frames.push (cc_sprite_frame);
-      }
-
-      // Create the animation from the frames
-      var animation = new cc.Animation (sprite_frames, 0.1);
-
-      // Save to the AnimationCache
-      cc.animationCache.addAnimation (animation, current_anim.name);
    };
 
    // A transition is defined

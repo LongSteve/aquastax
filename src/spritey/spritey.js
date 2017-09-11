@@ -170,6 +170,25 @@ var SpriteTestLayer = cc.Layer.extend ({
           }
        }
        
+       // Get the Cocos2d animation
+       var animation = cc.animationCache.getAnimation (anim.name);   // = anim.anim
+       if (!animation) {
+
+          // Create an Animation from the frames (which reference images)
+          var sprite_frames = [];
+          for (var f = 0; f < anim.frames.length; f++) {
+             var spritey_frame = anim.frames [f];
+             var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
+             sprite_frames.push (cc_sprite_frame);
+          }
+
+          // Create the animation from the frames
+          animation = new cc.Animation (sprite_frames, 0.1);
+
+          // Save to the AnimationCache
+          cc.animationCache.addAnimation (animation, anim.name);
+       }
+
        // Set the first sprite frame
        sprite.setDisplayFrameWithAnimationName (anim.name, frame);
 
@@ -183,13 +202,12 @@ var SpriteTestLayer = cc.Layer.extend ({
        // stop all current actions
        sprite.stopAllActions ();
 
-       // Start the new one
-       var animation = cc.animationCache.getAnimation (anim.name);   // = anim.anim
+       // start a new one
        var animate = cc.animate (animation);
        var action = null;
        if (anim.advance) {
           var advanceAnim = cc.callFunc (function () {
-             self._setSpriteAnim (sprite, anim.advance);
+             self._setSpriteAnim (sprite, anim.advance.to_anim);
           });
           action = cc.sequence (animate, advanceAnim);
        } else {
