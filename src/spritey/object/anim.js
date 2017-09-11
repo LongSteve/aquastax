@@ -19,6 +19,7 @@ aq.spritey.objects.Anim = aq.spritey.objects.ScriptObject.extend ({
 
    // Runtime data
    ms: 0,
+   anim: null,
 
    ctor: function (name) {
       this.name = name;

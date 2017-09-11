@@ -4,7 +4,8 @@
 
 aq.spritey.gumbler = function gumbler () {
 
-   var self = this;
+   // Load all the frames from the TexturePacker defined Gumbler sprite sheet
+   cc.spriteFrameCache.addSpriteFrames (aq.res.GumblerSprites);
 
    // The parser for the Gumbler Animation System script originally output a list of 'GameObject' objects
    // but it seems somewhat mad to deal with all the parser generator and domain specific language 
@@ -13,7 +14,7 @@ aq.spritey.gumbler = function gumbler () {
    // Objects to hold state while building the animation data
    var current_anim = null;
    var image_map = {};
-   var state_map = {};
+   var state_map = aq.spritey.states;
 
    var new_object = function (Ctor, ...args) {
       var obj = new Ctor (...args);
@@ -22,10 +23,7 @@ aq.spritey.gumbler = function gumbler () {
    };
 
    var parse_error = function (e) {
-      var s = 'Animation Data Error: ' + e;
-      cc.log (s);
-      window.alert (s);
-      throw (s);
+      aq.fatalError ('Animation Data Error: ' + e);
    };
 
    var key_color = function (...args) {
@@ -55,15 +53,42 @@ aq.spritey.gumbler = function gumbler () {
       return map_insert_unique (st, state_map);
    };
 
-   var start = function () {
+   var start = function (name, state, frame_num, x, y) {
+      aq.spritey.test.push ({
+         name: name,
+         state: state,
+         frame_num: frame_num,
+         position: cc.p (x, y)
+      });
    };
 
    var begin_anim = function (...args) {
       if (current_anim) {
-         cc.log ('End Animation: ' + current_anim.name);
+         //cc.log ('End Animation: ' + current_anim.name);
+         aq.spritey.animations [current_anim.name] = current_anim;
       }
-      current_anim = new_object (aq.spritey.objects.Anim, ...args);
-      cc.log ('Begin Animation: ' + current_anim.name);
+      if (args [0]) {
+         current_anim = new_object (aq.spritey.objects.Anim, ...args);
+         //cc.log ('Begin Animation: ' + current_anim.name);
+      } else {
+         // End of animation data
+         
+         // Backfill all object names with references
+         for (var anim_name in aq.spritey.animations) {
+            var anim = aq.spritey.animations [anim_name];            
+            if (anim.keys) {
+               for (var k = 0; k < anim.keys.length; k++) {
+                  var key = anim.keys [k];
+                  if (key.transitions) {
+                     for (var t = 0; t < key.transitions.length; t++) {
+                        var tran = key.transitions [t];
+                        tran.to_anim = aq.spritey.animations [tran.name];
+                     }
+                  }
+               }
+            }
+         }
+      }
    };
 
    var major_state = function (state_name) {
@@ -72,6 +97,7 @@ aq.spritey.gumbler = function gumbler () {
       }
       if (state_map[state_name]) {
          current_anim.major_state = state_map[state_name];
+         state_map[state_name].primary = current_anim;
       } else {
          var e = 'State ' + state_name + ' is not defined.';
          parse_error (e);
@@ -114,6 +140,29 @@ aq.spritey.gumbler = function gumbler () {
          }
          return image_map [item];
       });
+
+      // Create an Animation from the frames (which reference images)
+      var sprite_frames = [];
+      for (var f = 0; f < current_anim.frames.length; f++) {
+         var spritey_frame = current_anim.frames [f];
+         var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
+         if (spritey_frame.mirror) {
+            
+            var mirror_rect = cc_sprite_frame.getRect ();
+            mirror_rect.x += mirror_rect.width;
+            mirror_rect.width = -mirror_rect.width;
+            cc_sprite_frame.setRect (mirror_rect);
+
+            cc_sprite_frame = cc_sprite_frame.clone ();
+         }
+         sprite_frames.push (cc_sprite_frame);
+      }
+
+      // Create the animation from the frames
+      var animation = new cc.Animation (sprite_frames, 0.1);
+
+      // Save to the AnimationCache
+      cc.animationCache.addAnimation (animation, current_anim.name);
    };
 
    // A transition is defined
@@ -126,15 +175,14 @@ aq.spritey.gumbler = function gumbler () {
          transition = new aq.spritey.objects.Transition (null);
       } else {
          try {
-            var lvalue = value.toLowerCase ();
-            var values = lvalue.split (' ');
+            var values = value.split (' ');
             var name_frame = values [0].split (',');
             transition_data = {
                'anim_name': name_frame [0],
                'anim_frame': parseInt (name_frame [1]),
                'name': 'advance-to(' + name_frame [0] + ')'
             };
-            if (lvalue.indexOf ('offset') >= 0 && values.length === 3) {
+            if (value.indexOf ('OFFSET') >= 0 && values.length === 3) {
                var offset = values [2].split (',');
                transition_data.xoff = parseInt (offset [0]);
                transition_data.yoff = parseInt (offset [1]);
@@ -771,8 +819,9 @@ aq.spritey.gumbler = function gumbler () {
 
 
    //START
-   //#gumbler1 wait 1 60,90 FOCUS
-   start ('gumbler1', 'hangstraight', 1, 60, 94, 'FOCUS');
+   start ('gumbler1', 'wait', 1, 60, 90, 'FOCUS');
+   //start ('gumbler2', 'hang_twohand', 1, 60, 94, 'FOCUS');
+   //start ('gumbler3', 'walk_right', 1, 60, 94, 'FOCUS');
 
    //STATES
    state ('wait');
@@ -1659,4 +1708,7 @@ aq.spritey.gumbler = function gumbler () {
    move_all ('0,0');
 
    state_trans_key ('ONCE RETURN', 'fallspin,1 fallspin,2 fallspin,3 fallspin,4 fallspin,5 fallspin,6 fallspin,7 fallspin,8 fallspin,9 fallspin,10');
+
+   // End the last animation
+   begin_anim (null);
 };

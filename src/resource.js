@@ -5,9 +5,10 @@
  * when doing things like new cc.Sprite (res.OriginalLogo);
  */
 aq.res = {
-   OriginalLogo: 'res/original_logo.png',
-   AquaStaxLogo: 'res/aquastax_logo.png',
-   Gumbler: 'res/LARGE_gumbler_walk_R01.png'
+   OriginalLogo:   'res/original_logo.png',
+   AquaStaxLogo:   'res/aquastax_logo.png',
+   GumblerTexture: 'res/spritey/gumbler.png',
+   GumblerSprites: 'res/spritey/gumbler.plist'
 };
 
 /**
