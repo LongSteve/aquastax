@@ -89,3 +89,14 @@ aq.isSingleTriangleCell = function (c, t) {
    // Otherwise
    return (((c & 0x0f) === t) || (((c >> 4) & 0x0f) === t));
 };
+
+/**
+ * A fatal error has occured in the code. Hopefully, these will 
+ * never occur in the production game, but while developing, 
+ * it's better to fail fast. 
+ */
+aq.fatalError = function (error) {
+   cc.log (error);
+   window.alert (error);
+   throw (error);
+};

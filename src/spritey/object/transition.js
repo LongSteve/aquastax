@@ -3,7 +3,11 @@
 aq.spritey.objects.Transition = aq.spritey.objects.ScriptObject.extend ({
    _type: 'Transition',
 
+   // transition to anim name
    name: null,
+
+   // transition to anim object
+   to_anim: null,
 
    // Objects are used to store the numeric frame, xoff and yoff values 
    // in order to check for their existence
