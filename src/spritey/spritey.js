@@ -24,6 +24,17 @@ aq.spritey.dump = function () {
    cc.log ('Total Images : ' + image_count);
 };
 
+aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
+   setSpriteFrame: function (newFrame) {
+      if (typeof newFrame.flippedX !== 'undefined') {
+         this.setFlippedX (newFrame.flippedX);
+      } else {
+         this.setFlippedX (false);
+      }
+      cc.Sprite.prototype.setSpriteFrame.call (this, newFrame);
+   }
+});
+
 var SpriteTestLayer = cc.Layer.extend ({
 
    sprites: null,
@@ -127,7 +138,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        var state = aq.spritey.states [sprite_data.state];
        var anim = state.primary;
 
-       var sprite = new cc.Sprite ();
+       var sprite = new aq.Sprite ();
        sprite.setScale (4);
 
        // tmp position
@@ -179,7 +190,15 @@ var SpriteTestLayer = cc.Layer.extend ({
           for (var f = 0; f < anim.frames.length; f++) {
              var spritey_frame = anim.frames [f];
              var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
-             sprite_frames.push (cc_sprite_frame);
+             // Pulling the frame from the cache does not take into account the flippedX/mirror property so we need
+             // to clone the sprite frame when necessary if the same frame is used in multiple animations
+             if (cc_sprite_frame.flippedX === spritey_frame.mirror) {
+                sprite_frames.push (cc_sprite_frame);
+             } else {
+                var alt_cc_sprite_frame = cc_sprite_frame.clone ();
+                alt_cc_sprite_frame.flippedX = spritey_frame.mirror;
+                sprite_frames.push (alt_cc_sprite_frame);
+             }
           }
 
           // Create the animation from the frames

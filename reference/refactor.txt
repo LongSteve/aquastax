@@ -1,16 +1,68 @@
-28th March 2017
+13th September 2017
 
 ONGOING
 
-Stack clustering/grouping.
+Gumbler Animation System History
 
-Implement the block breaking.  See the grid.breakBlock method and use the block.collision_points
-data.  Continue with highlighting the exact position of a break.
+I have taken the original Gumbler Animation System data file and converted it to Javascript. The original text definition
+file was a domain specific language, with the processor implemented by a jflex/cup parser. The processor generated pure 
+binary data (as arrays) from the animations and processed png image files.
+
+The runtime animation system loaded the binary animation and image data, and presented a state machine for the gumblers
+handled all the animations and transitions, and rendered the sprites frame by frame.
+
+The complex set of animations, even when encoded at it's highest quality and sprite resolution was still only about
+250kb of data. This was then compressed within .jar files to take up less package space, and at runtime, could be memory
+managed to use minimal heap. When the animations were reduced (automatically) based on some filters, it was possible
+to output a bundle of less than 64kb in size, useable on even the lowest end, extremely memory limited devices of the time. 
+
+Modern Sprite Animation with Cocos2D-JS
+
+I decided that attempting to recreate the domain specific language parser and sprite processor in Javascript was not a
+good use of time. I did investigate some parser generators that output Javascript, but the original Java based lexer and
+parser definitions would need almost a complete re-write. I could have kept the processor in Java, just modifying it's output 
+to be more relevant to a new animation system, but I think the new system would still have had to be created with all the 
+constraints of the original. I want to animate the gumblers in my new game using the modern and comphrensive sprite animation
+features of Cocos2D-JS, and not simply port my 10 year old code.
+
+There is still a lot of useful information within the text based sprite definition data file. With the help of some simple
+editor macros (SlickEdit) I was easily able to convert the data file into syntatically correct Javascript. By implementing 
+the various keyword functions like image(), begin_anim(), major_state() etc. I should be able to build a data structure that
+can then be used to generate Cocos2D-JS sprite/node/action animations.
+
+However (Snags)
+
+This is where I am today, writing my thoughts out in long form so I can get clarity on them. I have translated the sprite
+definitions into Javascript, and I have a rudimentary set of functions that can render the animations of a Gumbler. However
+there are some snags I have hit that I must work out.
+
+  1) The original animation definition relied heavily on using images mirrored horizontally. The MIRROR keyword was used
+  at the image level, so individual frames of animations could be mirrored copies of other frames. This does not translate
+  well to sprite frames defined within a TexturePacker created packed texture. Cocos2D-JS/X has the concept of an entire
+  sprite being flipped in the X direction (flippedX), but does not support individual sprite frame textures being flipped.
+
+  2) The original animation system runtime was entirely built from scratch, and hence managed the sprite update entirely
+  by itself. Each game update called the sprite runtime update method, which handled all state changes, movement and frame 
+  incrementing based on the delta time for the update. The render method was almost trivial, simply rendering the current
+  frame at it's already calculated position. 
+
+  The Cocos2D-JS sprite animation system is built on the concept of an individual cc.Sprite instance running a cc.Animation 
+  which is comprised of cc.SpriteFrame instances for the image updating. Alongside this, you create sequences of cc.Action
+  elements and call runAction on the sprite node to perform things like movement, flipping and other transformations.
+
+  All of this happens logically independently of the main game update loop.  Mapping the original animation data to 
+  the new system is not quite straightfoward, especially in the areas of individually variable frame times, and sprite
+  frame image mirror/flippedX requirements.
+
+14th September 2017
+
+After writing my thoughts out in longhand, and thinking over the dilema of the flipped sprite frames for a day on the
+train, I've implemented a really simple mechanism that overrides the cc.Sprite.setSpriteFrame method.  Saving the
+flippedX property within a cc.SpriteFrame object, and setting the property on the Sprite object as the frame is set,
+works a treat.  With sprite frames cached by name, but saved as cc.Animation objects with the correct horizontal flip
+setting, the sprite object itself can handle the horizontal mirroring.
 
 BUGS
-
-One bug at the moment :-(
-When sliding using the fast drop, blocks can stutter.  Possibly due to moving over grid cell boundaries.
 
 TO REFACTOR
 99) Rename block or grid functions that only operate on single cells (that is, the 50x50 grid cell sized elements)
