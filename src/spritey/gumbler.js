@@ -915,7 +915,7 @@ aq.spritey.gumbler = function gumbler () {
    move_all ('0,0');
 
    state_trans_key ('ONCE UP', 'ALL climb,1');
-   state_trans_key ('ONCE UP', 'ALL climbdown,6');
+   state_trans_key ('ONCE DOWN', 'ALL climbdown,6');
    state_trans_key ('ONCE RETURN', 'ALL climbtopupR,1 OFFSET 0,-2');
    state_trans_key ('ONCE LEFT', 'ALL handleft,1 OFFSET -1,-1');
    state_trans_key ('ONCE RIGHT', 'ALL handright,1 OFFSET 1,-1');
