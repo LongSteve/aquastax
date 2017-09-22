@@ -55,7 +55,9 @@ var SpriteTestLayer = cc.Layer.extend ({
 
    transitions: null,
 
-   current_key: null,
+   current_key_label: null,
+
+   keysPressed: [],
 
    ctor: function () {
       var self = this;
@@ -78,40 +80,53 @@ var SpriteTestLayer = cc.Layer.extend ({
             self.keyAction (keyCode, false);
          }
       }, self);
+
+      self.scheduleUpdate ();
    },
 
    keyAction: function (keyCode, pressed) {
       var self = this;
+      self.keysPressed [keyCode] = pressed;
+   },
 
-      if (!self.transitions) {
-         return;
-      }
+   update: function () {
+      var self = this;
 
-      // The same key can be defined as a transition more than once in a state
-      var labels = self.transitions.getChildren ();
-      for (var i = 0; i < labels.length; i++) {
-         var key_label = labels [i];
-         var key = key_label.key;
-         var to_anim;
-         if (key_label.getTag () === keyCode) {
-            key_label.setColor (pressed ? cc.color (0, 255, 0) : cc.color (255, 255, 255));
+      self.handleKeys ();
+   },
 
-            if (pressed && (self.current_key === null || self.current_key !== key)) {
-               // Trigger an anim change (temp as some transitions can only occur on certain frames)
-               for (var j = 0; j < key.transitions.length; j++) {
-                  if (key.transitions [j].to_anim) {
-                     to_anim = key.transitions[j].to_anim;
-                     break;
-                  }
-               }
-               if (to_anim) {
-                  self._setSpriteAnim (self.sprites[0], to_anim);
-                  self.listTransitions (to_anim);
-                  self.current_key = key;
-               }
-            }
-         }
-      }
+   handleKeys: function () {
+       var self = this;
+
+       if (!self.transitions) {
+          return;
+       }
+
+       // The same key can be defined as a transition more than once in a state
+       var labels = self.transitions.getChildren ();
+       for (var i = 0; i < labels.length; i++) {
+          var key_label = labels [i];
+          var key = key_label.key;
+          var to_anim;
+          var pressed = self.keysPressed [key.keyCode()];
+          key_label.setColor (pressed ? cc.color (0, 255, 0) : cc.color (255, 255, 255));
+
+          if (pressed && (self.current_key_label === null || self.current_key_label !== key_label)) {
+             // Trigger an anim change (temp as some transitions can only occur on certain frames)
+             for (var j = 0; j < key.transitions.length; j++) {
+                if (key.transitions [j].to_anim) {
+                   to_anim = key.transitions[j].to_anim;
+                   break;
+                }
+             }
+             if (to_anim) {
+                self._setSpriteAnim (self.sprites[0], to_anim);
+                self.listTransitions (to_anim);
+                self.current_key_label = key_label;
+                self.keysPressed [key.keyCode()] = false;
+             }
+          }
+       }
    },
 
    listTransitions: function (anim) {
