@@ -26,11 +26,25 @@ aq.spritey.dump = function () {
 
 aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
    setSpriteFrame: function (newFrame) {
-      if (typeof newFrame.flippedX !== 'undefined') {
-         this.setFlippedX (newFrame.flippedX);
+      if (!newFrame) {
+         return;
+      }
+
+      var spriteFrame = newFrame;
+      if (newFrame instanceof cc.AnimationFrame) {
+         spriteFrame = newFrame.getSpriteFrame ();
+      }
+
+      if (!spriteFrame) {
+         return;
+      }
+
+      if (typeof spriteFrame.flippedX !== 'undefined') {
+         this.setFlippedX (spriteFrame.flippedX);
       } else {
          this.setFlippedX (false);
       }
+
       cc.Sprite.prototype.setSpriteFrame.call (this, newFrame);
    }
 });
@@ -78,13 +92,23 @@ var SpriteTestLayer = cc.Layer.extend ({
       for (var i = 0; i < labels.length; i++) {
          var key_label = labels [i];
          var key = key_label.key;
+         var to_anim;
          if (key_label.getTag () === keyCode) {
             key_label.setColor (pressed ? cc.color (0, 255, 0) : cc.color (255, 255, 255));
 
             if (pressed && (self.current_key === null || self.current_key !== key)) {
-               // Trigger an anim change
-               self._setSpriteAnim (self.sprites [0], key.transitions [0].to_anim);
-               self.current_key = key;
+               // Trigger an anim change (temp as some transitions can only occur on certain frames)
+               for (var j = 0; j < key.transitions.length; j++) {
+                  if (key.transitions [j].to_anim) {
+                     to_anim = key.transitions[j].to_anim;
+                     break;
+                  }
+               }
+               if (to_anim) {
+                  self._setSpriteAnim (self.sprites[0], to_anim);
+                  self.listTransitions (to_anim);
+                  self.current_key = key;
+               }
             }
          }
       }
@@ -111,18 +135,27 @@ var SpriteTestLayer = cc.Layer.extend ({
        for (var i = 0; i < num_transitions; i++) {
           var key = anim.keys [i];
           var key_name = key.name;
-          var to_anim = key.transitions [0].to_anim;
-          var to_state = to_anim.to_state ? to_anim.to_state.name : to_anim.major_state.name;
-          var key_label = new cc.LabelTTF (key_name + ' -> ' + to_state, 'Arial', 32);
-          key_label.setAnchorPoint (0, 0.5);
-          key_label.setPosition (key_pos);
+          var to_anim = null;
+          // Find the first non-null transition
+          for (var j = 0; j < key.transitions.length; j++) {
+             if (key.transitions [j].to_anim) {
+                to_anim = key.transitions[j].to_anim;
+                break;
+             }
+          }
+          if (to_anim) {
+             var to_state = to_anim.to_state ? to_anim.to_state.name : to_anim.major_state.name;
+             var key_label = new cc.LabelTTF (key_name + ' -> ' + to_state, 'Arial', 32);
+             key_label.setAnchorPoint (0, 0.5);
+             key_label.setPosition (key_pos);
 
-          // Tag the node with the keyCode to lookup later
-          key_label.setTag (key.keyCode ());
-          key_label.key = key;
+             // Tag the node with the keyCode to lookup later
+             key_label.setTag (key.keyCode ());
+             key_label.key = key;
 
-          self.transitions.addChild (key_label);
-          key_pos.y -= font_height;
+             self.transitions.addChild (key_label);
+             key_pos.y -= font_height;
+          }
        }
    },
 
@@ -186,23 +219,32 @@ var SpriteTestLayer = cc.Layer.extend ({
        if (!animation) {
 
           // Create an Animation from the frames (which reference images)
-          var sprite_frames = [];
+          var animation_frames = [];
           for (var f = 0; f < anim.frames.length; f++) {
              var spritey_frame = anim.frames [f];
              var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
              // Pulling the frame from the cache does not take into account the flippedX/mirror property so we need
              // to clone the sprite frame when necessary if the same frame is used in multiple animations
-             if (cc_sprite_frame.flippedX === spritey_frame.mirror) {
-                sprite_frames.push (cc_sprite_frame);
-             } else {
-                var alt_cc_sprite_frame = cc_sprite_frame.clone ();
-                alt_cc_sprite_frame.flippedX = spritey_frame.mirror;
-                sprite_frames.push (alt_cc_sprite_frame);
+             if (typeof spritey_frame.mirror !== 'undefined' && cc_sprite_frame.flippedX !== spritey_frame.mirror) {
+                cc_sprite_frame = cc_sprite_frame.clone ();
+                cc_sprite_frame.flippedX = spritey_frame.mirror;
              }
+
+             var speed = 10.0;
+             if (anim.speeds) {
+                speed = anim.speeds [f < anim.speeds.length ? f : 0];
+             }
+
+             var frame_user_data = {
+                anim: anim,
+                index: f
+             };
+
+             animation_frames.push (new cc.AnimationFrame (cc_sprite_frame, speed / 10.0, frame_user_data));
           }
 
           // Create the animation from the frames
-          animation = new cc.Animation (sprite_frames, 0.1);
+          animation = new cc.Animation (animation_frames, 0.1);
 
           // Save to the AnimationCache
           cc.animationCache.addAnimation (animation, anim.name);
@@ -227,11 +269,13 @@ var SpriteTestLayer = cc.Layer.extend ({
        if (anim.advance) {
           var advanceAnim = cc.callFunc (function () {
              self._setSpriteAnim (sprite, anim.advance.to_anim);
+             self.listTransitions (anim.advance.to_anim);
           });
           action = cc.sequence (animate, advanceAnim);
        } else {
           action = cc.repeatForever (animate);
        }
+       action.setTag (0);
        sprite.runAction (action);
 
        // Animation needs to move the sprite, then this sort of works
