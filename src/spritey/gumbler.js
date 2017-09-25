@@ -278,6 +278,7 @@ aq.spritey.gumbler = function gumbler () {
       var transition = null;
       var transition_string_lower_case = transition_string.toLowerCase ();
       if (transition_string_lower_case.indexOf ('all') === 0) {
+         key.all = true;
          transition_string = transition_string.substring (4);
          transition = get_transition (transition_string);
          key.transitions.push (transition);
