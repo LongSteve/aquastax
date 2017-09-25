@@ -6,6 +6,7 @@ aq.spritey.objects.Key = aq.spritey.objects.ScriptObject.extend ({
 
    name: null,
    once: false,
+   all: false,
    transitions: null,
 
    ctor: function (n) {

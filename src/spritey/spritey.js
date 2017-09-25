@@ -55,8 +55,6 @@ var SpriteTestLayer = cc.Layer.extend ({
 
    transitions: null,
 
-   current_key_label: null,
-
    keysPressed: [],
 
    ctor: function () {
@@ -93,6 +91,12 @@ var SpriteTestLayer = cc.Layer.extend ({
       var self = this;
 
       self.handleKeys ();
+      self.handleTransition ();
+   },
+
+   getCurrentSprite: function () {
+       var self = this;
+       return self.sprites [0];
    },
 
    handleKeys: function () {
@@ -102,30 +106,66 @@ var SpriteTestLayer = cc.Layer.extend ({
           return;
        }
 
+       var sprite = self.getCurrentSprite ();
+
+       if (sprite.transitioning) {
+          return;
+       }
+       
        // The same key can be defined as a transition more than once in a state
        var labels = self.transitions.getChildren ();
        for (var i = 0; i < labels.length; i++) {
           var key_label = labels [i];
           var key = key_label.key;
-          var to_anim;
           var pressed = self.keysPressed [key.keyCode()];
           key_label.setColor (pressed ? cc.color (0, 255, 0) : cc.color (255, 255, 255));
 
-          if (pressed && (self.current_key_label === null || self.current_key_label !== key_label)) {
-             // Trigger an anim change (temp as some transitions can only occur on certain frames)
-             for (var j = 0; j < key.transitions.length; j++) {
-                if (key.transitions [j].to_anim) {
-                   to_anim = key.transitions[j].to_anim;
-                   break;
-                }
-             }
-             if (to_anim) {
-                self._setSpriteAnim (self.sprites[0], to_anim);
-                self.listTransitions (to_anim);
-                self.current_key_label = key_label;
-                self.keysPressed [key.keyCode()] = false;
+          if (pressed) {
+             self.startTransition (key);
+          }
+       }
+   },
+
+   handleTransition: function () {
+       var self = this;
+
+       var sprite = self.getCurrentSprite ();
+
+       if (sprite.transitioning) {
+          // test the frame and if we're on the right one to transition, do so
+
+          sprite.transitioning = false;
+       }
+   },
+
+   startTransition: function (key) {
+       var self = this;
+
+       var sprite = self.getCurrentSprite ();
+
+       if (sprite.transitioning) {
+          return;
+       }
+
+       var to_anim;
+
+       if (key.all) {
+          // There is only one transition and any frame the sprite is currently on will transition
+          to_anim = key.transitions [0].to_anim;
+       } else {
+          // The transition triggers on a certain frame
+          for (var j = 0; j < key.transitions.length; j++) {
+             if (key.transitions [j].to_anim) {
+                to_anim = key.transitions[j].to_anim;
+                break;
              }
           }
+       }
+       if (to_anim) {
+          self._setSpriteAnim (sprite, to_anim);
+          self.listTransitions (to_anim);
+          self.keysPressed [key.keyCode()] = false;
+          sprite.transitioning = true;
        }
    },
 
@@ -203,15 +243,6 @@ var SpriteTestLayer = cc.Layer.extend ({
 
        // save for later reference
        self.sprites.push (sprite);
-   },
-
-   // Trigger a smooth transition to a new state
-   transitionToState: function (sprite, to_state) {
-       var self = this;
-
-       // tmp, just jump to the first frame of the anim
-       var to_anim = to_state.primary;
-       self._setSpriteAnim (sprite, to_anim);
    },
 
    // Internal function to switch to a new animation
