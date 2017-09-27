@@ -45,6 +45,16 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
          this.setFlippedX (false);
       }
 
+      // Determine the sprite frame index. This is a bit brute force, it could be optimised
+      var userData = this.getUserData ();
+      var frames = userData.animation.getFrames ();
+      for (var index = 0; index < frames.length; index++) {
+         if (newFrame === frames [index].getSpriteFrame ()) {
+            break;
+         }
+      }
+
+      userData.frameIndex = index;
       cc.Sprite.prototype.setSpriteFrame.call (this, newFrame);
    }
 });
@@ -54,6 +64,8 @@ var SpriteTestLayer = cc.Layer.extend ({
    sprites: null,
 
    transitions: null,
+
+   debug: null,
 
    keysPressed: [],
 
@@ -68,6 +80,8 @@ var SpriteTestLayer = cc.Layer.extend ({
       for (var i = 0; i < aq.spritey.test.length; i++) {
          self.initTestSprite (aq.spritey.test [i]);
       }
+
+      self.setupDebug ();
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -92,12 +106,64 @@ var SpriteTestLayer = cc.Layer.extend ({
 
       self.handleKeys ();
       self.handleTransition ();
+      self.handleDebug ();
    },
 
    getCurrentSprite: function () {
        var self = this;
        return self.sprites [0];
    },
+
+   debugItems: [
+      'Frame: '
+   ],
+
+   setupDebug: function () {
+       var self = this;
+
+       var block_size = aq.config.BLOCK_SIZE;
+       var blocks_wide = aq.config.GRID_WIDTH;
+
+       if (!self.debug) {
+          self.debug = new cc.Node ();
+          self.addChild (self.debug);
+       }
+       self.debug.removeAllChildren ();
+
+       var label = new cc.LabelTTF ('', 'Arial', 32);
+       var font_height = label.getLineHeight ();
+
+       var items = self.debugItems;
+
+       self.debug.setPosition (0, 0);
+       var item_pos = cc.p (0, items.length * (font_height - 1));
+       for (var i = 0; i < items.length; i++) {
+          var item_label = new cc.LabelTTF (items [i], 'Arial', 32);
+          item_label.setAnchorPoint (1.0, 0.5);
+          item_label.setPosition (item_pos);
+
+          // Tag the node with the keyCode to lookup later
+          item_label.setTag (i);
+
+          self.debug.addChild (item_label);
+          item_pos.y -= font_height;
+       }
+   },
+
+   updateDebugItem: function (i, data) {
+      var self = this;
+      var item = self.debug.getChildByTag (i);
+      if (item) {
+         item.setString (self.debugItems [i] + data);
+      }
+   },
+
+   handleDebug: function () {
+      var self = this;
+      var sprite = self.getCurrentSprite ();
+
+      self.updateDebugItem (0, sprite.getUserData ().frameIndex);
+    },
 
    handleKeys: function () {
        var self = this;
@@ -133,7 +199,6 @@ var SpriteTestLayer = cc.Layer.extend ({
 
        if (sprite.transitioning) {
           // test the frame and if we're on the right one to transition, do so
-
           sprite.transitioning = false;
        }
    },
@@ -295,6 +360,13 @@ var SpriteTestLayer = cc.Layer.extend ({
           // Save to the AnimationCache
           cc.animationCache.addAnimation (animation, anim.name);
        }
+
+       // Store some of the spritey animation data in the CCSprite
+       sprite.setUserData ({
+          anim: anim,
+          animation: animation,
+          frameIndex: frame
+       });
 
        // Set the first sprite frame
        sprite.setDisplayFrameWithAnimationName (anim.name, frame);
