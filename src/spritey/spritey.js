@@ -59,6 +59,99 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
    }
 });
 
+/**  Extends cc.Animate to allow setting specific
+ *   indexed frames
+ * @class
+ * @extends cc.Animate
+ * @param {cc.Animation} animation
+ * @example
+ * // create the animation with animation starting at frame 5
+ * var anim = new aq.Animate(dance_grey, 5);
+ */
+
+aq.Animate = cc.Animate.extend(/** @lends aq.Animate# */{
+
+   _firstFrame: 0,
+
+    /**
+     * Constructor function. <br />
+     * create the animate with animation.
+     * @param {cc.Animation} animation
+     * @param {frame} frame index (starting at 0)
+     */
+    ctor: function (animation, frame) {
+       this._super (animation);
+
+       if (!frame) {
+          frame = 0;
+       }
+       this._firstFrame = frame;
+    },
+
+    startWithTarget:function (target) {
+
+        // Take into account the delta time past the current frame start
+        var t = this._elapsed / (this._duration > 0.0000001192092896 ? this._duration : 0.0000001192092896);
+        var dt = t - this._splitTimes [this._currFrameIndex];
+
+        // Trigger the new animation
+        cc.ActionInterval.prototype.startWithTarget.call(this, target);
+        if (this._animation.getRestoreOriginalFrame()) {
+            this._origFrame = target.displayFrame();
+        }
+
+        // Update the animation values to correspond with the new start frame
+        this._nextFrame = this._firstFrame % this._splitTimes.length;
+        this._elapsed = ((this._splitTimes [this._nextFrame] + dt) * this._duration);
+        this._executedLoops = 0;
+
+        if (this._firstFrame !== 0) {
+           this._firstTick = false;
+           this._firstFrame = 0;
+        }
+    },
+
+    // This is a copy of the cc.Animate.update method, but with the value of _currFrameIndex stored
+    // as a this. member variable.
+    update: function (dt) {
+        dt = this._computeEaseTime(dt);
+        // if t==1, ignore. Animation should finish with t==1
+        if (dt < 1.0) {
+            dt *= this._animation.getLoops();
+
+            // new loop?  If so, reset frame counter
+            var loopNumber = 0 | dt;
+            if (loopNumber > this._executedLoops) {
+                this._nextFrame = 0;
+                this._executedLoops++;
+            }
+
+            // new t for animations
+            dt = dt % 1.0;
+        }
+
+        var frames = this._animation.getFrames();
+        var numberOfFrames = frames.length, locSplitTimes = this._splitTimes;
+
+        for (var i = this._nextFrame; i < numberOfFrames; i++) {
+            if (locSplitTimes[i] <= dt) {
+                this._currFrameIndex = i;
+                this.target.setSpriteFrame(frames[this._currFrameIndex].getSpriteFrame());
+                this._nextFrame = i + 1;
+            } else {
+                // Issue 1438. Could be more than one frame per tick, due to low frame rate or frame delta < 1/FPS
+                break;
+            }
+        }
+    }
+
+});
+
+aq.animate = function (animation, frame) {
+    return new aq.Animate(animation, frame);
+};
+aq.Animate.create = aq.animate;
+
 var SpriteTestLayer = cc.Layer.extend ({
 
    sprites: null,
@@ -121,9 +214,6 @@ var SpriteTestLayer = cc.Layer.extend ({
    setupDebug: function () {
        var self = this;
 
-       var block_size = aq.config.BLOCK_SIZE;
-       var blocks_wide = aq.config.GRID_WIDTH;
-
        if (!self.debug) {
           self.debug = new cc.Node ();
           self.addChild (self.debug);
@@ -177,7 +267,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        if (sprite.transitioning) {
           return;
        }
-       
+
        // The same key can be defined as a transition more than once in a state
        var labels = self.transitions.getChildren ();
        for (var i = 0; i < labels.length; i++) {
@@ -212,22 +302,25 @@ var SpriteTestLayer = cc.Layer.extend ({
           return;
        }
 
-       var to_anim;
+       var trans_index = 0;
 
-       if (key.all) {
-          // There is only one transition and any frame the sprite is currently on will transition
-          to_anim = key.transitions [0].to_anim;
-       } else {
+       var sprite_frame_index = sprite.getUserData ().frameIndex;
+
+       if (!key.all) {
           // The transition triggers on a certain frame
-          for (var j = 0; j < key.transitions.length; j++) {
-             if (key.transitions [j].to_anim) {
-                to_anim = key.transitions[j].to_anim;
-                break;
-             }
-          }
+          trans_index = sprite_frame_index;
        }
+
+       var to_anim = null;
+       var to_frame = 0;
+       var transition = key.transitions [trans_index];
+       if (transition) {
+          to_anim = transition.to_anim;
+          to_frame = transition.getFrame () - 1;
+       }
+
        if (to_anim) {
-          self._setSpriteAnim (sprite, to_anim);
+          self._setSpriteAnim (sprite, to_anim, to_frame);
           self.listTransitions (to_anim);
           self.keysPressed [key.keyCode()] = false;
           sprite.transitioning = true;
@@ -324,7 +417,7 @@ var SpriteTestLayer = cc.Layer.extend ({
              aq.fatalError ('_setSpriteAnim unknown animation string name: ' + anim);
           }
        }
-       
+
        // Get the Cocos2d animation
        var animation = cc.animationCache.getAnimation (anim.name);   // = anim.anim
        if (!animation) {
@@ -382,7 +475,8 @@ var SpriteTestLayer = cc.Layer.extend ({
        sprite.stopAllActions ();
 
        // start a new one
-       var animate = cc.animate (animation);
+       var animate = aq.animate (animation, frame);
+
        var action = null;
        if (anim.advance) {
           var advanceAnim = cc.callFunc (function () {
@@ -401,9 +495,9 @@ var SpriteTestLayer = cc.Layer.extend ({
        if (anim.name === 'right') {
           var moveDone = cc.callFunc (function (node) {
              //cc.log ("Gumbler Moved");
-             //sprite.stopAction (action); 
+             //sprite.stopAction (action);
           }, self);
-        
+
           var sprite_scale = 4.0;
           var sprite_move_per_frame = 3 * sprite_scale;
           var move_distance_per_anim = sprite_move_per_frame * 6;
