@@ -9,7 +9,7 @@ aq.spritey.objects.Transition = aq.spritey.objects.ScriptObject.extend ({
    // transition to anim object
    to_anim: null,
 
-   // Objects are used to store the numeric frame, xoff and yoff values 
+   // Objects are used to store the numeric frame, xoff and yoff values
    // in order to check for their existence
    _frame: null,
    _xoff: null,
@@ -64,6 +64,10 @@ aq.spritey.objects.Transition = aq.spritey.objects.ScriptObject.extend ({
       this._yoff = parseInt (n);
    },
 
+   getOffset: function () {
+      return cc.p (this.getOffsetX (), this.getOffsetY ());
+   },
+
    description: function () {
       var offset = '';
       if (this._xoff !== null && this._yoff !== null) {
@@ -77,7 +81,7 @@ aq.spritey.objects.Transition = aq.spritey.objects.ScriptObject.extend ({
       } else {
          tmp_string = this.name+':'+this.frame + offset;
       }
-       
+
       return this._type+': ='+tmp_string;
    }
 });

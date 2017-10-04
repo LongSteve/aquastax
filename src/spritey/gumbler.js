@@ -8,7 +8,7 @@ aq.spritey.gumbler = function gumbler () {
    cc.spriteFrameCache.addSpriteFrames (aq.res.GumblerSprites);
 
    // The parser for the Gumbler Animation System script originally output a list of 'GameObject' objects
-   // but it seems somewhat mad to deal with all the parser generator and domain specific language 
+   // but it seems somewhat mad to deal with all the parser generator and domain specific language
    // business now, when we can just code the data definition all up in Javascript.
 
    // Objects to hold state while building the animation data
@@ -57,7 +57,7 @@ aq.spritey.gumbler = function gumbler () {
       aq.spritey.test.push ({
          name: name,
          state: state,
-         frame_num: frame_num,
+         frame_num: frame_num - 1,  // translate from 1 indexed in this script
          position: cc.p (x, y)
       });
    };
@@ -72,10 +72,10 @@ aq.spritey.gumbler = function gumbler () {
          //cc.log ('Begin Animation: ' + current_anim.name);
       } else {
          // End of animation data
-         
+
          // Backfill all object names with references
          for (var anim_name in aq.spritey.animations) {
-            var anim = aq.spritey.animations [anim_name];            
+            var anim = aq.spritey.animations [anim_name];
             if (anim.keys) {
                for (var k = 0; k < anim.keys.length; k++) {
                   var key = anim.keys [k];
@@ -160,7 +160,7 @@ aq.spritey.gumbler = function gumbler () {
             var name_frame = values [0].split (',');
             transition_data = {
                'anim_name': name_frame [0],
-               'anim_frame': parseInt (name_frame [1]),
+               'anim_frame': parseInt (name_frame [1]) - 1,    // why did I ever think 1 indexed was ok!
                'name': 'advance-to(' + name_frame [0] + ')'
             };
             if (value.indexOf ('OFFSET') >= 0 && values.length === 3) {
@@ -231,17 +231,17 @@ aq.spritey.gumbler = function gumbler () {
       return move;
    };
 
-   var move = function (value) {
+   var move = function (moves) {
       if (!current_anim) {
          parse_error ('move specified without current_anim');
       }
 
-      // Set just a single entry into the moves array
-      current_anim.moves = [get_move (value)];
+      current_anim.moves = parse_space_list ('move_all', moves, get_move);
    };
 
-   var move_all = function (moves) {
-      current_anim.moves = parse_space_list ('move_all', moves, get_move);
+   var move_all = function (value) {
+      // Set just a single entry into the moves array
+      current_anim.moves = [get_move (value)];
    };
 
    var get_key = function (key_string) {
