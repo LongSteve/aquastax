@@ -6,7 +6,7 @@ aq.spritey.objects.Image = aq.spritey.objects.ScriptObject.extend ({
    // Script data
    name: null,
    filename: null,
-   center: cc.p (0,0),
+   center: null,
    mirror: false,
    // Runtime data
    image: null,
@@ -28,6 +28,7 @@ aq.spritey.objects.Image = aq.spritey.objects.ScriptObject.extend ({
          }
 
          if (options_string.indexOf ('centre') !== -1) {
+            this.center = cc.p (0,0);
             var re = /.*centre\s?(-?\d+)\s?,\s?(-?\d+).*/;
             var m = options_string.match (re);
             if (m && m.length >= 3) {
