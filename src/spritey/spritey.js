@@ -302,7 +302,7 @@ var SpriteTestLayer = cc.Layer.extend ({
 
        var sprite = self.getCurrentSprite ();
 
-       if (sprite.transitioning) {
+       if (sprite.transition_to) {
           return;
        }
 
@@ -324,10 +324,22 @@ var SpriteTestLayer = cc.Layer.extend ({
        var self = this;
 
        var sprite = self.getCurrentSprite ();
+       var sprite_frame_index = sprite.getUserData ().frameIndex;
 
-       if (sprite.transitioning) {
-          // test the frame and if we're on the right one to transition, do so
-          sprite.transitioning = false;
+       if (sprite.transition_to) {
+          if (sprite.transition_to.now || sprite.transition_to.on_frame === sprite_frame_index) {
+
+             var to_anim = sprite.transition_to.transition.to_anim;
+             var to_frame = sprite.transition_to.transition.getFrame ();
+             var offset = sprite.transition_to.transition.getOffset ();
+
+             self._setSpriteAnim (sprite, to_anim, to_frame, offset);
+             self.listTransitions (to_anim);
+
+             self.keysPressed [sprite.transition_to.key.keyCode()] = false;
+
+             sprite.transition_to = null;
+          }
        }
    },
 
@@ -336,34 +348,50 @@ var SpriteTestLayer = cc.Layer.extend ({
 
        var sprite = self.getCurrentSprite ();
 
-       if (sprite.transitioning) {
+       if (sprite.transition_to) {
           return;
        }
 
-       var trans_index = 0;
-
+       // The current sprite frame
        var sprite_frame_index = sprite.getUserData ().frameIndex;
 
-       if (!key.all) {
+       var transition_to = null;
+       var transition_on_frame = sprite_frame_index;
+       var transition_now = false;
+
+       if (key.all) {
+          // Trigger the transition straight away
+          transition_to = key.transitions [0];
+          transition_now = true;
+       } else {
           // The transition triggers on a certain frame
-          trans_index = sprite_frame_index;
-       }
+         if (key.transitions [sprite_frame_index].to_anim) {
+            // We're on that frame, trigger it now
+            transition_to = key.transitions [sprite_frame_index];
+            transition_now = true;
+         } else {
+            // Loop over the transitions array until we find the next labelled transition frame
+            // This loops over the --> entries in the state_trans_key() entries
+            var num_frames = key.transitions.length;
+            var start = sprite_frame_index;
+            var end = (sprite_frame_index + num_frames - 1) % num_frames;
+            for (var i = start; i !== end; i = (i + 1) % num_frames ) {
+               if (key.transitions [i].to_anim) {
+                  transition_to = key.transitions [i];
+                  transition_on_frame = i;
+                  break;
+               }
+            }
+         }
+      }
 
-       var to_anim = null;
-       var to_frame = 0;
-       var offset = cc.p (0, 0);
-       var transition = key.transitions [trans_index];
-       if (transition) {
-          to_anim = transition.to_anim;
-          to_frame = transition.getFrame ();
-          offset = transition.getOffset ();
-       }
-
-       if (to_anim) {
-          self._setSpriteAnim (sprite, to_anim, to_frame, offset);
-          self.listTransitions (to_anim);
-          self.keysPressed [key.keyCode()] = false;
-          sprite.transitioning = true;
+       if (transition_to !== null) {
+          sprite.transition_to = {
+             transition: transition_to,
+             on_frame: transition_on_frame,
+             now: transition_now,
+             key: key
+          };
        }
    },
 
