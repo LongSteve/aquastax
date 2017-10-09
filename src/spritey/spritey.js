@@ -306,16 +306,31 @@ var SpriteTestLayer = cc.Layer.extend ({
           return;
        }
 
+       var countPressed = 0;
+       for (var k in self.keysPressed) {
+          if (self.keysPressed [k]) {
+             countPressed++;
+          }
+       }
+
        // The same key can be defined as a transition more than once in a state
        var labels = self.transitions.getChildren ();
        for (var i = 0; i < labels.length; i++) {
           var key_label = labels [i];
+          var mod = key_label.mod;
           var key = key_label.key;
           var pressed = self.keysPressed [key.keyCode()];
           key_label.setColor (pressed ? cc.color (0, 255, 0) : cc.color (255, 255, 255));
 
           if (pressed) {
-             self.startTransition (key);
+             if (mod === 0 && countPressed === 1) {
+                self.startTransition (key);
+             } else {
+                var mCode = cc.KEY ['' + mod];
+                if (self.keysPressed [mCode]) {
+                   self.startTransition (key);
+                }
+             }
           }
        }
    },
@@ -413,9 +428,28 @@ var SpriteTestLayer = cc.Layer.extend ({
 
        self.transitions.setPosition (blocks_wide * block_size + 10, 0);
        var key_pos = cc.p (10, num_transitions * (font_height - 1));
-       for (var i = 0; i < num_transitions; i++) {
-          var key = anim.keys [i];
-          var key_name = key.name;
+
+       // loop variables
+       var i, key, key_name, key_label;
+
+       // Calculate the transitions that have matching keypresses,
+       // so they can be numbered
+       var label_counts = [];
+       var label_numbers = [];
+       for (i = 0; i < num_transitions; i++) {
+          key_name = anim.keys [i].name;
+          if (typeof (label_counts [key_name]) === 'undefined') {
+             label_counts [key_name] = 0;
+          }
+          label_counts [key_name]++;
+          label_numbers [key_name] = 0;
+       }
+
+       var display_labels = [];
+
+       for (i = 0; i < num_transitions; i++) {
+          key = anim.keys [i];
+          key_name = key.name;
           var to_anim = null;
           // Find the first non-null transition
           for (var j = 0; j < key.transitions.length; j++) {
@@ -426,17 +460,38 @@ var SpriteTestLayer = cc.Layer.extend ({
           }
           if (to_anim) {
              var to_state = to_anim.to_state ? to_anim.to_state.name : to_anim.major_state.name;
-             var key_label = new cc.LabelTTF (key_name + ' -> ' + to_state, 'Arial', 32);
+             var label_string = key_name + (label_counts [key_name] > 1 ? ' (' + (++label_numbers [key_name]) + ') ' : '') + ' -> ' + to_state;
+             key_label = new cc.LabelTTF (label_string, 'Arial', 32);
              key_label.setAnchorPoint (0, 0.5);
-             key_label.setPosition (key_pos);
 
              // Tag the node with the keyCode to lookup later
              key_label.setTag (key.keyCode ());
              key_label.key = key;
 
-             self.transitions.addChild (key_label);
-             key_pos.y -= font_height;
+             // TODO: Refactor this hack
+             key_label.mod = label_numbers [key_name];
+
+             display_labels.push (key_label);
           }
+       }
+
+       // Sort the labels into a sensible order for visual recognition
+       var order = ['LEFT', 'RIGHT', 'UP', 'DOWN', 'SPACE', 'RETURN', 'K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8', 'K9'];
+       var sorted_labels = order.map (function (key) {
+          return display_labels.filter (function (label) {
+             return (label.getString ().indexOf (key) >= 0);
+          });
+       });
+
+       // Flatten the array of arrays returned by the map/filter
+       sorted_labels = [].concat.apply ([], sorted_labels);
+
+       for (i = 0; i < sorted_labels.length; i++) {
+          key_label = sorted_labels [i];
+
+          key_label.setPosition (key_pos);
+          self.transitions.addChild (key_label);
+          key_pos.y -= font_height;
        }
    },
 
