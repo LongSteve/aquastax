@@ -92,6 +92,20 @@ aq.spritey.gumbler = function gumbler () {
                anim.advance.to_anim = to_anim;
             }
          }
+
+         for (var o in aq.spritey.object_list) {
+            var obj = aq.spritey.object_list [o];
+            // Backfill any global transitions
+            if (obj.type () === 'Key') {
+               if (obj.transitions) {
+                  for (var t = 0; t < obj.transitions.length; t++) {
+                     var tran = obj.transitions [t];
+                     tran.to_anim = aq.spritey.animations [tran.name];
+                  }
+               }
+
+            }
+         }
       }
    };
 
@@ -861,11 +875,11 @@ aq.spritey.gumbler = function gumbler () {
    // Global animation transitions that can occur from any current animation
    //
 
-   global_state_trans_key ('ONCE K2', 'drown,1');
+   global_state_trans_key ('ONCE G', 'drown,1');
 
-   global_state_trans_key ('ONCE K8', 'fallspin,1');
+   global_state_trans_key ('ONCE G', 'fallspin,1');
 
-   global_state_trans_key ('ONCE K1', 'knockspin,1');
+   global_state_trans_key ('ONCE G', 'knockspin,1');
 
    //
    // Animation states
