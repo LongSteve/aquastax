@@ -643,22 +643,6 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
        action.setTag (0);
        sprite.runAction (action);
-
-       // Animation needs to move the sprite, then this sort of works
-       /*
-       if (anim.name === 'right') {
-          var moveDone = cc.callFunc (function (node) {
-             //cc.log ("Gumbler Moved");
-             //sprite.stopAction (action);
-          }, self);
-
-          var sprite_scale = 4.0;
-          var sprite_move_per_frame = 3 * sprite_scale;
-          var move_distance_per_anim = sprite_move_per_frame * 6;
-          var move =  cc.moveBy (0.6, cc.p (move_distance_per_anim, 0));
-          sprite.runAction (cc.repeatForever (cc.sequence (move, moveDone)));
-       }
-       */
    }
 });
 
