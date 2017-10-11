@@ -2,7 +2,7 @@
 'use strict';
 
 aq.spritey.objects.Key = aq.spritey.objects.ScriptObject.extend ({
-   _type: 'key',
+   _type: 'Key',
 
    name: null,
    once: false,

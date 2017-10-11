@@ -14,7 +14,7 @@ aq.spritey.dump = function () {
       if (object_list [o]) {
          var object = object_list [o];
          // Not sure I like this, but it's a shortcoming of the simple class/object structure I adopted
-         if (object._type === 'Image') {
+         if (object.type () === 'Image') {
             image_count++;
          } else {
             cc.log (o + ' : ' + object.description ());
@@ -220,6 +220,8 @@ var SpriteTestLayer = cc.Layer.extend ({
 
    transitions: null,
 
+   global_transitions: null,
+
    debug: null,
 
    keysPressed: [],
@@ -229,6 +231,8 @@ var SpriteTestLayer = cc.Layer.extend ({
 
       // 1. super init first
       self._super ();
+
+      self.initGlobalTransitions ();
 
       self.sprites = [];
 
@@ -262,6 +266,12 @@ var SpriteTestLayer = cc.Layer.extend ({
       self.handleKeys ();
       self.handleTransition ();
       self.handleDebug ();
+
+      // Wrap the sprite at the bottom of the 'screen'
+      var sprite = self.getCurrentSprite ();
+      if (sprite.getPositionY () < 0) {
+         sprite.setPositionY (sprite.getPositionY () + cc.winSize.height);
+      }
    },
 
    getCurrentSprite: function () {
@@ -454,7 +464,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        var key_pos = cc.p (10, num_transitions * (font_height - 1));
 
        // loop variables
-       var i, key, key_name, key_label;
+       var i, key_name;
 
        // Calculate the transitions that have matching keypresses,
        // so they can be numbered
@@ -469,12 +479,23 @@ var SpriteTestLayer = cc.Layer.extend ({
           label_numbers [key_name] = 0;
        }
 
+       var num_global_transitions = self.global_transitions.length;
+       for (i = 0; i < num_global_transitions; i++) {
+          key_name = self.global_transitions [i].name;
+          if (typeof (label_counts [key_name]) === 'undefined') {
+             label_counts [key_name] = 0;
+          }
+          label_counts [key_name]++;
+          label_numbers [key_name] = 0;
+       }
+
        var display_labels = [];
 
-       for (i = 0; i < num_transitions; i++) {
-          key = anim.keys [i];
-          key_name = key.name;
+       var get_key_label = function (key) {
+          var key_name = key.name;
           var to_anim = null;
+          var key_label = null;
+
           // Find the first non-null transition
           for (var j = 0; j < key.transitions.length; j++) {
              if (key.transitions [j].to_anim) {
@@ -494,9 +515,13 @@ var SpriteTestLayer = cc.Layer.extend ({
 
              // TODO: Refactor this hack
              key_label.mod = label_numbers [key_name];
-
-             display_labels.push (key_label);
           }
+
+          return key_label;
+       };
+
+       for (i = 0; i < num_transitions; i++) {
+          display_labels.push (get_key_label (anim.keys [i]));
        }
 
        // Sort the labels into a sensible order for visual recognition
@@ -510,12 +535,37 @@ var SpriteTestLayer = cc.Layer.extend ({
        // Flatten the array of arrays returned by the map/filter
        sorted_labels = [].concat.apply ([], sorted_labels);
 
+       var key_label;
        for (i = 0; i < sorted_labels.length; i++) {
           key_label = sorted_labels [i];
 
           key_label.setPosition (key_pos);
           self.transitions.addChild (key_label);
           key_pos.y -= font_height;
+       }
+
+       key_pos = cc.p (10, (num_transitions + 1 + num_global_transitions) * (font_height - 1));
+       for (i = 0; i < self.global_transitions.length; i++) {
+          key_label = get_key_label (self.global_transitions [i]);
+          key_label.setPosition (key_pos);
+          self.transitions.addChild (key_label);
+          key_pos.y -= font_height;
+       }
+   },
+
+   initGlobalTransitions: function () {
+       var self = this;
+
+       self.global_transitions = [];
+
+       var object_list = aq.spritey.object_list;
+       for (var o in object_list) {
+          if (object_list [o]) {
+             var object = object_list [o];
+             if (object.type () === 'Key') {
+                self.global_transitions.push (object);
+             }
+          }
        }
    },
 
