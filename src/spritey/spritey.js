@@ -58,40 +58,64 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
       cc.Sprite.prototype.setSpriteFrame.call (this, newFrame);
 
       // Need to update the sprite anchor based on the frame centre
-      var image = userData.anim.frames [index];
-      if (image.center) {
-         var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (image.filename);
-         var size = cc_sprite_frame.getOriginalSizeInPixels ();
-         var cx = image.center.x;
-         var cy = image.center.y;
-         var ax = (size.width === 0) ? 0 : cx / size.width;
-         var ay = (size.height === 0) ? 0 : 1.0 - (cy / size.height);
-         if (image.mirror) {
-            ax = 1.0 - ax;
-         }
-         this.setAnchorPoint (ax, ay);
-      } else {
-         this.setAnchorPoint (0.5, 0.0);
-      }
+      this.setFrameAnchor ();
 
       // Move the sprite if necessary (at the beginning of the frame)
-      var moves = userData.anim.moves;
-      var position = this.getPosition ();
-      var scale = this.getScale ();
-      var delta = null;
-      if (moves.length === 1) {
-         // Move the same every frame
-         delta = cc.p (moves [0].x, moves [0].y);
-      } else if (typeof moves [index] !== 'undefined') {
-         delta = cc.p (moves [index].x, moves [index].y);
-      }
-      if (delta !== null && (delta.x !== 0 || delta.y !== 0)) {
-         delta.x *= scale;
-         delta.y *= scale;
-         position.x += delta.x;
-         position.y -= delta.y;
-         this.setPosition (position);
-      }
+      this.moveFrame ();
+   },
+
+   moveFrame: function (offset) {
+
+       // Optional offset, used on animation transitions
+       if (!offset) {
+          offset = cc.p (0, 0);
+       }
+
+       var userData = this.getUserData ();
+       var index = userData.frameIndex;
+
+       var moves = userData.anim.moves;
+       var position = this.getPosition ();
+       var scale = this.getScale ();
+
+       // Normal frame delta
+       var delta = cc.p (0, 0);
+       if (moves.length === 1) {
+          // Move the same every frame
+          delta = cc.p (moves [0].x, moves [0].y);
+       } else if (typeof moves [index] !== 'undefined') {
+          delta = cc.p (moves [index].x, moves [index].y);
+       }
+
+       delta.x += offset.x;
+       delta.y += offset.y;
+
+       if (delta.x !== 0 || delta.y !== 0) {
+          delta.x *= scale;
+          delta.y *= scale;
+          position.x += delta.x;
+          position.y -= delta.y;
+          this.setPosition (position);
+       }
+   },
+
+   setFrameAnchor: function () {
+       var userData = this.getUserData ();
+       var image = userData.anim.frames [userData.frameIndex];
+       if (image.center) {
+          var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (image.filename);
+          var size = cc_sprite_frame.getOriginalSizeInPixels ();
+          var cx = image.center.x;
+          var cy = image.center.y;
+          var ax = (size.width === 0) ? 0 : cx / size.width;
+          var ay = (size.height === 0) ? 0 : 1.0 - (cy / size.height);
+          if (image.mirror) {
+             ax = 1.0 - ax;
+          }
+          this.setAnchorPoint (ax, ay);
+       } else {
+          this.setAnchorPoint (0.5, 0.0);
+       }
    }
 });
 
@@ -596,37 +620,13 @@ var SpriteTestLayer = cc.Layer.extend ({
        sprite.texture.setAliasTexParameters ();
 
        // Anchor point
-       // TODO: Refactor this, it's duplicated from qa.Sprite
-       var image = anim.frames [frame];
-       if (image.center) {
-          var tmp_sprite_frame = cc.spriteFrameCache.getSpriteFrame (image.filename);
-          var size = tmp_sprite_frame.getOriginalSizeInPixels ();
-          var cx = image.center.x;
-          var cy = image.center.y;
-          var ax = (size.width === 0) ? 0 : cx / size.width;
-          var ay = (size.height === 0) ? 0 : 1.0 - (cy / size.height);
-          if (image.mirror) {
-             ax = 1.0 - ax;
-          }
-          this.setAnchorPoint (ax, ay);
-       } else {
-          this.setAnchorPoint (0.5, 0.0);
-       }
+       sprite.setFrameAnchor ();
+
+       // Move the sprite if an offset is required
+       sprite.moveFrame (offset);
 
        // stop all current actions
        sprite.stopAllActions ();
-
-       // Move the sprite if an offset is required
-       var position = sprite.getPosition ();
-       var scale = sprite.getScale ();
-       var delta = cc.p (offset.x, offset.y);
-       delta.x *= scale;
-       delta.y *= scale;
-       if (delta.x !== 0 || delta.y !== 0) {
-          position.x += delta.x;
-          position.y -= delta.y;
-          sprite.setPosition (position);
-       }
 
        // start a new one
        var animate = aq.animate (animation, frame);

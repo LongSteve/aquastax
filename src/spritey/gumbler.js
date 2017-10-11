@@ -285,7 +285,13 @@ aq.spritey.gumbler = function gumbler () {
       } else {
          var trans_values = transition_string.split (' ');
          for (var i = 0; i < trans_values.length; i++) {
-            transition = get_transition (trans_values [i]);
+            var trans = trans_values [i];
+            // handle the ' OFFSET x,y' that can postfix a transition within the list
+            if (i < trans_values.length - 2 && trans_values [i + 1] === 'OFFSET') {
+               trans += ' OFFSET ' + trans_values [i + 2];
+               i += 2;
+            }
+            transition = get_transition (trans);
             key.transitions.push (transition);
          }
       }
@@ -721,17 +727,17 @@ aq.spritey.gumbler = function gumbler () {
    image ('booty5', 'LARGE_gumbler_timeout_booty_01.png', 'CENTRE 14,31 MIRROR');
 
    // GUMBLER TIMEOUT waving
-   image ('waving1', 'LARGE_gumbler_timeout_wave_01.png', 'CENTRE 8,31');
-   image ('waving2', 'LARGE_gumbler_timeout_wave_02.png', 'CENTRE 8,31');
-   image ('waving3', 'LARGE_gumbler_timeout_wave_03.png', 'CENTRE 8,31');
-   image ('waving4', 'LARGE_gumbler_timeout_wave_04.png', 'CENTRE 8,31');
-   image ('waving5', 'LARGE_gumbler_timeout_wave_05.png', 'CENTRE 8,31');
-   image ('waving6', 'LARGE_gumbler_timeout_wave_06.png', 'CENTRE 8,31');
-   image ('waving7', 'LARGE_gumbler_timeout_wave_07.png', 'CENTRE 8,31');
+   image ('waving1', 'LARGE_gumbler_timeout_wave_01.png', 'CENTRE 8,32');
+   image ('waving2', 'LARGE_gumbler_timeout_wave_02.png', 'CENTRE 8,32');
+   image ('waving3', 'LARGE_gumbler_timeout_wave_03.png', 'CENTRE 8,32');
+   image ('waving4', 'LARGE_gumbler_timeout_wave_04.png', 'CENTRE 8,32');
+   image ('waving5', 'LARGE_gumbler_timeout_wave_05.png', 'CENTRE 8,32');
+   image ('waving6', 'LARGE_gumbler_timeout_wave_06.png', 'CENTRE 8,32');
+   image ('waving7', 'LARGE_gumbler_timeout_wave_07.png', 'CENTRE 8,32');
 
    // GUMBLER wave to wait TRANSITION
-   image ('wavetrans1', 'LARGE_gumbler_timeout_wave_trans_01.png', 'CENTRE 8,31');
-   image ('wavetrans2', 'LARGE_gumbler_timeout_wave_trans_02.png', 'CENTRE 8,31');
+   image ('wavetrans1', 'LARGE_gumbler_timeout_wave_trans_01.png', 'CENTRE 8,32');
+   image ('wavetrans2', 'LARGE_gumbler_timeout_wave_trans_02.png', 'CENTRE 8,32');
 
    // GUMBLER TIME OUT hanging on with one (left) arm
    image ('hangL1', 'LARGE_gumbler_hanging_01.png');
@@ -1233,7 +1239,7 @@ aq.spritey.gumbler = function gumbler () {
    begin_anim ('hangstraight2hangL');
    to_state ('hang_lefthand');
    frames ('hangrecoverL8 hangrecoverL7');
-   advance ('hangL,1  OFFSET 5,13');
+   advance ('hangL,1 OFFSET 5,13');
    speed_all (10);
    move_all ('0,0');
 
