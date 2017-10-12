@@ -25,7 +25,7 @@ aq.spritey.dump = function () {
 };
 
 aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
-   setSpriteFrame: function (newFrame) {
+   setSpriteFrame: function (newFrame, noMovement) {
       if (!newFrame) {
          return;
       }
@@ -60,35 +60,49 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
       // Need to update the sprite anchor based on the frame centre
       this.setFrameAnchor ();
 
-      // Move the sprite if necessary (at the beginning of the frame)
-      this.moveFrame ();
+      // Move the sprite if necessary
+      if (!noMovement) {
+         this.moveFrame ();
+      }
+   },
+
+   setDisplayFrameWithNoMovement: function (animationName, frameIndex) {
+       var cache = cc.animationCache.getAnimation (animationName);
+       if (!cache){
+           cc.log (cc._LogInfos.Sprite_setDisplayFrameWithAnimationName);
+           return;
+       }
+       var animFrame = cache.getFrames () [frameIndex];
+       if (!animFrame){
+           cc.log (cc._LogInfos.Sprite_setDisplayFrameWithAnimationName_2);
+           return;
+       }
+       this.setSpriteFrame(animFrame.getSpriteFrame (), true);
    },
 
    moveFrame: function (offset) {
 
-       // Optional offset, used on animation transitions
-       if (!offset) {
-          offset = cc.p (0, 0);
-       }
-
-       let userData = this.getUserData ();
-       let index = userData.frameIndex;
-
-       let moves = userData.anim.moves;
-       let position = this.getPosition ();
-       let scale = this.getScale ();
-
-       // Normal frame delta
        let delta = cc.p (0, 0);
-       if (moves.length === 1) {
-          // Move the same every frame
-          delta = cc.p (moves [0].x, moves [0].y);
-       } else if (typeof moves [index] !== 'undefined') {
-          delta = cc.p (moves [index].x, moves [index].y);
-       }
+       let scale = this.getScale ();
+       let position = this.getPosition ();
 
-       delta.x += offset.x;
-       delta.y += offset.y;
+       // Optional offset, used on animation transitions
+       if (offset) {
+          delta.x += offset.x;
+          delta.y += offset.y;
+       } else {
+          let userData = this.getUserData ();
+          let index = userData.frameIndex;
+          let moves = userData.anim.moves;
+
+          // Normal frame delta
+          if (moves.length === 1) {
+             // Move the same every frame
+             delta = cc.p (moves [0].x, moves [0].y);
+          } else if (typeof moves [index] !== 'undefined') {
+             delta = cc.p (moves [index].x, moves [index].y);
+          }
+       }
 
        if (delta.x !== 0 || delta.y !== 0) {
           delta.x *= scale;
@@ -197,9 +211,13 @@ aq.Animate = cc.Animate.extend(/** @lends aq.Animate# */{
 
         for (let i = this._nextFrame; i < numberOfFrames; i++) {
             if (locSplitTimes[i] <= dt) {
-                this._currFrameIndex = i;
-                this.target.setSpriteFrame(frames[this._currFrameIndex].getSpriteFrame());
-                this._nextFrame = i + 1;
+                if (this._currFrameIndex !== i) {
+                   // This should prevent the double move when advancing an animation, but I'm not sure it does?
+                   this._currFrameIndex = i;
+                   this.target.setSpriteFrame(frames[this._currFrameIndex].getSpriteFrame());
+                   this._nextFrame = i + 1;
+                   break;
+                }
             } else {
                 // Issue 1438. Could be more than one frame per tick, due to low frame rate or frame delta < 1/FPS
                 break;
@@ -659,7 +677,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        });
 
        // Set the first sprite frame
-       sprite.setDisplayFrameWithAnimationName (anim.name, frame);
+       sprite.setDisplayFrameWithNoMovement (anim.name, frame);
 
        // When scaling the sprite don't anti-alias the image, keep a pixel perfect scale.
        // This only works in WebGL, and the opposite (default) is setAntiAliasTexParameters.
