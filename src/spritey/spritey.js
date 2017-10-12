@@ -8,11 +8,11 @@ aq.spritey.states = {};
 aq.spritey.test = [];
 
 aq.spritey.dump = function () {
-   var image_count = 0;
-   var object_list = aq.spritey.object_list;
-   for (var o in object_list) {
+   let image_count = 0;
+   let object_list = aq.spritey.object_list;
+   for (let o in object_list) {
       if (object_list [o]) {
-         var object = object_list [o];
+         let object = object_list [o];
          // Not sure I like this, but it's a shortcoming of the simple class/object structure I adopted
          if (object.type () === 'Image') {
             image_count++;
@@ -30,7 +30,7 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
          return;
       }
 
-      var spriteFrame = newFrame;
+      let spriteFrame = newFrame;
       if (newFrame instanceof cc.AnimationFrame) {
          spriteFrame = newFrame.getSpriteFrame ();
       }
@@ -46,15 +46,15 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
       }
 
       // Determine the sprite frame index. This is a bit brute force, it could be optimised
-      var userData = this.getUserData ();
-      var frames = userData.animation.getFrames ();
-      for (var index = 0; index < frames.length; index++) {
+      let userData = this.getUserData ();
+      let frames = userData.animation.getFrames ();
+      for (let index = 0; index < frames.length; index++) {
          if (newFrame === frames [index].getSpriteFrame ()) {
+            userData.frameIndex = index;
             break;
          }
       }
 
-      userData.frameIndex = index;
       cc.Sprite.prototype.setSpriteFrame.call (this, newFrame);
 
       // Need to update the sprite anchor based on the frame centre
@@ -71,15 +71,15 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
           offset = cc.p (0, 0);
        }
 
-       var userData = this.getUserData ();
-       var index = userData.frameIndex;
+       let userData = this.getUserData ();
+       let index = userData.frameIndex;
 
-       var moves = userData.anim.moves;
-       var position = this.getPosition ();
-       var scale = this.getScale ();
+       let moves = userData.anim.moves;
+       let position = this.getPosition ();
+       let scale = this.getScale ();
 
        // Normal frame delta
-       var delta = cc.p (0, 0);
+       let delta = cc.p (0, 0);
        if (moves.length === 1) {
           // Move the same every frame
           delta = cc.p (moves [0].x, moves [0].y);
@@ -100,15 +100,15 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
    },
 
    setFrameAnchor: function () {
-       var userData = this.getUserData ();
-       var image = userData.anim.frames [userData.frameIndex];
+       let userData = this.getUserData ();
+       let image = userData.anim.frames [userData.frameIndex];
        if (image.center) {
-          var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (image.filename);
-          var size = cc_sprite_frame.getOriginalSizeInPixels ();
-          var cx = image.center.x;
-          var cy = image.center.y;
-          var ax = (size.width === 0) ? 0 : cx / size.width;
-          var ay = (size.height === 0) ? 0 : 1.0 - (cy / size.height);
+          let cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (image.filename);
+          let size = cc_sprite_frame.getOriginalSizeInPixels ();
+          let cx = image.center.x;
+          let cy = image.center.y;
+          let ax = (size.width === 0) ? 0 : cx / size.width;
+          let ay = (size.height === 0) ? 0 : 1.0 - (cy / size.height);
           if (image.mirror) {
              ax = 1.0 - ax;
           }
@@ -152,8 +152,8 @@ aq.Animate = cc.Animate.extend(/** @lends aq.Animate# */{
     startWithTarget:function (target) {
 
         // Take into account the delta time past the current frame start
-        var t = this._elapsed / (this._duration > 0.0000001192092896 ? this._duration : 0.0000001192092896);
-        var dt = t - this._splitTimes [this._currFrameIndex];
+        let t = this._elapsed / (this._duration > 0.0000001192092896 ? this._duration : 0.0000001192092896);
+        let dt = t - this._splitTimes [this._currFrameIndex];
 
         // Trigger the new animation
         cc.ActionInterval.prototype.startWithTarget.call(this, target);
@@ -182,7 +182,7 @@ aq.Animate = cc.Animate.extend(/** @lends aq.Animate# */{
             dt *= this._animation.getLoops();
 
             // new loop?  If so, reset frame counter
-            var loopNumber = 0 | dt;
+            let loopNumber = 0 | dt;
             if (loopNumber > this._executedLoops) {
                 this._nextFrame = 0;
                 this._executedLoops++;
@@ -192,10 +192,10 @@ aq.Animate = cc.Animate.extend(/** @lends aq.Animate# */{
             dt = dt % 1.0;
         }
 
-        var frames = this._animation.getFrames();
-        var numberOfFrames = frames.length, locSplitTimes = this._splitTimes;
+        let frames = this._animation.getFrames();
+        let numberOfFrames = frames.length, locSplitTimes = this._splitTimes;
 
-        for (var i = this._nextFrame; i < numberOfFrames; i++) {
+        for (let i = this._nextFrame; i < numberOfFrames; i++) {
             if (locSplitTimes[i] <= dt) {
                 this._currFrameIndex = i;
                 this.target.setSpriteFrame(frames[this._currFrameIndex].getSpriteFrame());
@@ -236,7 +236,7 @@ var SpriteTestLayer = cc.Layer.extend ({
 
       self.sprites = [];
 
-      for (var i = 0; i < aq.spritey.test.length; i++) {
+      for (let i = 0; i < aq.spritey.test.length; i++) {
          self.initTestSprite (aq.spritey.test [i]);
       }
 
@@ -292,15 +292,15 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
        self.debug.removeAllChildren ();
 
-       var label = new cc.LabelTTF ('', 'Arial', 32);
-       var font_height = label.getLineHeight ();
+       let label = new cc.LabelTTF ('', 'Arial', 32);
+       let font_height = label.getLineHeight ();
 
-       var items = self.debugItems;
+       let items = self.debugItems;
 
        self.debug.setPosition (0, 0);
-       var item_pos = cc.p (0, items.length * (font_height - 1));
-       for (var i = 0; i < items.length; i++) {
-          var item_label = new cc.LabelTTF (items [i], 'Arial', 32);
+       let item_pos = cc.p (0, items.length * (font_height - 1));
+       for (let i = 0; i < items.length; i++) {
+          let item_label = new cc.LabelTTF (items [i], 'Arial', 32);
           item_label.setAnchorPoint (1.0, 0.5);
           item_label.setPosition (item_pos);
 
@@ -334,33 +334,33 @@ var SpriteTestLayer = cc.Layer.extend ({
           return;
        }
 
-       var sprite = self.getCurrentSprite ();
+       let sprite = self.getCurrentSprite ();
 
        if (sprite.transition_to) {
           return;
        }
 
-       var countPressed = 0;
-       for (var k in self.keysPressed) {
+       let countPressed = 0;
+       for (let k in self.keysPressed) {
           if (self.keysPressed [k]) {
              countPressed++;
           }
        }
 
        // The same key can be defined as a transition more than once in a state
-       var labels = self.transitions.getChildren ();
-       for (var i = 0; i < labels.length; i++) {
-          var key_label = labels [i];
-          var mod = key_label.mod;
-          var key = key_label.key;
-          var pressed = self.keysPressed [key.keyCode()];
+       let labels = self.transitions.getChildren ();
+       for (let i = 0; i < labels.length; i++) {
+          let key_label = labels [i];
+          let mod = key_label.mod;
+          let key = key_label.key;
+          let pressed = self.keysPressed [key.keyCode()];
           key_label.setColor (pressed ? cc.color (0, 255, 0) : cc.color (255, 255, 255));
 
           if (pressed) {
              if (mod === 0 && countPressed === 1) {
                 self.startTransition (key);
              } else {
-                var mCode = cc.KEY ['' + mod];
+                let mCode = cc.KEY ['' + mod];
                 if (self.keysPressed [mCode]) {
                    self.startTransition (key);
                 }
@@ -372,15 +372,15 @@ var SpriteTestLayer = cc.Layer.extend ({
    handleTransition: function () {
        var self = this;
 
-       var sprite = self.getCurrentSprite ();
-       var sprite_frame_index = sprite.getUserData ().frameIndex;
+       let sprite = self.getCurrentSprite ();
+       let sprite_frame_index = sprite.getUserData ().frameIndex;
 
        if (sprite.transition_to) {
           if (sprite.transition_to.now || sprite.transition_to.on_frame === sprite_frame_index) {
 
-             var to_anim = sprite.transition_to.transition.to_anim;
-             var to_frame = sprite.transition_to.transition.getFrame ();
-             var offset = sprite.transition_to.transition.getOffset ();
+             let to_anim = sprite.transition_to.transition.to_anim;
+             let to_frame = sprite.transition_to.transition.getFrame ();
+             let offset = sprite.transition_to.transition.getOffset ();
 
              self._setSpriteAnim (sprite, to_anim, to_frame, offset);
              self.listTransitions (to_anim);
@@ -395,18 +395,18 @@ var SpriteTestLayer = cc.Layer.extend ({
    startTransition: function (key) {
        var self = this;
 
-       var sprite = self.getCurrentSprite ();
+       let sprite = self.getCurrentSprite ();
 
        if (sprite.transition_to) {
           return;
        }
 
        // The current sprite frame
-       var sprite_frame_index = sprite.getUserData ().frameIndex;
+       let sprite_frame_index = sprite.getUserData ().frameIndex;
 
-       var transition_to = null;
-       var transition_on_frame = sprite_frame_index;
-       var transition_now = false;
+       let transition_to = null;
+       let transition_on_frame = sprite_frame_index;
+       let transition_now = false;
 
        if (key.all) {
           // Trigger the transition straight away
@@ -421,10 +421,10 @@ var SpriteTestLayer = cc.Layer.extend ({
          } else {
             // Loop over the transitions array until we find the next labelled transition frame
             // This loops over the --> entries in the state_trans_key() entries
-            var num_frames = key.transitions.length;
-            var start = sprite_frame_index;
-            var end = (sprite_frame_index + num_frames - 1) % num_frames;
-            for (var i = start; i !== end; i = (i + 1) % num_frames ) {
+            let num_frames = key.transitions.length;
+            let start = sprite_frame_index;
+            let end = (sprite_frame_index + num_frames - 1) % num_frames;
+            for (let i = start; i !== end; i = (i + 1) % num_frames ) {
                if (key.transitions [i].to_anim) {
                   transition_to = key.transitions [i];
                   transition_on_frame = i;
@@ -456,22 +456,19 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
        self.transitions.removeAllChildren ();
 
-       var num_transitions = anim.keys.length;
-       var label = new cc.LabelTTF ('', 'Arial', 32);
-       var font_height = label.getLineHeight ();
+       let num_transitions = anim.keys.length;
+       let label = new cc.LabelTTF ('', 'Arial', 32);
+       let font_height = label.getLineHeight ();
 
        self.transitions.setPosition (blocks_wide * block_size + 10, 0);
        var key_pos = cc.p (10, num_transitions * (font_height - 1));
 
-       // loop variables
-       var i, key_name;
-
        // Calculate the transitions that have matching keypresses,
        // so they can be numbered
-       var label_counts = [];
-       var label_numbers = [];
-       for (i = 0; i < num_transitions; i++) {
-          key_name = anim.keys [i].name;
+       let label_counts = [];
+       let label_numbers = [];
+       for (let i = 0; i < num_transitions; i++) {
+          let key_name = anim.keys [i].name;
           if (typeof (label_counts [key_name]) === 'undefined') {
              label_counts [key_name] = 0;
           }
@@ -479,9 +476,9 @@ var SpriteTestLayer = cc.Layer.extend ({
           label_numbers [key_name] = 0;
        }
 
-       var num_global_transitions = self.global_transitions.length;
-       for (i = 0; i < num_global_transitions; i++) {
-          key_name = self.global_transitions [i].name;
+       let num_global_transitions = self.global_transitions.length;
+       for (let i = 0; i < num_global_transitions; i++) {
+          let key_name = self.global_transitions [i].name;
           if (typeof (label_counts [key_name]) === 'undefined') {
              label_counts [key_name] = 0;
           }
@@ -489,23 +486,23 @@ var SpriteTestLayer = cc.Layer.extend ({
           label_numbers [key_name] = 0;
        }
 
-       var display_labels = [];
+       let display_labels = [];
 
        var get_key_label = function (key) {
-          var key_name = key.name;
-          var to_anim = null;
-          var key_label = null;
+          let key_name = key.name;
+          let to_anim = null;
+          let key_label = null;
 
           // Find the first non-null transition
-          for (var j = 0; j < key.transitions.length; j++) {
+          for (let j = 0; j < key.transitions.length; j++) {
              if (key.transitions [j].to_anim) {
                 to_anim = key.transitions[j].to_anim;
                 break;
              }
           }
           if (to_anim) {
-             var to_state = to_anim.to_state ? to_anim.to_state.name : to_anim.major_state.name;
-             var label_string = key_name + (label_counts [key_name] > 1 ? ' (' + (++label_numbers [key_name]) + ') ' : '') + ' -> ' + to_state;
+             let to_state = to_anim.to_state ? to_anim.to_state.name : to_anim.major_state.name;
+             let label_string = key_name + (label_counts [key_name] > 1 ? ' (' + (++label_numbers [key_name]) + ') ' : '') + ' -> ' + to_state;
              key_label = new cc.LabelTTF (label_string, 'Arial', 32);
              key_label.setAnchorPoint (0, 0.5);
 
@@ -520,7 +517,7 @@ var SpriteTestLayer = cc.Layer.extend ({
           return key_label;
        };
 
-       for (i = 0; i < num_transitions; i++) {
+       for (let i = 0; i < num_transitions; i++) {
           display_labels.push (get_key_label (anim.keys [i]));
        }
 
@@ -535,9 +532,8 @@ var SpriteTestLayer = cc.Layer.extend ({
        // Flatten the array of arrays returned by the map/filter
        sorted_labels = [].concat.apply ([], sorted_labels);
 
-       var key_label;
-       for (i = 0; i < sorted_labels.length; i++) {
-          key_label = sorted_labels [i];
+       for (let i = 0; i < sorted_labels.length; i++) {
+          let key_label = sorted_labels [i];
 
           key_label.setPosition (key_pos);
           self.transitions.addChild (key_label);
@@ -545,8 +541,8 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
 
        key_pos = cc.p (10, (num_transitions + 1 + num_global_transitions) * (font_height - 1));
-       for (i = 0; i < self.global_transitions.length; i++) {
-          key_label = get_key_label (self.global_transitions [i]);
+       for (let i = 0; i < self.global_transitions.length; i++) {
+          let key_label = get_key_label (self.global_transitions [i]);
           key_label.setPosition (key_pos);
           self.transitions.addChild (key_label);
           key_pos.y -= font_height;
@@ -558,10 +554,10 @@ var SpriteTestLayer = cc.Layer.extend ({
 
        self.global_transitions = [];
 
-       var object_list = aq.spritey.object_list;
-       for (var o in object_list) {
+       let object_list = aq.spritey.object_list;
+       for (let o in object_list) {
           if (object_list [o]) {
-             var object = object_list [o];
+             let object = object_list [o];
              if (object.type () === 'Key') {
                 self.global_transitions.push (object);
              }
@@ -578,10 +574,10 @@ var SpriteTestLayer = cc.Layer.extend ({
        //
        // Sprite for testing the gumbler animations
        //
-       var state = aq.spritey.states [sprite_data.state];
-       var anim = state.primary;
+       let state = aq.spritey.states [sprite_data.state];
+       let anim = state.primary;
 
-       var sprite = new aq.Sprite ();
+       let sprite = new aq.Sprite ();
        sprite.setScale (4);
 
        // tmp position

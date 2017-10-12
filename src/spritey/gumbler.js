@@ -17,7 +17,7 @@ aq.spritey.gumbler = function gumbler () {
    var state_map = aq.spritey.states;
 
    var new_object = function (Ctor, ...args) {
-      var obj = new Ctor (...args);
+      let obj = new Ctor (...args);
       aq.spritey.object_list.push (obj);
       return obj;
    };
@@ -44,12 +44,12 @@ aq.spritey.gumbler = function gumbler () {
    };
 
    var image = function (...args) {
-      var img = new_object (aq.spritey.objects.Image, ...args);
+      let img = new_object (aq.spritey.objects.Image, ...args);
       return map_insert_unique (img, image_map);
    };
 
    var state = function (...args) {
-      var st = new_object (aq.spritey.objects.State, ...args);
+      let st = new_object (aq.spritey.objects.State, ...args);
       return map_insert_unique (st, state_map);
    };
 
@@ -74,32 +74,32 @@ aq.spritey.gumbler = function gumbler () {
          // End of animation data
 
          // Backfill all object names with references
-         for (var anim_name in aq.spritey.animations) {
-            var anim = aq.spritey.animations [anim_name];
+         for (let anim_name in aq.spritey.animations) {
+            let anim = aq.spritey.animations [anim_name];
             if (anim.keys) {
-               for (var k = 0; k < anim.keys.length; k++) {
-                  var key = anim.keys [k];
+               for (let k = 0; k < anim.keys.length; k++) {
+                  let key = anim.keys [k];
                   if (key.transitions) {
-                     for (var t = 0; t < key.transitions.length; t++) {
-                        var tran = key.transitions [t];
+                     for (let t = 0; t < key.transitions.length; t++) {
+                        let tran = key.transitions [t];
                         tran.to_anim = aq.spritey.animations [tran.name];
                      }
                   }
                }
             }
             if (anim.advance) {
-               var to_anim = aq.spritey.animations [anim.advance.name];
+               let to_anim = aq.spritey.animations [anim.advance.name];
                anim.advance.to_anim = to_anim;
             }
          }
 
-         for (var o in aq.spritey.object_list) {
-            var obj = aq.spritey.object_list [o];
+         for (let o in aq.spritey.object_list) {
+            let obj = aq.spritey.object_list [o];
             // Backfill any global transitions
             if (obj.type () === 'Key') {
                if (obj.transitions) {
-                  for (var t = 0; t < obj.transitions.length; t++) {
-                     var tran = obj.transitions [t];
+                  for (let t = 0; t < obj.transitions.length; t++) {
+                     let tran = obj.transitions [t];
                      tran.to_anim = aq.spritey.animations [tran.name];
                   }
                }
@@ -117,7 +117,7 @@ aq.spritey.gumbler = function gumbler () {
          current_anim.major_state = state_map[state_name];
          state_map[state_name].primary = current_anim;
       } else {
-         var e = 'State ' + state_name + ' is not defined.';
+         let e = 'State ' + state_name + ' is not defined.';
          parse_error (e);
       }
    };
@@ -129,7 +129,7 @@ aq.spritey.gumbler = function gumbler () {
       if (state_map[state_name]) {
          current_anim.to_state = state_map[state_name];
       } else {
-         var e = 'State ' + state_name + ' is not defined.';
+         let e = 'State ' + state_name + ' is not defined.';
          parse_error (e);
       }
    };
@@ -141,10 +141,10 @@ aq.spritey.gumbler = function gumbler () {
       if (!list) {
          parse_error (name + ' list cannot be empty');
       }
-      var ls = list.split (' ');
-      var output = [];
-      for (var i = 0; i < ls.length; i++) {
-         var str = ls [i];
+      let ls = list.split (' ');
+      let output = [];
+      for (let i = 0; i < ls.length; i++) {
+         let str = ls [i];
          output.push (item_callback (str));
       }
       return output;
@@ -164,21 +164,21 @@ aq.spritey.gumbler = function gumbler () {
    // as   IDENTIFIER:anim_name COMMA integer:anim_frame
    // or   IDENTIFIER:anim_name COMMA integer:anim_frame OFFSET integer:xoff COMMA integer:yoff
    var get_transition = function (value) {
-      var transition_data = null;
-      var transition = null;
+      let transition_data = null;
+      let transition = null;
       if (value === '-->') {
          transition = new aq.spritey.objects.Transition (null);
       } else {
          try {
-            var values = value.split (' ');
-            var name_frame = values [0].split (',');
+            let values = value.split (' ');
+            let name_frame = values [0].split (',');
             transition_data = {
                'anim_name': name_frame [0],
                'anim_frame': parseInt (name_frame [1]) - 1,    // why did I ever think 1 indexed was ok!
                'name': 'advance-to(' + name_frame [0] + ')'
             };
             if (value.indexOf ('OFFSET') >= 0 && values.length === 3) {
-               var offset = values [2].split (',');
+               let offset = values [2].split (',');
                transition_data.xoff = parseInt (offset [0]);
                transition_data.yoff = parseInt (offset [1]);
             }
@@ -209,7 +209,7 @@ aq.spritey.gumbler = function gumbler () {
    };
 
    var get_speed = function (value) {
-      var s = null;
+      let s = null;
       try {
          s = parseInt (value);
       } catch (e) {
@@ -232,12 +232,12 @@ aq.spritey.gumbler = function gumbler () {
    };
 
    var get_move = function (value) {
-      var move = null;
+      let move = null;
       try {
-         var m = value.split (',');
+         let m = value.split (',');
          // speed value should be (int,int) with negative values possible
-         var x = parseInt (m[0]);
-         var y = parseInt (m[1]);
+         let x = parseInt (m[0]);
+         let y = parseInt (m[1]);
          move = {'x': x, 'y': y, 'name': x+','+y}; // name is useful for debug output, but not otherwise used
       } catch (e) {
          parse_error ('move value parse error. ' + e);
@@ -259,24 +259,24 @@ aq.spritey.gumbler = function gumbler () {
    };
 
    var get_key = function (key_string) {
-      var key_string_lowercase = key_string.toLowerCase ();
-      var once_index = key_string_lowercase.indexOf ('once');
+      let key_string_lowercase = key_string.toLowerCase ();
+      let once_index = key_string_lowercase.indexOf ('once');
 
-      var key_name = null;
+      let key_name = null;
       if (once_index >= 0) {
          key_name = key_string.substring (once_index + 5);
       } else {
          key_name = key_string;
       }
 
-      var key =  new aq.spritey.objects.Key (key_name);
+      let key =  new aq.spritey.objects.Key (key_name);
       key.once = (once_index >= 0);
       return key;
    };
 
    var global_state_trans_key = function (key_string, transition_string) {
-      var key = get_key (key_string);
-      var transition = get_transition (transition_string);
+      let key = get_key (key_string);
+      let transition = get_transition (transition_string);
       key.transitions.push (transition);
 
       aq.spritey.object_list.push (key);
@@ -288,18 +288,18 @@ aq.spritey.gumbler = function gumbler () {
          parse_error ('state_trans_key specified without current_anim');
       }
 
-      var key = get_key (key_string);
-      var transition = null;
-      var transition_string_lower_case = transition_string.toLowerCase ();
+      let key = get_key (key_string);
+      let transition = null;
+      let transition_string_lower_case = transition_string.toLowerCase ();
       if (transition_string_lower_case.indexOf ('all') === 0) {
          key.all = true;
          transition_string = transition_string.substring (4);
          transition = get_transition (transition_string);
          key.transitions.push (transition);
       } else {
-         var trans_values = transition_string.split (' ');
-         for (var i = 0; i < trans_values.length; i++) {
-            var trans = trans_values [i];
+         let trans_values = transition_string.split (' ');
+         for (let i = 0; i < trans_values.length; i++) {
+            let trans = trans_values [i];
             // handle the ' OFFSET x,y' that can postfix a transition within the list
             if (i < trans_values.length - 2 && trans_values [i + 1] === 'OFFSET') {
                trans += ' OFFSET ' + trans_values [i + 2];
