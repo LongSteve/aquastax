@@ -276,6 +276,7 @@ aq.spritey.gumbler = function gumbler () {
 
    var global_state_trans_key = function (key_string, transition_string) {
       let key = get_key (key_string);
+      key.all = true;
       let transition = get_transition (transition_string);
       key.transitions.push (transition);
 
