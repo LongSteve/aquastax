@@ -1,6 +1,28 @@
+16th October 2017
+
+Almost one month after I started on the Gumbler Animation System, I'm at a pretty good point to pause and reflect. It
+is working well, with a significant amount of the original intent of the scripted data still in place.  Some simple (ish)
+overrides of the cc.Sprite class (into an aq.Sprite subclass) allow for per frame updating of image (with mirror), sprite
+position and timings.  All the sprite animations still look really great, and hold up well I think. I had some issues
+with getting the sprite position change (movement) correct, with what appeared to be a bug where the first frame after
+a transition would cause double the expected movement. I think this is resolved, however, after reviewing my original
+java baased Spritey tool, I'm not sure the new animations are identical to the original, but the new ones are good
+enough.
+
+The final set of things to do with the animations, before implementing the gumbler AI is to add in the various extra
+effects that were hard coded within the source.  These include the fishing animation with line and fish drawn overlaid
+in top of the sprite, and the drowning animation, with bubbles drawn overlaid.
+
+14th September 2017
+
+After writing my thoughts out in longhand, and thinking over the dilema of the flipped sprite frames for a day on the
+train, I've implemented a really simple mechanism that overrides the cc.Sprite.setSpriteFrame method.  Saving the
+flippedX property within a cc.SpriteFrame object, and setting the property on the Sprite object as the frame is set,
+works a treat.  With sprite frames cached by name, but saved as cc.Animation objects with the correct horizontal flip
+setting, the sprite object itself can handle the horizontal mirroring.
+
 13th September 2017
 
-ONGOING
 
 Gumbler Animation System History
 
@@ -8,7 +30,7 @@ I have taken the original Gumbler Animation System data file and converted it to
 file was a domain specific language, with the processor implemented by a jflex/cup parser. The processor generated pure 
 binary data (as arrays) from the animations and processed png image files.
 
-The runtime animation system loaded the binary animation and image data, and presented a state machine for the gumblers
+The runtime animation system loaded the binary animation and image data, and presented a state machine for the gumblers,
 handled all the animations and transitions, and rendered the sprites frame by frame.
 
 The complex set of animations, even when encoded at it's highest quality and sprite resolution was still only about
@@ -54,13 +76,6 @@ there are some snags I have hit that I must work out.
   the new system is not quite straightfoward, especially in the areas of individually variable frame times, and sprite
   frame image mirror/flippedX requirements.
 
-14th September 2017
-
-After writing my thoughts out in longhand, and thinking over the dilema of the flipped sprite frames for a day on the
-train, I've implemented a really simple mechanism that overrides the cc.Sprite.setSpriteFrame method.  Saving the
-flippedX property within a cc.SpriteFrame object, and setting the property on the Sprite object as the frame is set,
-works a treat.  With sprite frames cached by name, but saved as cc.Animation objects with the correct horizontal flip
-setting, the sprite object itself can handle the horizontal mirroring.
 
 BUGS
 
