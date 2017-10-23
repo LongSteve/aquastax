@@ -25,6 +25,42 @@ aq.spritey.dump = function () {
 };
 
 aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
+   debugRect: null,
+   ctor: function () {
+      var self = this;
+
+      self._super ();
+
+      //self.debugRect = new cc.DrawNode ();
+      //self.addChild (self.debugRect);
+
+      self.scheduleUpdate ();
+   },
+
+   update: function (dt) {
+       // jshint unused:false
+       var self = this;
+       self._drawDebugRects ();
+   },
+
+   _drawDebugRects: function () {
+       var self = this;
+
+       if (!self.debugRect) {
+          return;
+       }
+
+       let size = self.getContentSize ();
+       self.debugRect.clear ();
+       self.debugRect.drawRect (cc.p (0,0), cc.p (size.width, size.height),
+                                         null, // fillcolor
+                                         1,    // line width
+                                         cc.color (0,255,0,255));
+
+       let app = self.getAnchorPointInPoints ();
+       self.debugRect.drawRect (app, cc.p (app.x + 1, app.y + 1), cc.color (255,0,0,255), 1, cc.color (255,0,0,255));
+   },
+
    setSpriteFrame: function (newFrame, noMovement) {
       if (!newFrame) {
          return;
@@ -130,6 +166,12 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
        } else {
           this.setAnchorPoint (0.5, 0.0);
        }
+   },
+
+   frameMirror: function () {
+       let userData = this.getUserData ();
+       let image = userData.anim.frames [userData.frameIndex];
+       return image.mirror;
    }
 });
 
@@ -596,10 +638,10 @@ var SpriteTestLayer = cc.Layer.extend ({
        let anim = state.primary;
 
        let sprite = new aq.Sprite ();
-       sprite.setScale (4);
+       sprite.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
 
        // tmp position
-       sprite.setPosition (block_size * blocks_wide / 2, block_size * 4);
+       sprite.setPosition (block_size * blocks_wide / 2, 0);
 
        // add to scene
        self.addChild (sprite);
@@ -614,26 +656,11 @@ var SpriteTestLayer = cc.Layer.extend ({
        self.sprites.push (sprite);
    },
 
-   // Internal function to switch to a new animation
-   _setSpriteAnim: function (sprite, anim, frame, offset) {
+   // Get an cc.Animation for an aq.spritey.objects.Anim
+   _getAnimationForAnim: function (anim) {
+       // jshint unused:false
        var self = this;
 
-       if (typeof frame === 'undefined' || frame < 0) {
-          frame = 0;
-       }
-
-       if (typeof anim === 'string') {
-          anim = aq.spritey.animations [anim];
-          if (!anim) {
-             aq.fatalError ('_setSpriteAnim unknown animation string name: ' + anim);
-          }
-       }
-
-       if (typeof offset === 'undefined') {
-          offset = cc.p (0,0);
-       }
-
-       // Get the Cocos2d animation
        var animation = cc.animationCache.getAnimation (anim.name);   // = anim.anim
        if (!animation) {
 
@@ -669,6 +696,31 @@ var SpriteTestLayer = cc.Layer.extend ({
           cc.animationCache.addAnimation (animation, anim.name);
        }
 
+       return animation;
+   },
+
+   // Internal function to switch to a new animation
+   _setSpriteAnim: function (sprite, anim, frame, offset) {
+       var self = this;
+
+       if (typeof frame === 'undefined' || frame < 0) {
+          frame = 0;
+       }
+
+       if (typeof anim === 'string') {
+          anim = aq.spritey.animations [anim];
+          if (!anim) {
+             aq.fatalError ('_setSpriteAnim unknown animation string name: ' + anim);
+          }
+       }
+
+       if (typeof offset === 'undefined') {
+          offset = cc.p (0,0);
+       }
+
+       // Get the Cocos2d animation
+       var animation = self._getAnimationForAnim (anim);
+
        // Store some of the spritey animation data in the CCSprite
        sprite.setUserData ({
           anim: anim,
@@ -692,14 +744,38 @@ var SpriteTestLayer = cc.Layer.extend ({
        // stop all current actions
        sprite.stopAllActions ();
 
-       // start a new one
+       // Handle an overlay animation.
+       sprite.removeChildByTag (99);
+       if (anim.overlay) {
+
+          // Create a new sprite (having removed any existing ones above)
+          let overlay_sprite = new aq.Sprite ();
+          self._setSpriteAnim (overlay_sprite, anim.overlay, frame);
+
+          // Work out the offset. Remember, a child node at 0,0 does not get drawn at the anchor point
+          let overlay_offset = sprite.getAnchorPointInPoints ();
+          overlay_offset.y = -overlay_offset.y;
+
+          overlay_sprite.x = overlay_offset.x;
+          overlay_sprite.y = -overlay_offset.y;
+
+          // Update the sprite userData to include the overlay
+          let userData = sprite.getUserData ();
+          userData.overlay = anim.overlay;
+
+          sprite.addChild (overlay_sprite, -1, 99);
+       }
+
+       // start the new animation
        var animate = aq.animate (animation, frame);
 
        var action = null;
        if (anim.advance) {
           var advanceAnim = cc.callFunc (function () {
              self._setSpriteAnim (sprite, anim.advance.to_anim, anim.advance.getFrame (), anim.advance.getOffset ());
-             self.listTransitions (anim.advance.to_anim);
+             if (!anim.isOverlay) {
+                self.listTransitions (anim.advance.to_anim);
+             }
           });
           action = cc.sequence (animate, advanceAnim);
        } else {

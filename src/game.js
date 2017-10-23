@@ -119,7 +119,7 @@ var GameLayer = cc.Layer.extend ({
       self.gamePanel.addChild (new aq.scenes.SpriteTestScene (), 4);
 
       // Create the first block to drop onto the playing area
-      //self.nextBlock ();
+      self.nextBlock ();
 
       self.moveHighlightL = new cc.DrawNode ();
       self.gamePanel.addChild (self.moveHighlightL, 100);
