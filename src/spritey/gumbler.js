@@ -91,6 +91,11 @@ aq.spritey.gumbler = function gumbler () {
                let to_anim = aq.spritey.animations [anim.advance.name];
                anim.advance.to_anim = to_anim;
             }
+            if (anim.overlay) {
+               let overlay_anim = aq.spritey.animations [anim.overlay];
+               anim.overlay = overlay_anim;
+               anim.overlay.isOverlay = true;
+            }
          }
 
          for (let o in aq.spritey.object_list) {
@@ -1360,7 +1365,7 @@ aq.spritey.gumbler = function gumbler () {
    begin_anim ('fishwaitrodR');
    major_state ('null');
    frames ('fishwaitrodR1 fishwaitrodR2 fishwaitrodR3 fishwaitrodR4');
-   speed_all (10);
+   speed ('100 10 10 10');
    advance ('fishwaitrodR,1');
    move_all ('0,0');
 
@@ -1395,7 +1400,7 @@ aq.spritey.gumbler = function gumbler () {
    begin_anim ('fishwaitrodL');
    major_state ('null');
    frames ('fishwaitrodL1 fishwaitrodL2 fishwaitrodL3 fishwaitrodL4');
-   speed_all (10);
+   speed ('100 10 10 10');
    advance ('fishwaitrodL,1');
    move_all ('0,0');
 

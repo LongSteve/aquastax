@@ -32,7 +32,7 @@ aq.config.SHOW_SPLASH_SCREENS = false;
  * aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR is the value to scale up any
  * old game resources (ie. those taken from the 240x320 sized game)
  */
-aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR = 3.0;
+aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR = 4.0;
 
 /**
  * aq.config.BLOCK_SIZE block size in pixels.  A single square block will
