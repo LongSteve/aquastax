@@ -31,6 +31,7 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
 
       self._super ();
 
+      // Uncomment to show debug rects on sprite
       //self.debugRect = new cc.DrawNode ();
       //self.addChild (self.debugRect);
 
@@ -300,6 +301,8 @@ var SpriteTestLayer = cc.Layer.extend ({
          self.initTestSprite (aq.spritey.test [i]);
       }
 
+      self.initFakeKeySequence ();
+
       self.setupDebug ();
 
       cc.eventManager.addListener ({
@@ -320,6 +323,13 @@ var SpriteTestLayer = cc.Layer.extend ({
       self.keysPressed [keyCode] = pressed;
    },
 
+   clearKeys: function () {
+       var self = this;
+       self.keysPressed.forEach (function (v, i, a) {
+          a [i] = false;
+       });
+   },
+
    update: function () {
       var self = this;
 
@@ -329,7 +339,7 @@ var SpriteTestLayer = cc.Layer.extend ({
 
       // Wrap the sprite at the bottom of the 'screen'
       var sprite = self.getCurrentSprite ();
-      if (sprite.getPositionY () < 0) {
+      if (sprite.getPositionY () <  -sprite.getContentSize ().height) {
          sprite.setPositionY (sprite.getPositionY () + cc.winSize.height);
       }
    },
@@ -358,7 +368,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        let items = self.debugItems;
 
        self.debug.setPosition (0, 0);
-       let item_pos = cc.p (0, items.length * (font_height - 1));
+       let item_pos = cc.p (-20, items.length * (font_height - 1));
        for (let i = 0; i < items.length; i++) {
           let item_label = new cc.LabelTTF (items [i], 'Arial', 32);
           item_label.setAnchorPoint (1.0, 0.5);
@@ -629,7 +639,6 @@ var SpriteTestLayer = cc.Layer.extend ({
        var self = this;
 
        var block_size = aq.config.BLOCK_SIZE;
-       var blocks_wide = aq.config.GRID_WIDTH;
 
        //
        // Sprite for testing the gumbler animations
@@ -641,7 +650,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        sprite.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
 
        // tmp position
-       sprite.setPosition (block_size * blocks_wide / 2, 0);
+       sprite.setPosition (block_size * 6, 0);
 
        // add to scene
        self.addChild (sprite);
@@ -654,6 +663,38 @@ var SpriteTestLayer = cc.Layer.extend ({
 
        // save for later reference
        self.sprites.push (sprite);
+   },
+
+   initFakeKeySequence: function () {
+       var self = this;
+
+       var keyPress = function (keyCode) {
+          return cc.callFunc (function () {
+             self.keyAction (keyCode, true);
+          });
+       };
+
+       var keyClear = function () {
+          return cc.callFunc (function () {
+             self.clearKeys ();
+          });
+       };
+
+       var action = cc.sequence (
+          cc.delayTime (3.0), keyPress (cc.KEY.up),
+          cc.delayTime (7.2), keyPress (cc.KEY.space),
+          cc.delayTime (2.0), keyPress (cc.KEY [7]),
+          cc.delayTime (3.0), keyPress (cc.KEY.right),
+          cc.delayTime (2.0), keyPress (cc.KEY.down),    // sit
+          cc.delayTime (2.0), keyPress (cc.KEY [5]),     // eat
+          cc.delayTime (3.0), keyPress (cc.KEY [6]),     // fish
+          cc.delayTime (3.0), keyPress (cc.KEY.enter),
+          cc.delayTime (1.0), keyPress (cc.KEY.left),
+          cc.delayTime (3.0), keyPress (cc.KEY [9]), keyPress (cc.KEY [1]),   // jiggy
+          cc.delayTime (1.0), keyClear ()
+       );
+
+       self.runAction (action);
    },
 
    // Get an cc.Animation for an aq.spritey.objects.Anim
