@@ -118,7 +118,7 @@ var GameLayer = cc.Layer.extend ({
       self.gamePanel = gamePanel;
 
       // Test out the Gumbler animations
-      self.gamePanel.addChild (new aq.scenes.SpriteTestScene (), 4);
+      self.grid.setSprite(new aq.scenes.SpriteTestScene ());
 
       // Create the first block to drop onto the playing area
       //self.nextBlock ();

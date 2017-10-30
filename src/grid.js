@@ -53,6 +53,9 @@ aq.Grid = cc.Node.extend ({
    // grid break highlight position
    grid_break_highlights: null,
 
+   // Temporary holder for a gumbler sprite
+   tmp_sprite: null,
+
    // Reference to the currently falling block
    falling_block: null,
 
@@ -208,6 +211,12 @@ aq.Grid = cc.Node.extend ({
       }
    },
 
+   setSprite: function (node) {
+       var self = this;
+       self.tmp_sprite = node;
+       self.addChild (node, 4);
+   },
+
    moveToCamera: function (cameraY) {
       var self = this;
 
@@ -262,7 +271,12 @@ aq.Grid = cc.Node.extend ({
       // shift the render positions
       var delta_y = rows * aq.config.BLOCK_SIZE;
       self.y += delta_y;
-      self.falling_block.y -= delta_y;
+      if (self.falling_block) {
+         self.falling_block.y -= delta_y;
+      }
+      if (self.tmp_sprite) {
+         self.tmp_sprite.y -= delta_y;
+      }
       self.groupFloodFill (true);
    },
 
