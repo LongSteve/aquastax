@@ -295,6 +295,7 @@ var SpriteTestLayer = cc.Layer.extend ({
 
       self.initGlobalTransitions ();
 
+      // Although there is a 'concept' of multiple sprites, this isn't fully implemented yet
       self.sprites = [];
 
       for (let i = 0; i < aq.spritey.test.length; i++) {
@@ -638,8 +639,6 @@ var SpriteTestLayer = cc.Layer.extend ({
    initTestSprite: function (sprite_data) {
        var self = this;
 
-       var block_size = aq.config.BLOCK_SIZE;
-
        //
        // Sprite for testing the gumbler animations
        //
@@ -650,7 +649,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        sprite.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
 
        // tmp position
-       sprite.setPosition (block_size * 6, 0);
+       sprite.setPosition (sprite_data.position);
 
        // add to scene
        self.addChild (sprite);
@@ -681,13 +680,13 @@ var SpriteTestLayer = cc.Layer.extend ({
        };
 
        var action = cc.sequence (
-          cc.delayTime (3.0), keyPress (cc.KEY.up),
-          cc.delayTime (7.2), keyPress (cc.KEY.space),
-          cc.delayTime (2.0), keyPress (cc.KEY [7]),
-          cc.delayTime (3.0), keyPress (cc.KEY.right),
-          cc.delayTime (2.0), keyPress (cc.KEY.down),    // sit
-          cc.delayTime (2.0), keyPress (cc.KEY [5]),     // eat
-          cc.delayTime (3.0), keyPress (cc.KEY [6]),     // fish
+          //cc.delayTime (3.0), keyPress (cc.KEY.up),
+          //cc.delayTime (7.2), keyPress (cc.KEY.space),
+          //cc.delayTime (2.0), keyPress (cc.KEY [7]),
+          //cc.delayTime (3.0), keyPress (cc.KEY.right),
+          //cc.delayTime (2.0), keyPress (cc.KEY.down),    // sit
+          //cc.delayTime (2.0), keyPress (cc.KEY [5]),     // eat
+          cc.delayTime (1.0), keyPress (cc.KEY [6]),     // fish
           cc.delayTime (3.0), keyPress (cc.KEY.enter),
           cc.delayTime (1.0), keyPress (cc.KEY.left),
           cc.delayTime (3.0), keyPress (cc.KEY [9]), keyPress (cc.KEY [1]),   // jiggy
