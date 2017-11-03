@@ -351,8 +351,20 @@ var SpriteTestLayer = cc.Layer.extend ({
    },
 
    debugItems: [
+      'State: ',
+      'Anim: ',
       'Frame: '
    ],
+
+   handleDebug: function () {
+      var self = this;
+      var sprite = self.getCurrentSprite ();
+      var data = sprite.getUserData ();
+
+      self.updateDebugItem (0, data.state.name || '');
+      self.updateDebugItem (1, data.anim.name);
+      self.updateDebugItem (2, data.frameIndex);
+    },
 
    setupDebug: function () {
        var self = this;
@@ -390,13 +402,6 @@ var SpriteTestLayer = cc.Layer.extend ({
          item.setString (self.debugItems [i] + data);
       }
    },
-
-   handleDebug: function () {
-      var self = this;
-      var sprite = self.getCurrentSprite ();
-
-      self.updateDebugItem (0, sprite.getUserData ().frameIndex);
-    },
 
    handleKeys: function () {
        var self = this;
@@ -686,8 +691,8 @@ var SpriteTestLayer = cc.Layer.extend ({
           //cc.delayTime (3.0), keyPress (cc.KEY.right),
           //cc.delayTime (2.0), keyPress (cc.KEY.down),    // sit
           //cc.delayTime (2.0), keyPress (cc.KEY [5]),     // eat
-          cc.delayTime (1.0), keyPress (cc.KEY [6]),     // fish
-          cc.delayTime (3.0), keyPress (cc.KEY.enter),
+          //cc.delayTime (1.0), keyPress (cc.KEY [6]),     // fish
+          cc.delayTime (6.0), keyPress (cc.KEY.enter),
           cc.delayTime (1.0), keyPress (cc.KEY.left),
           cc.delayTime (3.0), keyPress (cc.KEY [9]), keyPress (cc.KEY [1]),   // jiggy
           cc.delayTime (1.0), keyClear ()
@@ -761,8 +766,13 @@ var SpriteTestLayer = cc.Layer.extend ({
        // Get the Cocos2d animation
        var animation = self._getAnimationForAnim (anim);
 
+       // Maintain the state
+       var user_data = sprite.getUserData ();
+       var current_state = user_data ? user_data.state : null;
+
        // Store some of the spritey animation data in the CCSprite
        sprite.setUserData ({
+          state: anim.major_state || current_state,
           anim: anim,
           animation: animation,
           frameIndex: frame
