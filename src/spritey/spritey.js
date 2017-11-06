@@ -32,8 +32,8 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
       self._super ();
 
       // Uncomment to show debug rects on sprite
-      //self.debugRect = new cc.DrawNode ();
-      //self.addChild (self.debugRect);
+      self.debugRect = new cc.DrawNode ();
+      self.addChild (self.debugRect);
 
       self.scheduleUpdate ();
    },
@@ -60,6 +60,11 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
 
        let app = self.getAnchorPointInPoints ();
        self.debugRect.drawRect (app, cc.p (app.x + 1, app.y + 1), cc.color (255,0,0,255), 1, cc.color (255,0,0,255));
+
+       let cp = self.getCustomPointForFrame ();
+       if (cp) {
+          self.debugRect.drawRect (cp, cc.p (cp.x, cp.y - 500), cc.color (0,0,255,255), 1, cc.color (0,0,255,255));
+       }
    },
 
    setSpriteFrame: function (newFrame, noMovement) {
@@ -117,6 +122,36 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
        this.setSpriteFrame(animFrame.getSpriteFrame (), true);
    },
 
+   _getPointForFrame: function (anim_array_name, index) {
+       let cp = cc.p (0, 0);
+       let userData = this.getUserData ();
+       let points = userData.anim [anim_array_name];
+
+       if (!points || points.length === 0) {
+          return null;
+       }
+
+       if (typeof index === 'undefined') {
+          index = userData.frameIndex;
+       }
+
+       if (points.length === 1) {
+          cp = cc.p (points [0].x, points [0].y);
+       } else if (typeof points [index] !== 'undefined') {
+          cp = cc.p (points [index].x, points [index].y);
+       }
+
+       return cp;
+   },
+
+   getCustomPointForFrame: function (index) {
+       return this._getPointForFrame ('custom_points', index);
+   },
+
+   getMoveForFrame: function (index) {
+       return this._getPointForFrame ('moves', index);
+   },
+
    moveFrame: function (offset) {
 
        let delta = cc.p (0, 0);
@@ -128,17 +163,7 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
           delta.x += offset.x;
           delta.y += offset.y;
        } else {
-          let userData = this.getUserData ();
-          let index = userData.frameIndex;
-          let moves = userData.anim.moves;
-
-          // Normal frame delta
-          if (moves.length === 1) {
-             // Move the same every frame
-             delta = cc.p (moves [0].x, moves [0].y);
-          } else if (typeof moves [index] !== 'undefined') {
-             delta = cc.p (moves [index].x, moves [index].y);
-          }
+          delta = this.getMoveForFrame ();
        }
 
        if (delta.x !== 0 || delta.y !== 0) {
@@ -706,14 +731,14 @@ var SpriteTestLayer = cc.Layer.extend ({
        // jshint unused:false
        var self = this;
 
-       var animation = cc.animationCache.getAnimation (anim.name);   // = anim.anim
+       let animation = cc.animationCache.getAnimation (anim.name);   // = anim.anim
        if (!animation) {
 
           // Create an Animation from the frames (which reference images)
-          var animation_frames = [];
+          let animation_frames = [];
           for (var f = 0; f < anim.frames.length; f++) {
-             var spritey_frame = anim.frames [f];
-             var cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
+             let spritey_frame = anim.frames [f];
+             let cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
              // Pulling the frame from the cache does not take into account the flippedX/mirror property so we need
              // to clone the sprite frame when necessary if the same frame is used in multiple animations
              if (typeof spritey_frame.mirror !== 'undefined' && cc_sprite_frame.flippedX !== spritey_frame.mirror) {
@@ -721,15 +746,20 @@ var SpriteTestLayer = cc.Layer.extend ({
                 cc_sprite_frame.flippedX = spritey_frame.mirror;
              }
 
-             var speed = 10.0;
+             let speed = 10.0;
              if (anim.speeds) {
                 speed = anim.speeds [f < anim.speeds.length ? f : 0];
              }
 
-             var frame_user_data = {
+             let frame_user_data = {
                 anim: anim,
                 index: f
              };
+
+             if (anim.custom_points) {
+                let cp = anim.custom_points [f < anim.custom_points.length ? f : 0];
+                frame_user_data.custom_point = cp;
+             }
 
              animation_frames.push (new cc.AnimationFrame (cc_sprite_frame, speed / 10.0, frame_user_data));
           }
