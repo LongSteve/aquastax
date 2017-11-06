@@ -263,6 +263,14 @@ aq.spritey.gumbler = function gumbler () {
       current_anim.moves = [get_move (value)];
    };
 
+   var custom_points = function (points) {
+      if (!current_anim) {
+         parse_error ('custom_points specified without current_anim');
+      }
+
+      current_anim.custom_points = parse_space_list ('custom_points', points, get_move);
+   };
+
    var get_key = function (key_string) {
       let key_string_lowercase = key_string.toLowerCase ();
       let once_index = key_string_lowercase.indexOf ('once');
@@ -1330,6 +1338,7 @@ aq.spritey.gumbler = function gumbler () {
    frames ('fishreelR1 fishreelR2 fishreelR3 fishreelR4 fishreelR5 fishreelR6 fishreelR7');
    speed_all (10);
    move_all ('0,0');
+   custom_points ('45,19 41,11 45,6 42,33 39,34 44,31 42,31');
 
    state_trans_key ('ONCE LEFT', 'ALL fishwalkR,1 OFFSET 14,0');
 
@@ -1369,6 +1378,7 @@ aq.spritey.gumbler = function gumbler () {
    speed ('100 10 10 10');
    advance ('fishwaitrodR,1');
    move_all ('0,0');
+   custom_points ('36,9 36,8 36,7 36,1');
 
    begin_anim ('fishrodlineR');
    major_state ('null');
@@ -1404,6 +1414,7 @@ aq.spritey.gumbler = function gumbler () {
    speed ('100 10 10 10');
    advance ('fishwaitrodL,1');
    move_all ('0,0');
+   custom_points ('2,9 2,8 2,7 2,1');
 
    begin_anim ('fishwaitL');
    major_state ('timeout_fish_left');
@@ -1420,6 +1431,7 @@ aq.spritey.gumbler = function gumbler () {
    frames ('fishreelL1 fishreelL2 fishreelL3 fishreelL4 fishreelL5 fishreelL6 fishreelL7');
    speed_all (10);
    move_all ('0,0');
+   custom_points ('2,19 7,11 2,6 5,33 8,34 3,31 5,31');
 
    state_trans_key ('ONCE RIGHT', 'ALL fishwalkL,1 OFFSET -14,0');
 
@@ -1429,13 +1441,15 @@ aq.spritey.gumbler = function gumbler () {
    speed_all (10);
    advance ('fishflapR,1');
    move ('0,0 0,0 -5,0 -2,0 -1,0 0,0 0,0 -5,0 -2,0 -1,0');
+   custom_points ('42,31 41,32 41,30 41,35 41,33 42,31 41,32 41,30 41,35 41,33');
 
    begin_anim ('fishflapR');
    to_state ('wait');
    frames ('fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1');
    speed (' 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 50');
    advance ('Rturn,1 OFFSET -7,0');
-   move ('0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0');
+   move_all ('0,0');
+   custom_points ('42,31');
 
    begin_anim ('fishwalkL');
    to_state ('wait');
@@ -1443,13 +1457,15 @@ aq.spritey.gumbler = function gumbler () {
    speed_all (10);
    advance ('fishflapL,1');
    move ('0,0 0,0 5,0 2,0 1,0 0,0 0,0 5,0 2,0 1,0');
+   custom_points ('5,31 2,32 2,30 2,35 2,33 5,31 2,32 2,30 2,35 2,33');
 
    begin_anim ('fishflapL');
    to_state ('wait');
    frames ('fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1');
    speed (' 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 50');
    advance ('Lturn,1 OFFSET 7,0');
-   move ('0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0');
+   move_all ('0,0');
+   custom_points ('5,31');
 
    begin_anim ('victory');
    major_state ('victory');
