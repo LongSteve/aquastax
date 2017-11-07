@@ -28,7 +28,6 @@ aq.spritey.objects.Anim = aq.spritey.objects.ScriptObject.extend ({
       this.frames = [];
       this.speeds = [];
       this.moves = [];
-      this.custom_points = [];
       this.keys = [];
       return this;
    },
