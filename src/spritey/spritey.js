@@ -60,11 +60,6 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
 
        let app = self.getAnchorPointInPoints ();
        self.debugRect.drawRect (app, cc.p (app.x + 1, app.y + 1), cc.color (255,0,0,255), 1, cc.color (255,0,0,255));
-
-       let cp = self.getCustomPointForFrame ();
-       if (cp) {
-          self.debugRect.drawRect (cp, cc.p (cp.x, cp.y - 500), cc.color (0,0,255,255), 1, cc.color (0,0,255,255));
-       }
    },
 
    setSpriteFrame: function (newFrame, noMovement) {
@@ -368,6 +363,8 @@ var SpriteTestLayer = cc.Layer.extend ({
       if (sprite.getPositionY () <  -sprite.getContentSize ().height) {
          sprite.setPositionY (sprite.getPositionY () + cc.winSize.height);
       }
+
+      self.handleLineAndFish (sprite);
    },
 
    getCurrentSprite: function () {
@@ -716,14 +713,96 @@ var SpriteTestLayer = cc.Layer.extend ({
           //cc.delayTime (3.0), keyPress (cc.KEY.right),
           //cc.delayTime (2.0), keyPress (cc.KEY.down),    // sit
           //cc.delayTime (2.0), keyPress (cc.KEY [5]),     // eat
-          //cc.delayTime (1.0), keyPress (cc.KEY [6]),     // fish
-          cc.delayTime (6.0), keyPress (cc.KEY.enter),
+          //cc.delayTime (2.0), keyPress (cc.KEY [6]),     // fish
+          cc.delayTime (3.0), keyPress (cc.KEY.enter),
           cc.delayTime (1.0), keyPress (cc.KEY.left),
           cc.delayTime (3.0), keyPress (cc.KEY [9]), keyPress (cc.KEY [1]),   // jiggy
           cc.delayTime (1.0), keyClear ()
        );
 
        self.runAction (action);
+   },
+
+   // Setup the extra elements for fishing
+   _setupFishing: function (sprite) {
+      var self = this;
+      var line, fish;
+
+      var anim = sprite.getUserData ().anim;
+      if (anim.name.match (/.*fish.*/gi)) {
+         // Add a DrawNode for the line, and the fish sprite
+          if (!sprite.getChildByName ('line')) {
+             line = new cc.DrawNode ();
+             sprite.addChild (line, 0, 'line');
+          }
+          if (!sprite.getChildByName ('fish')) {
+             fish = new cc.Sprite (aq.res.Fish);
+             fish.setRotation (-90);
+             fish.setAnchorPoint (1.0, 0.95);
+             sprite.addChild (fish, 0, 'fish');
+          }
+
+          self.handleLineAndFish (sprite);
+      }
+   },
+
+   handleLineAndFish: function (sprite) {
+       // jshint unused:false
+       var self = this;
+
+       var anim = sprite.getUserData ().anim;
+       var frame = sprite.getUserData ().frameIndex;
+
+       var line = sprite.getChildByName ('line');
+       var fish = sprite.getChildByName ('fish');
+       var cp = sprite.getCustomPointForFrame ();
+
+       // This array is borrowed directly from the original code, and the numbers is signed byte range values
+       // for a sine table, used to move the fish in a flapping arc when it's being reeled in
+       var FISHFLAP_SIN_TAB = [0,150,243,243,150,0,-150,-243,-243,-150,0,150,243,243,150,0,-150,-243,-243,-150];
+
+       if (line && fish) {
+
+          // Setup the line.  Default to draw from the custom point to below the bottom of the screen
+          line.clear ();
+          fish.setOpacity (0);
+
+          if (cp) {
+
+             let lineTop = cp;
+
+             let LENGTH = cc.winSize.height - sprite.convertToWorldSpace (cp).y;
+             let lineBot = cc.p (cp.x, cp.y - LENGTH);
+
+             let mirror = false;
+
+             if (anim.name === 'fishflapR' || anim.name === 'fishflapL') {
+                let mul = (anim.name === 'fishflapL' ? -1.0 : 1.0);
+                lineBot.x = cp.x + (((FISHFLAP_SIN_TAB [frame] * 10 * mul) / 256) + 8);
+                lineBot.y = cp.y - ((LENGTH - cp.y) / 20) * (20 - frame);
+                mirror = FISHFLAP_SIN_TAB[frame] < 0 ? true : false;
+                if (mul < 0) {
+                   mirror = !mirror;
+                }
+             }
+
+             line.drawSegment (lineTop, lineBot, 1, cc.color (0, 0, 255, 255));
+
+             if (fish) {
+                fish.setPosition (lineBot);
+                fish.setOpacity (255);
+                let sx = fish.getScaleY ();
+                if ((sx > 0 && mirror) || (sx < 0 && !mirror)) {
+                   fish.setScaleY (sx * -1.0);
+                }
+             }
+          }
+       }
+
+       var overlay = sprite.getChildByTag (99);
+       if (overlay) {
+          self.handleLineAndFish (overlay);
+       }
    },
 
    // Get an cc.Animation for an aq.spritey.objects.Anim
@@ -844,6 +923,10 @@ var SpriteTestLayer = cc.Layer.extend ({
           userData.overlay = anim.overlay;
 
           sprite.addChild (overlay_sprite, -1, 99);
+       }
+
+       if (anim.custom_points) {
+          self._setupFishing (sprite);
        }
 
        // start the new animation

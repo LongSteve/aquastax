@@ -1386,6 +1386,7 @@ aq.spritey.gumbler = function gumbler () {
    speed_all (10);
    advance ('fishrodlineR,1');
    move_all ('0,0');
+   custom_points ('36,9');
 
    begin_anim ('fishrodlineL');
    major_state ('null');
@@ -1393,6 +1394,7 @@ aq.spritey.gumbler = function gumbler () {
    speed_all (10);
    advance ('fishrodlineL,1');
    move_all ('0,0');
+   custom_points ('2,9');
 
    begin_anim ('fishlineupR');
    major_state ('null');
@@ -1400,6 +1402,7 @@ aq.spritey.gumbler = function gumbler () {
    speed_all (10);
    advance ('fishlineupR,1');
    move_all ('0,0');
+   custom_points ('36,9');
 
    begin_anim ('fishlineupL');
    major_state ('null');
@@ -1407,6 +1410,7 @@ aq.spritey.gumbler = function gumbler () {
    speed_all (10);
    advance ('fishlineupL,1');
    move_all ('0,0');
+   custom_points ('2,9');
 
    begin_anim ('fishwaitrodL');
    major_state ('null');
@@ -1446,7 +1450,7 @@ aq.spritey.gumbler = function gumbler () {
    begin_anim ('fishflapR');
    to_state ('wait');
    frames ('fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1 fishwalkR1');
-   speed (' 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 50');
+   speed ('10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 50');
    advance ('Rturn,1 OFFSET -7,0');
    move_all ('0,0');
    custom_points ('42,31');
@@ -1462,7 +1466,7 @@ aq.spritey.gumbler = function gumbler () {
    begin_anim ('fishflapL');
    to_state ('wait');
    frames ('fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1 fishwalkL1');
-   speed (' 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 50');
+   speed ('10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 50');
    advance ('Lturn,1 OFFSET 7,0');
    move_all ('0,0');
    custom_points ('5,31');

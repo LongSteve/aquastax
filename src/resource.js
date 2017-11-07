@@ -7,6 +7,7 @@
 aq.res = {
    OriginalLogo:   'res/original_logo.png',
    AquaStaxLogo:   'res/aquastax_logo.png',
+   Fish:           'res/fish.png',
    GumblerTexture: 'res/spritey/gumbler.png',
    GumblerSprites: 'res/spritey/gumbler.plist'
 };
