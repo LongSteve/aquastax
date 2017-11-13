@@ -733,13 +733,14 @@ var SpriteTestLayer = cc.Layer.extend ({
          // Add a DrawNode for the line, and the fish sprite
           if (!sprite.getChildByName ('line')) {
              line = new cc.DrawNode ();
-             sprite.addChild (line, 0, 'line');
+             sprite.addChild (line, -2, 'line');
           }
           if (!sprite.getChildByName ('fish')) {
              fish = new cc.Sprite (aq.res.Fish);
              fish.setRotation (-90);
              fish.setAnchorPoint (1.0, 0.95);
-             sprite.addChild (fish, 0, 'fish');
+             fish.texture.setAliasTexParameters ();
+             sprite.addChild (fish, -3, 'fish');
           }
 
           self.handleLineAndFish (sprite);
@@ -769,24 +770,22 @@ var SpriteTestLayer = cc.Layer.extend ({
 
           if (cp) {
 
-             let lineTop = cp;
-
-             let LENGTH = cc.winSize.height - sprite.convertToWorldSpace (cp).y;
-             let lineBot = cc.p (cp.x, cp.y - LENGTH);
-
              let mirror = false;
 
+             let world_rod_pos = sprite.convertToWorldSpace (cp);
+             // For future reference, I have no idea why the scale factor seems to be effecting the fishing line length
+             let LENGTH = world_rod_pos.y / aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR;
+
+             let lineTop = cp;
+             let lineBot = cc.p (cp.x, cp.y - LENGTH);
+
              if (anim.name === 'fishflapR' || anim.name === 'fishflapL') {
-                let mul = (anim.name === 'fishflapL' ? -1.0 : 1.0);
-                lineBot.x = cp.x + (((FISHFLAP_SIN_TAB [frame] * 10 * mul) / 256) + 8);
+                lineBot.x = cp.x + (((FISHFLAP_SIN_TAB [frame] * 10) / 256) + 8);
                 lineBot.y = cp.y - ((LENGTH - cp.y) / 20) * (20 - frame);
                 mirror = FISHFLAP_SIN_TAB[frame] < 0 ? true : false;
-                if (mul < 0) {
-                   mirror = !mirror;
-                }
              }
 
-             line.drawSegment (lineTop, lineBot, 1, cc.color (0, 0, 255, 255));
+             line.drawSegment (lineTop, lineBot, 0, cc.color.BLACK);
 
              if (fish) {
                 fish.setPosition (lineBot);
