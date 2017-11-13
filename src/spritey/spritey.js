@@ -7,6 +7,10 @@ aq.spritey.animations = {};
 aq.spritey.states = {};
 aq.spritey.test = [];
 
+var SPRITEY_DEBUG = false;
+var FAKE_KEYS = false;
+var KEYS_CONTROL = false;
+
 aq.spritey.dump = function () {
    let image_count = 0;
    let object_list = aq.spritey.object_list;
@@ -31,20 +35,23 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
 
       self._super ();
 
-      // Uncomment to show debug rects on sprite
-      self.debugRect = new cc.DrawNode ();
-      self.addChild (self.debugRect);
-
-      self.scheduleUpdate ();
+      if (SPRITEY_DEBUG) {
+         self.debugRect = new cc.DrawNode ();
+         self.addChild (self.debugRect);
+         self.scheduleUpdate ();
+      }
    },
 
    update: function (dt) {
        // jshint unused:false
        var self = this;
-       self._drawDebugRects ();
+
+       if (SPRITEY_DEBUG) {
+          self._updateDebugRects ();
+       }
    },
 
-   _drawDebugRects: function () {
+   _updateDebugRects: function () {
        var self = this;
 
        if (!self.debugRect) {
@@ -62,7 +69,23 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
        self.debugRect.drawRect (app, cc.p (app.x + 1, app.y + 1), cc.color (255,0,0,255), 1, cc.color (255,0,0,255));
    },
 
-   setSpriteFrame: function (newFrame, noMovement) {
+   /**
+    * Override from cc.Sprite.setSpriteFrame.
+    * Moves the sprite based on the new frame data, when the frame
+    * is set.
+    *
+    * @override
+    */
+   setSpriteFrame: function (newFrame) {
+       this._setSpriteFrame (newFrame, true);
+   },
+
+   /**
+    * Custom setSpriteFrame method that determines the frame index
+    * of the given frame, and optionally moves the sprite, since
+    * movement is tied to frames in the Spritey system.
+    */
+   _setSpriteFrame: function (newFrame, movement) {
       if (!newFrame) {
          return;
       }
@@ -98,12 +121,17 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
       this.setFrameAnchor ();
 
       // Move the sprite if necessary
-      if (!noMovement) {
-         this.moveFrame ();
+      if (movement) {
+         this.move ();
       }
    },
 
-   setDisplayFrameWithNoMovement: function (animationName, frameIndex) {
+   /**
+    * Custom method to set the frame of the sprite, from the
+    * animation name, frame index, and optional movement based
+    * on the frame.
+    */
+   setDisplayFrameWithFrameIndex: function (animationName, frameIndex, movement) {
        var cache = cc.animationCache.getAnimation (animationName);
        if (!cache){
            cc.log (cc._LogInfos.Sprite_setDisplayFrameWithAnimationName);
@@ -114,7 +142,7 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
            cc.log (cc._LogInfos.Sprite_setDisplayFrameWithAnimationName_2);
            return;
        }
-       this.setSpriteFrame(animFrame.getSpriteFrame (), true);
+       this._setSpriteFrame(animFrame.getSpriteFrame (), movement);
    },
 
    _getPointForFrame: function (anim_array_name, index) {
@@ -139,15 +167,38 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
        return cp;
    },
 
+   /**
+    * Getter for frame specific mirror (horizontal flip) status
+    */
+   getMirrorForFrame: function (index) {
+       let userData = this.getUserData ();
+       if (typeof index === 'undefined') {
+          index = userData.frameIndex;
+       }
+
+       let image = userData.anim.frames [userData.frameIndex];
+       return image.mirror;
+   },
+
+   /**
+    * Getter for frame specific custom point data
+    */
    getCustomPointForFrame: function (index) {
        return this._getPointForFrame ('custom_points', index);
    },
 
+   /**
+    * Getter for frame specific movement data
+    */
    getMoveForFrame: function (index) {
        return this._getPointForFrame ('moves', index);
    },
 
-   moveFrame: function (offset) {
+   /**
+    * Move the sprite, based on it's current frame, or with a given
+    * offset delta.
+    */
+   move: function (offset) {
 
        let delta = cc.p (0, 0);
        let scale = this.getScale ();
@@ -170,6 +221,9 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
        }
    },
 
+   /**
+    * Set the anchor point of the sprite based on the current frame
+    */
    setFrameAnchor: function () {
        let userData = this.getUserData ();
        let image = userData.anim.frames [userData.frameIndex];
@@ -187,12 +241,6 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
        } else {
           this.setAnchorPoint (0.5, 0.0);
        }
-   },
-
-   frameMirror: function () {
-       let userData = this.getUserData ();
-       let image = userData.anim.frames [userData.frameIndex];
-       return image.mirror;
    }
 });
 
@@ -299,11 +347,13 @@ var SpriteTestLayer = cc.Layer.extend ({
 
    sprites: null,
 
-   transitions: null,
+   current_anim_keys: null,
 
-   global_transitions: null,
+   global_keys: null,
 
    debug: null,
+
+   transitions: null,
 
    keysPressed: [],
 
@@ -322,9 +372,13 @@ var SpriteTestLayer = cc.Layer.extend ({
          self.initTestSprite (aq.spritey.test [i]);
       }
 
-      self.initFakeKeySequence ();
+      if (SPRITEY_DEBUG) {
+         self.setupDebug ();
+      }
 
-      self.setupDebug ();
+      if (FAKE_KEYS) {
+         self.initFakeKeySequence ();
+      }
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -395,6 +449,7 @@ var SpriteTestLayer = cc.Layer.extend ({
           self.debug = new cc.Node ();
           self.addChild (self.debug);
        }
+
        self.debug.removeAllChildren ();
 
        let label = new cc.LabelTTF ('', 'Arial', 32);
@@ -419,6 +474,11 @@ var SpriteTestLayer = cc.Layer.extend ({
 
    updateDebugItem: function (i, data) {
       var self = this;
+
+      if (!self.debug) {
+         return;
+      }
+
       var item = self.debug.getChildByTag (i);
       if (item) {
          item.setString (self.debugItems [i] + data);
@@ -427,10 +487,6 @@ var SpriteTestLayer = cc.Layer.extend ({
 
    handleKeys: function () {
        var self = this;
-
-       if (!self.transitions) {
-          return;
-       }
 
        let sprite = self.getCurrentSprite ();
 
@@ -446,13 +502,15 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
 
        // The same key can be defined as a transition more than once in a state
-       let labels = self.transitions.getChildren ();
-       for (let i = 0; i < labels.length; i++) {
-          let key_label = labels [i];
-          let mod = key_label.mod;
-          let key = key_label.key;
+       for (let i = 0; i < self.current_anim_keys.length; i++) {
+          let key = self.current_anim_keys [i];
+          let mod = key.mod;
+
           let pressed = self.keysPressed [key.keyCode()];
-          key_label.setColor (pressed ? cc.color (0, 255, 0) : cc.color (255, 255, 255));
+
+          if (key.label) {
+             key.label.setColor (pressed ? cc.color (0, 255, 0) : cc.color (255, 255, 255));
+          }
 
           if (pressed) {
              if (mod === 0 && countPressed === 1) {
@@ -481,7 +539,7 @@ var SpriteTestLayer = cc.Layer.extend ({
              let offset = sprite.transition_to.transition.getOffset ();
 
              self._setSpriteAnim (sprite, to_anim, to_frame, offset);
-             self.listTransitions (to_anim);
+             self._initTransitions (to_anim);
 
              self.keysPressed [sprite.transition_to.key.keyCode()] = false;
 
@@ -542,19 +600,48 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
    },
 
-   listTransitions: function (anim) {
+   _initTransitions: function (anim) {
        var self = this;
 
+       if (!anim.keys) {
+          return;
+       }
+
+       let num_transitions = anim.keys.length;
+       let num_global_transitions = self.global_keys.length;
+
+       // Stash a list of all the anim transitions
+       self.current_anim_keys = [];
+       for (let i = 0; i < num_transitions; i++) {
+          self.current_anim_keys.push (anim.keys [i]);
+       }
+       for (let i = 0; i < num_global_transitions; i++) {
+          self.current_anim_keys.push (self.global_keys [i]);
+       }
+   },
+
+   _debugListTransitions: function (anim) {
+       var self = this;
+
+       if (!anim.keys) {
+          return;
+       }
+
+       // Now visually create a list to display
        var block_size = aq.config.BLOCK_SIZE;
        var blocks_wide = aq.config.GRID_WIDTH;
 
        if (!self.transitions) {
           self.transitions = new cc.Node ();
-          self.addChild (self.transitions);
+          if (KEYS_CONTROL) {
+             self.addChild (self.transitions);
+          }
        }
        self.transitions.removeAllChildren ();
 
        let num_transitions = anim.keys.length;
+       let num_global_transitions = self.global_keys.length;
+
        let label = new cc.LabelTTF ('', 'Arial', 32);
        let font_height = label.getLineHeight ();
 
@@ -562,7 +649,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        var key_pos = cc.p (10, num_transitions * (font_height - 1));
 
        // Calculate the transitions that have matching keypresses,
-       // so they can be numbered
+       // so they can be numbered with a modifier
        let label_counts = [];
        let label_numbers = [];
        for (let i = 0; i < num_transitions; i++) {
@@ -574,9 +661,8 @@ var SpriteTestLayer = cc.Layer.extend ({
           label_numbers [key_name] = 0;
        }
 
-       let num_global_transitions = self.global_transitions.length;
        for (let i = 0; i < num_global_transitions; i++) {
-          let key_name = self.global_transitions [i].name;
+          let key_name = self.global_keys [i].name;
           if (typeof (label_counts [key_name]) === 'undefined') {
              label_counts [key_name] = 0;
           }
@@ -606,10 +692,10 @@ var SpriteTestLayer = cc.Layer.extend ({
 
              // Tag the node with the keyCode to lookup later
              key_label.setTag (key.keyCode ());
-             key_label.key = key;
+             key.label = key_label;
 
              // TODO: Refactor this hack
-             key_label.mod = label_numbers [key_name];
+             key.mod = label_numbers [key_name];
           }
 
           return key_label;
@@ -639,8 +725,8 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
 
        key_pos = cc.p (10, (num_transitions + 1 + num_global_transitions) * (font_height - 1));
-       for (let i = 0; i < self.global_transitions.length; i++) {
-          let key_label = get_key_label (self.global_transitions [i]);
+       for (let i = 0; i < self.global_keys.length; i++) {
+          let key_label = get_key_label (self.global_keys [i]);
           key_label.setPosition (key_pos);
           self.transitions.addChild (key_label);
           key_pos.y -= font_height;
@@ -650,14 +736,14 @@ var SpriteTestLayer = cc.Layer.extend ({
    initGlobalTransitions: function () {
        var self = this;
 
-       self.global_transitions = [];
+       self.global_keys = [];
 
        let object_list = aq.spritey.object_list;
        for (let o in object_list) {
           if (object_list [o]) {
              let object = object_list [o];
              if (object.type () === 'Key') {
-                self.global_transitions.push (object);
+                self.global_keys.push (object);
              }
           }
        }
@@ -681,11 +767,11 @@ var SpriteTestLayer = cc.Layer.extend ({
        // add to scene
        self.addChild (sprite);
 
-       // Show the state transitions
-       self.listTransitions (anim);
-
        // tmp starting animation
        self._setSpriteAnim (sprite, anim, sprite_data.frame_num);
+
+       // Show the state transitions
+       self._initTransitions (anim);
 
        // save for later reference
        self.sprites.push (sprite);
@@ -693,6 +779,10 @@ var SpriteTestLayer = cc.Layer.extend ({
 
    initFakeKeySequence: function () {
        var self = this;
+
+       if (!FAKE_KEYS) {
+          return;
+       }
 
        var keyPress = function (keyCode) {
           return cc.callFunc (function () {
@@ -886,8 +976,8 @@ var SpriteTestLayer = cc.Layer.extend ({
           frameIndex: frame
        });
 
-       // Set the first sprite frame
-       sprite.setDisplayFrameWithNoMovement (anim.name, frame);
+       // Set the first sprite frame, with no movement
+       sprite.setDisplayFrameWithFrameIndex (anim.name, frame, false);
 
        // When scaling the sprite don't anti-alias the image, keep a pixel perfect scale.
        // This only works in WebGL, and the opposite (default) is setAntiAliasTexParameters.
@@ -897,7 +987,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        sprite.setFrameAnchor ();
 
        // Move the sprite if an offset is required
-       sprite.moveFrame (offset);
+       sprite.move (offset);
 
        // stop all current actions
        sprite.stopAllActions ();
@@ -936,7 +1026,7 @@ var SpriteTestLayer = cc.Layer.extend ({
           var advanceAnim = cc.callFunc (function () {
              self._setSpriteAnim (sprite, anim.advance.to_anim, anim.advance.getFrame (), anim.advance.getOffset ());
              if (!anim.isOverlay) {
-                self.listTransitions (anim.advance.to_anim);
+                self._initTransitions (anim.advance.to_anim);
              }
           });
           action = cc.sequence (animate, advanceAnim);
