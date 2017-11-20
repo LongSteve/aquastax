@@ -1,3 +1,67 @@
+20th November 2017
+
+I've now completed the fishing animation for the gumbler, and it looks pretty good.  I still only have a 'test' scene
+that contains a single gumbler sprite, and not a system to contain multiple sprites yet.  The question now is about
+how much further I take the gumbler classes, without starting to put in place the framework for pathfinding, movement
+and AI.  I'm going to list here all the various logical functions of the old AquaStax2.java handleGumblers method,
+which took care of all little buggers in the original game.  This should hopefully give me a to-do list of sorts:
+
+Local Calculated State:
+
+1) all gumblers drowned
+2) all gumblers rescued
+
+Loop over each active Gumbler:
+
+- Update Sprite at 20fps
+- Set speed factor if climbing
+- Check for state change request (from the level script)
+- If no requested change, call animateGumbler:
+- Handle drowning
+- Handle exiting
+- Handle exited
+- Handle the disco pickup
+- Check for drowning
+- Check if has reached exit
+- Check for pickups
+- Check for blundering into hazard
+
+animateGumbler
+
+This is the general logic for the gumbler walking, climbing and timeout.  This is a great comment, lifted from the
+original code:
+
+//
+// In general, a Gumbler wants to be positioned on the bottom middle of an empty block, above a solid block.
+// If the block width of the area he's standing upon is 2 blocks or less, he'll wait, standing still, with appropriate timeouts.
+// If the block width is 3 or more blocks wide, he'll wander about.  If he is standing upon a block or platform (but not the ground)
+// with nothing to the side, he might sit down, and even start fishing.
+//
+// He'll only start to climb up a set of blocks when it gets to 2 blocks or higher.  That is, there has to be a block on the square
+// upon which he's positioned, and one above it.  When he gets to the square before the top of a tower, he will hang for a short while
+// and then climb up onto the top of the blocks.
+//
+
+Here's the basic logic for animateGumbler:
+
+- If climbing or walking, run pathfinding to determine direction requirements
+- If knocked off, update based on looping path and falling
+- Determine climb animation based on direction requirements
+- Check for falling (when the stack is collapsed)
+- Handle wakeup of a sleeping gumbler
+- Handle random timeouts for a sitting gumbler
+- Handle the fishing and reeling in
+- Handle hitting platform (and play area) edges and turning around
+
+The combined functions of handleGumblers and animateGumbler total of 1337 lines of code.  That's a lot, for just two
+functions!  Then there is another 411 lines of code, comprising a dozen helper functions such as canWalkOn, waterIsClose
+etc.
+
+I think I will ponder this complexity for a little while before I dive in.  All this code is without any external references
+or libraries.  It is pure, hard coded logic, designed very specifically with the internals of the old game in mind. Although
+it was thoroughly tested, the same logic might not hold up in the new system, but it is a lot to have to re-write from
+scratch.
+
 16th October 2017
 
 Almost one month after I started on the Gumbler Animation System, I'm at a pretty good point to pause and reflect. It
