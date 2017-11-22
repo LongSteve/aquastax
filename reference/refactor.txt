@@ -1,3 +1,12 @@
+22nd November 2017
+
+I have chosen a plan for continued development in the mid term.  I am not going to reuse verbatim the old Gumbler
+animation logic.  I have not re-used existing logic wholesale yet, except for the animation description, which I
+consider data and not logic.  I am first going to work on the grid metadata, describing the various movement related
+areas, creating something equivalent to a navigation mesh. With visual representation or where the gumblers can walk,
+climb, stand and sit, this will be the perfect place to move into the pathfinding logic.  Once that is done, the
+movement directives and state machine will probably come almost automatically by filling in the gaps.
+
 20th November 2017
 
 I've now completed the fishing animation for the gumbler, and it looks pretty good.  I still only have a 'test' scene
