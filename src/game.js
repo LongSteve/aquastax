@@ -67,6 +67,9 @@ var GameLayer = cc.Layer.extend ({
    // grid
    grid: null,
 
+   // navigation data
+   navigation: null,
+
    // currently falling block
    block: null,
 
@@ -118,10 +121,10 @@ var GameLayer = cc.Layer.extend ({
       self.gamePanel = gamePanel;
 
       // Test out the Gumbler animations
-      self.grid.setSprite(new aq.scenes.SpriteTestScene ());
+      //self.grid.setSprite(new aq.scenes.SpriteTestScene ());
 
       // Create the first block to drop onto the playing area
-      self.nextBlock ();
+      //self.nextBlock ();
 
       self.moveHighlightL = new cc.DrawNode ();
       self.gamePanel.addChild (self.moveHighlightL, 100);
@@ -213,6 +216,10 @@ var GameLayer = cc.Layer.extend ({
          }
          self.grid.groupFloodFill (true);
       }
+
+      // Navigation
+      self.navigation = new aq.Navigation ();
+      self.navigation.initWithGrid (self.grid);
       
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,

@@ -72,7 +72,7 @@ aq.Grid = cc.Node.extend ({
    // Each entry uses the following bit pattern:
    //
    // 31            23            15         7    3    0
-   // | t1 tile num | t2 tile num | flags    | t2 | t1
+   // | t1 tile num | t2 tile num | flags    | t2 | t1 |
    //
    game_grid: null,
 
