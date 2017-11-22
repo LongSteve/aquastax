@@ -92,6 +92,9 @@ aq.Grid = cc.Node.extend ({
    cluster_list: null,
    group_list: null,
 
+   // Navigation data
+   navigation: null,
+
    // tmp 1 cell block for collision testing
    tmpBlock: null,
 
@@ -138,11 +141,20 @@ aq.Grid = cc.Node.extend ({
          self.addChild (self.grid_break_highlights, 500);
       }
 
+      // Navigation
+      self.navigation = new aq.Navigation ();
+      self.navigation.initWithGrid (self);
+
+      self.addChild (self.navigation.updateDebugNavNodes ());
+
       self.scheduleUpdate ();
    },
 
    update: function () {
       var self = this;
+
+      self.navigation.updateNavData ();
+      self.navigation.updateDebugNavNodes ();
 
       if (self.falling_block) {
 
@@ -293,14 +305,14 @@ aq.Grid = cc.Node.extend ({
 
          p1 = cc.p (x,0);
          p2 = cc.p (x, (self.blocks_high * block_size));
-         drawNode.drawSegment (p1, p2, 1, cc.color.white);
+         drawNode.drawSegment (p1, p2, 1, cc.color.WHITE);
       }
 
       for (var y = 0; y <= self.blocks_high * block_size; y += block_size) {
 
          p1 = cc.p (0, y);
          p2 = cc.p (0 + (self.blocks_wide * block_size), y);
-         drawNode.drawSegment (p1, p2, 1, cc.color.white);
+         drawNode.drawSegment (p1, p2, 1, cc.color.WHITE);
       }
       return drawNode;
    },
