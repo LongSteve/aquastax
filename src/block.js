@@ -1,8 +1,8 @@
 'use strict';
 
 // Set this to a color to force all blocks to one color, useful for debugging
-var FIXED_BLOCK_COLOR = null;
-//var FIXED_BLOCK_COLOR = cc.color (128,128,128,128);
+//var FIXED_BLOCK_COLOR = null;
+var FIXED_BLOCK_COLOR = cc.color (128,128,128,128);
 
 // Set this to add a tiny single triangle to the tile set, useful for debugging
 var INCLUDE_SINGLE_TRIANGLE_TILE = false;
