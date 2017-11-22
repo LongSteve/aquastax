@@ -67,9 +67,6 @@ var GameLayer = cc.Layer.extend ({
    // grid
    grid: null,
 
-   // navigation data
-   navigation: null,
-
    // currently falling block
    block: null,
 
@@ -216,10 +213,6 @@ var GameLayer = cc.Layer.extend ({
          }
          self.grid.groupFloodFill (true);
       }
-
-      // Navigation
-      self.navigation = new aq.Navigation ();
-      self.navigation.initWithGrid (self.grid);
       
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
