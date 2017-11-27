@@ -144,7 +144,6 @@ aq.Grid = cc.Node.extend ({
       // Navigation
       self.navigation = new aq.Navigation ();
       self.navigation.initWithGrid (self);
-
       self.addChild (self.navigation.updateDebugNavNodes ());
 
       self.scheduleUpdate ();
@@ -153,6 +152,7 @@ aq.Grid = cc.Node.extend ({
    update: function () {
       var self = this;
 
+      // TODO: Optimise. This really only needs to be done when the grid data changes, so when a block lands
       self.navigation.updateNavData ();
       self.navigation.updateDebugNavNodes ();
 
