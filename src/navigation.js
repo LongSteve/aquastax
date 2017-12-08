@@ -6,10 +6,13 @@ var SIT_RIGHT     = (1 << 10);
 //var STAND_LEFT    = (1 << 11);
 //var STAND_RIGHT   = (1 << 12);
 
-aq.Navigation = cc.Class.extend ({
+aq.Navigation = cc.Node.extend ({
 
    // Reference to the game grid
    grid: null,
+
+   // Gumbler sprite (TODO: Handle multiple sprites)
+   gumbler: null,
 
    // Debug draw nodes to display the nav data
    debug_node: null,
@@ -25,6 +28,11 @@ aq.Navigation = cc.Class.extend ({
    nav_grid: null,
 
    ctor: function () {
+      var self = this;
+
+      // super init first
+      self._super ();
+
       return this;
    },
 
@@ -38,39 +46,64 @@ aq.Navigation = cc.Class.extend ({
       for (let i = 0; i < self.grid.grid_cell_count; i++) {
          self.nav_grid [i] = self.grid.game_grid [i] & 0xff;
       }
+
+      self.debug_node = new cc.Node ();
+      self.addChild (self.debug_node);
+
+      self.updateDebugNavNodes ();
+
+      self.scheduleUpdate ();
+   },
+
+   addGumbler: function (node) {
+      var self = this;
+      self.gumbler = node;
+   },
+
+   update: function () {
+      var self = this;
+
+      // Navigation (of the Gumblers)
+      // TODO: Optimise. This really only needs to be done when the grid data changes, so when a block lands.
+      // The grid should send an event which the navigation class listens for and handles.
+      self.updateNavData ();
+      self.updateDebugNavNodes ();
    },
 
    updateDebugNavNodes: function () {
       var self = this;
 
-      if (!self.debug_node) {
-         self.debug_node = new cc.Node ();
-      }
       self.debug_node.removeAllChildren ();
 
-      var n = self.debug_node;
+      let grid_nav = new cc.DrawNode ();
 
       for (let i = 0; i < self.grid.grid_cell_count; i++) {
          let p = self.grid.getGridPositionForIndex (i);
          if (self.canWalk (i)) {
             let p1 = cc.p (p.x + 1, p.y + 1);
             let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE - 2, p1.y);
-            let drawNode = new cc.DrawNode ();
-            drawNode.drawSegment (p1, p2, 2, cc.color.GREEN);
-            n.addChild (drawNode, 1);
+            grid_nav.drawSegment (p1, p2, 2, cc.color.GREEN);
 
             if (self.canSitLeft (i)) {
-               //let drawNode = new cc.DrawNode ();
-               drawNode.drawDot (p, 4, cc.color.BLUE);
-               //n.addChild (drawNode, 2);
+               grid_nav.drawDot (p, 4, cc.color.BLUE);
             }
 
             if (self.canSitRight (i)) {
                let p1 = cc.p (p.x, p.y);
                p1.x += aq.config.BLOCK_SIZE;
-               drawNode.drawDot (p1, 4, cc.color.YELLOW);
+               grid_nav.drawDot (p1, 4, cc.color.YELLOW);
             }
          }
+      }
+
+      self.debug_node.addChild (grid_nav, 1);
+
+      if (self.gumbler) {
+         let p1 = self.grid.getGridPositionForNode (self.gumbler);
+         let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE, p1.y + aq.config.BLOCK_SIZE);
+         let gumbler_nav = new cc.DrawNode ();
+         gumbler_nav.drawRect (p1, p2, null, 1, cc.color.YELLOW);
+         self.debug_node.addChild (gumbler_nav);
       }
 
       return self.debug_node;
