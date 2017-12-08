@@ -103,26 +103,28 @@ var GameLayer = cc.Layer.extend ({
       var w = block_size * blocks_wide;
       var h = cc.winSize.height;
 
-      var gamePanel = new cc.LayerColor (cc.color (128,0,0,255), w, h);
-      gamePanel.x = (cc.winSize.width - w) / 2;
-      gamePanel.y = 0;
-
       var blocks_high = Math.ceil ((h * 1.2) / block_size);
 
-      self.addChild (gamePanel, 0);
+      // Root of gameplay area
+      self.gamePanel = new cc.LayerColor (cc.color (128,0,0,255), w, h);
+      self.gamePanel.setPosition ((cc.winSize.width - w) / 2, 0);
+      self.addChild (self.gamePanel, 0);
 
+      // Grid
       self.grid = new aq.Grid (blocks_wide, blocks_high);
+      self.gamePanel.addChild (self.grid, 2);
 
-      gamePanel.addChild (self.grid, 2);
-
-      self.gamePanel = gamePanel;
-
-      // Test out the Gumbler animations
-      //self.grid.setSprite(new aq.scenes.SpriteTestScene ());
+      // Navigation
+      self.navigation = new aq.Navigation ();
+      self.navigation.initWithGrid (self.grid);
+      self.gamePanel.addChild (self.navigation, 3);
 
       // Create the first block to drop onto the playing area
       self.nextBlock ();
 
+      //
+      // Some indicators and debug info
+      //
       self.moveHighlightL = new cc.DrawNode ();
       self.gamePanel.addChild (self.moveHighlightL, 100);
 

@@ -7,9 +7,10 @@ aq.spritey.animations = {};
 aq.spritey.states = {};
 aq.spritey.test = [];
 
-var SPRITEY_DEBUG = false;
+var SPRITEY_DEBUG = true;
 var FAKE_KEYS = false;
-var KEYS_CONTROL = false;
+var KEYS_CONTROL = true;
+var SPRITEY_ALPHA = 255;
 
 aq.spritey.dump = function () {
    let image_count = 0;
@@ -40,6 +41,10 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
          self.addChild (self.debugRect);
          self.scheduleUpdate ();
       }
+
+      if (SPRITEY_ALPHA !== 255) {
+         self.setOpacity (SPRITEY_ALPHA);
+      }
    },
 
    update: function (dt) {
@@ -63,10 +68,10 @@ aq.Sprite = cc.Sprite.extend(/** @lends aq.Sprite# */{
        self.debugRect.drawRect (cc.p (0,0), cc.p (size.width, size.height),
                                          null, // fillcolor
                                          1,    // line width
-                                         cc.color (0,255,0,255));
+                                         cc.color (128,128,0,SPRITEY_ALPHA));
 
        let app = self.getAnchorPointInPoints ();
-       self.debugRect.drawRect (app, cc.p (app.x + 1, app.y + 1), cc.color (255,0,0,255), 1, cc.color (255,0,0,255));
+       self.debugRect.drawRect (app, cc.p (app.x + 1, app.y + 1), cc.color (255,0,0,SPRITEY_ALPHA), 1, cc.color (255,0,0,SPRITEY_ALPHA));
    },
 
    /**
@@ -343,13 +348,448 @@ aq.animate = function (animation, frame) {
 };
 aq.Animate.create = aq.animate;
 
-var SpriteTestLayer = cc.Layer.extend ({
 
-   sprites: null,
+aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
+
+   gumbler: null,
 
    current_anim_keys: null,
 
-   global_keys: null,
+   transition_to: null,
+
+   ctor: function (gumbler) {
+      this.gumbler = gumbler;
+   },
+
+   getGumbler: function () {
+       return this.gumbler;
+   },
+
+   getCurrentAnimKeys: function () {
+       return this.current_anim_keys;
+   },
+
+   isTransitioning: function () {
+       return (this.transition_to !== null);
+   },
+
+   _dispatchEvent: function (name) {
+       var self = this;
+
+       cc.eventManager.dispatchCustomEvent (aq.spritey.GumblerAnimator.EVENT, {
+          'name': name,
+          'gumbler': self.gumbler
+       });
+   },
+
+   initTransitions: function () {
+       var self = this;
+
+       let data = self.gumbler.getUserData ();
+
+       let anim = data.anim;
+
+       let num_transitions = anim.keys.length;
+
+       // Combine the global transitions with the current
+       let global_keys = aq.spritey.GumblerAnimator.global_keys;
+       let num_global_transitions = global_keys.length;
+
+       // Stash a list of all the anim transitions
+       self.current_anim_keys = [];
+       for (let i = 0; i < num_transitions; i++) {
+          self.current_anim_keys.push (anim.keys [i]);
+       }
+       for (let i = 0; i < num_global_transitions; i++) {
+          self.current_anim_keys.push (global_keys [i]);
+       }
+
+       self._dispatchEvent ('initTransition');
+   },
+
+   handleTransition: function () {
+       var self = this;
+
+       let sprite_frame_index = self.gumbler.getUserData ().frameIndex;
+
+       if (self.transition_to) {
+          if (self.transition_to.now || self.transition_to.on_frame === sprite_frame_index) {
+
+             let to_anim = self.transition_to.transition.to_anim;
+             let to_frame = self.transition_to.transition.getFrame ();
+             let offset = self.transition_to.transition.getOffset ();
+
+             self.gumbler._setSpriteAnim (to_anim, to_frame, offset);
+
+             self.initTransitions ();
+
+             self.transition_to = null;
+          }
+       }
+   },
+
+   startTransition: function (key) {
+       var self = this;
+
+       if (self.transition_to) {
+          return true;
+       }
+
+       // The current sprite frame
+       let sprite_frame_index = self.gumbler.getUserData ().frameIndex;
+
+       let transition_to = null;
+       let transition_on_frame = sprite_frame_index;
+       let transition_now = false;
+
+       if (key.all) {
+          // Trigger the transition straight away
+          transition_to = key.transitions [0];
+          transition_now = true;
+       } else {
+          // The transition triggers on a certain frame
+         if (key.transitions [sprite_frame_index].to_anim) {
+            // We're on that frame, trigger it now
+            transition_to = key.transitions [sprite_frame_index];
+            transition_now = true;
+         } else {
+            // Loop over the transitions array until we find the next labelled transition frame
+            // This loops over the --> entries in the state_trans_key() entries
+            let num_frames = key.transitions.length;
+            let start = sprite_frame_index;
+            let end = (sprite_frame_index + num_frames - 1) % num_frames;
+            for (let i = start; i !== end; i = (i + 1) % num_frames ) {
+               if (key.transitions [i].to_anim) {
+                  transition_to = key.transitions [i];
+                  transition_on_frame = i;
+                  break;
+               }
+            }
+         }
+      }
+
+       if (transition_to !== null) {
+          self.transition_to = {
+             transition: transition_to,
+             on_frame: transition_on_frame,
+             now: transition_now,
+             key: key
+          };
+       }
+
+       if (self.transition_to) {
+          return true;
+       }
+
+       return false;
+   }
+
+});
+
+aq.spritey.GumblerAnimator.global_keys = [];
+aq.spritey.GumblerAnimator.initGlobalKeys = function () {
+    let global_keys = aq.spritey.GumblerAnimator.global_keys;
+
+    let object_list = aq.spritey.object_list;
+    for (let o in object_list) {
+       if (object_list [o]) {
+          let object = object_list [o];
+          if (object.type () === 'Key') {
+             global_keys.push (object);
+          }
+       }
+    }
+};
+
+aq.spritey.GumblerAnimator.getGlobalTransitions = function () {
+   return aq.spritey.GumblerAnimator.global_keys;
+};
+
+aq.spritey.GumblerAnimator.EVENT = 'gumbler_animator';
+
+aq.spritey.animator = function (gumbler) {
+
+   if (aq.spritey.GumblerAnimator.global_keys.length === 0) {
+      aq.spritey.GumblerAnimator.initGlobalKeys ();
+   }
+
+   return new aq.spritey.GumblerAnimator (gumbler);
+};
+aq.spritey.GumblerAnimator.create = aq.spritey.animator;
+
+aq.Gumbler = aq.Sprite.extend (/** @lends aq.Sprite# */{
+
+   animator: null,
+
+   ctor: function () {
+      this._super ();
+      this.animator = aq.spritey.animator (this);
+   },
+
+   getAnimator: function () {
+       return this.animator;
+   },
+
+   initWithTestData: function (sprite_data) {
+      var self = this;
+
+      //
+      // Sprite for testing the gumbler animations
+      //
+      let state = aq.spritey.states [sprite_data.state];
+      let anim = state.primary;
+
+      self.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
+
+      // tmp position
+      self.setPosition (sprite_data.position);
+
+      // tmp starting animation
+      self._setSpriteAnim (anim, sprite_data.frame_num);
+
+      self.animator.initTransitions ();
+
+      self.scheduleUpdate ();
+
+      return self;
+   },
+
+   update: function () {
+      var self = this;
+
+      self.animator.handleTransition ();
+      self._handleLineAndFish ();
+   },
+
+   // Get an cc.Animation for an aq.spritey.objects.Anim
+   _getAnimationForAnim: function (anim) {
+       // jshint unused:false
+       var self = this;
+
+       let animation = cc.animationCache.getAnimation (anim.name);   // = anim.anim
+       if (!animation) {
+
+          // Create an Animation from the frames (which reference images)
+          let animation_frames = [];
+          for (var f = 0; f < anim.frames.length; f++) {
+             let spritey_frame = anim.frames [f];
+             let cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
+             // Pulling the frame from the cache does not take into account the flippedX/mirror property so we need
+             // to clone the sprite frame when necessary if the same frame is used in multiple animations
+             if (typeof spritey_frame.mirror !== 'undefined' && cc_sprite_frame.flippedX !== spritey_frame.mirror) {
+                cc_sprite_frame = cc_sprite_frame.clone ();
+                cc_sprite_frame.flippedX = spritey_frame.mirror;
+             }
+
+             let speed = 10.0;
+             if (anim.speeds) {
+                speed = anim.speeds [f < anim.speeds.length ? f : 0];
+             }
+
+             let frame_user_data = {
+                anim: anim,
+                index: f
+             };
+
+             if (anim.custom_points) {
+                let cp = anim.custom_points [f < anim.custom_points.length ? f : 0];
+                frame_user_data.custom_point = cp;
+             }
+
+             animation_frames.push (new cc.AnimationFrame (cc_sprite_frame, speed / 10.0, frame_user_data));
+          }
+
+          // Create the animation from the frames
+          animation = new cc.Animation (animation_frames, 0.1);
+
+          // Save to the AnimationCache
+          cc.animationCache.addAnimation (animation, anim.name);
+       }
+
+       return animation;
+   },
+
+   // Internal function to switch to a new animation
+   _setSpriteAnim: function (anim, frame, offset) {
+       var self = this;
+
+       if (typeof frame === 'undefined' || frame < 0) {
+          frame = 0;
+       }
+
+       if (typeof anim === 'string') {
+          anim = aq.spritey.animations [anim];
+          if (!anim) {
+             aq.fatalError ('_setSpriteAnim unknown animation string name: ' + anim);
+          }
+       }
+
+       if (typeof offset === 'undefined') {
+          offset = cc.p (0,0);
+       }
+
+       // Get the Cocos2d animation
+       var animation = self._getAnimationForAnim (anim);
+
+       // Maintain the state
+       var user_data = self.getUserData ();
+       var current_state = user_data ? user_data.state : null;
+
+       // Store some of the spritey animation data in the CCSprite
+       self.setUserData ({
+          state: anim.major_state || current_state,
+          anim: anim,
+          animation: animation,
+          frameIndex: frame
+       });
+
+       // Set the first sprite frame, with no movement
+       self.setDisplayFrameWithFrameIndex (anim.name, frame, false);
+
+       // When scaling the sprite don't anti-alias the image, keep a pixel perfect scale.
+       // This only works in WebGL, and the opposite (default) is setAntiAliasTexParameters.
+       self.texture.setAliasTexParameters ();
+
+       // Anchor point
+       self.setFrameAnchor ();
+
+       // Move the sprite if an offset is required
+       self.move (offset);
+
+       // stop all current actions
+       self.stopAllActions ();
+
+       // Handle an overlay animation.
+       self.removeChildByTag (99);
+       if (anim.overlay) {
+
+          // Create a new sprite (having removed any existing ones above)
+          let overlay_sprite = new aq.Gumbler ();
+          overlay_sprite._setSpriteAnim (anim.overlay, frame);
+
+          // Work out the offset. Remember, a child node at 0,0 does not get drawn at the anchor point
+          let overlay_offset = self.getAnchorPointInPoints ();
+          overlay_offset.y = -overlay_offset.y;
+
+          overlay_sprite.x = overlay_offset.x;
+          overlay_sprite.y = -overlay_offset.y;
+
+          // Update the sprite userData to include the overlay
+          let userData = self.getUserData ();
+          userData.overlay = anim.overlay;
+
+          self.addChild (overlay_sprite, -1, 99);
+       }
+
+       if (anim.custom_points) {
+          self._setupFishing ();
+       }
+
+       // start the new animation
+       var animate = aq.animate (animation, frame);
+
+       var action = null;
+       if (anim.advance) {
+          var advanceAnim = cc.callFunc (function () {
+             self._setSpriteAnim (anim.advance.to_anim, anim.advance.getFrame (), anim.advance.getOffset ());
+             if (!anim.isOverlay) {
+                self.animator.initTransitions ();
+             }
+          });
+          action = cc.sequence (animate, advanceAnim);
+       } else {
+          action = cc.repeatForever (animate);
+       }
+       action.setTag (0);
+       self.runAction (action);
+   },
+
+   // Setup the extra elements for fishing
+   _setupFishing: function () {
+      var self = this;
+      var line, fish;
+
+      var anim = self.getUserData ().anim;
+      if (anim.name.match (/.*fish.*/gi)) {
+         // Add a DrawNode for the line, and the fish sprite
+          if (!self.getChildByName ('line')) {
+             line = new cc.DrawNode ();
+             self.addChild (line, -2, 'line');
+          }
+          if (!self.getChildByName ('fish')) {
+             fish = new cc.Sprite (aq.res.Fish);
+             fish.setRotation (-90);
+             fish.setAnchorPoint (1.0, 0.95);
+             fish.texture.setAliasTexParameters ();
+             self.addChild (fish, -3, 'fish');
+          }
+      }
+   },
+
+   _handleLineAndFish: function () {
+       // jshint unused:false
+       var self = this;
+
+       var anim = self.getUserData ().anim;
+       var frame = self.getUserData ().frameIndex;
+
+       var line = self.getChildByName ('line');
+       var fish = self.getChildByName ('fish');
+       var cp = self.getCustomPointForFrame ();
+
+       // This array is borrowed directly from the original code, and the numbers is signed byte range values
+       // for a sine table, used to move the fish in a flapping arc when it's being reeled in
+       var FISHFLAP_SIN_TAB = [0,150,243,243,150,0,-150,-243,-243,-150,0,150,243,243,150,0,-150,-243,-243,-150];
+
+       if (line && fish) {
+
+          // Setup the line.  Default to draw from the custom point to below the bottom of the screen
+          line.clear ();
+          fish.setOpacity (0);
+
+          if (cp) {
+
+             let mirror = false;
+
+             let world_rod_pos = self.convertToWorldSpace (cp);
+             // For future reference, I have no idea why the scale factor seems to be effecting the fishing line length
+             let LENGTH = world_rod_pos.y / aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR;
+
+             let lineTop = cp;
+             let lineBot = cc.p (cp.x, cp.y - LENGTH);
+
+             if (anim.name === 'fishflapR' || anim.name === 'fishflapL') {
+                lineBot.x = cp.x + (((FISHFLAP_SIN_TAB [frame] * 10) / 256) + 8);
+                lineBot.y = cp.y - ((LENGTH - cp.y) / 20) * (20 - frame);
+                mirror = FISHFLAP_SIN_TAB[frame] < 0 ? true : false;
+             }
+
+             line.drawSegment (lineTop, lineBot, 0, cc.color.BLACK);
+
+             if (fish) {
+                fish.setPosition (lineBot);
+                fish.setOpacity (255);
+                let sx = fish.getScaleY ();
+                if ((sx > 0 && mirror) || (sx < 0 && !mirror)) {
+                   fish.setScaleY (sx * -1.0);
+                }
+             }
+          }
+       }
+
+       var overlay = self.getChildByTag (99);
+       if (overlay) {
+          overlay._handleLineAndFish ();
+       }
+   }
+
+});
+
+var SpriteTestLayer = cc.Layer.extend ({
+
+   gumbler: null,
+
+   root: null,
 
    debug: null,
 
@@ -363,14 +803,19 @@ var SpriteTestLayer = cc.Layer.extend ({
       // 1. super init first
       self._super ();
 
-      self.initGlobalTransitions ();
+      var block_size = aq.config.BLOCK_SIZE;
+      var blocks_wide = aq.config.GRID_WIDTH;
 
-      // Although there is a 'concept' of multiple sprites, this isn't fully implemented yet
-      self.sprites = [];
+      var layer_size = self.getContentSize ();
 
-      for (let i = 0; i < aq.spritey.test.length; i++) {
-         self.initTestSprite (aq.spritey.test [i]);
-      }
+      // Background that resembles the game grid area)
+      var area_size = cc.size (block_size * blocks_wide, cc.winSize.height);
+      var background = new cc.LayerColor (cc.color (128,0,0,128), area_size.width, area_size.height);
+      background.setPosition ((layer_size.width - area_size.width) / 2, 0);
+
+      // Use the background as the root node for all other things in this test scene
+      self.root = background;
+      self.addChild (self.root);
 
       if (SPRITEY_DEBUG) {
          self.setupDebug ();
@@ -379,6 +824,16 @@ var SpriteTestLayer = cc.Layer.extend ({
       if (FAKE_KEYS) {
          self.initFakeKeySequence ();
       }
+
+      // The custom event listener will be initially paused.  It is un-paused
+      // by super::onEnter (called below in onEnter)
+      cc.eventManager.addListener (cc.EventListener.create ({
+         event: cc.EventListener.CUSTOM,
+         eventName: aq.spritey.GumblerAnimator.EVENT,
+         callback: function (event) {
+           self.gumblerEvent (event);
+         }
+      }), self);
 
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
@@ -389,6 +844,15 @@ var SpriteTestLayer = cc.Layer.extend ({
             self.keyAction (keyCode, false);
          }
       }, self);
+   },
+
+   onEnter: function () {
+      var self = this;
+
+      // This is important to un-pause the custom event listener
+      this._super ();
+
+      self.initTestSprite (aq.spritey.test [0]);
 
       self.scheduleUpdate ();
    },
@@ -405,11 +869,21 @@ var SpriteTestLayer = cc.Layer.extend ({
        });
    },
 
+   gumblerEvent: function (event) {
+      var self = this;
+      let data = event.getUserData ();
+
+      if (data.name === 'initTransition') {
+         self._listTransitionControlKeys ();
+      } else {
+         cc.log ('Unknown gumbler event: ' + data.name);
+      }
+   },
+
    update: function () {
       var self = this;
 
       self.handleKeys ();
-      self.handleTransition ();
       self.handleDebug ();
 
       // Wrap the sprite at the bottom of the 'screen'
@@ -417,13 +891,19 @@ var SpriteTestLayer = cc.Layer.extend ({
       if (sprite.getPositionY () <  -sprite.getContentSize ().height) {
          sprite.setPositionY (sprite.getPositionY () + cc.winSize.height);
       }
+   },
 
-      self.handleLineAndFish (sprite);
+   initTestSprite: function (sprite_data) {
+       var self = this;
+
+       self.gumbler = new aq.Gumbler ();
+       self.gumbler.initWithTestData (sprite_data);
+       self.root.addChild (self.gumbler);
    },
 
    getCurrentSprite: function () {
        var self = this;
-       return self.sprites [0];
+       return self.gumbler;
    },
 
    debugItems: [
@@ -447,7 +927,7 @@ var SpriteTestLayer = cc.Layer.extend ({
 
        if (!self.debug) {
           self.debug = new cc.Node ();
-          self.addChild (self.debug);
+          self.root.addChild (self.debug);
        }
 
        self.debug.removeAllChildren ();
@@ -489,8 +969,9 @@ var SpriteTestLayer = cc.Layer.extend ({
        var self = this;
 
        let sprite = self.getCurrentSprite ();
+       let animator = sprite.getAnimator ();
 
-       if (sprite.transition_to) {
+       if (animator.isTransitioning ()) {
           return;
        }
 
@@ -501,9 +982,11 @@ var SpriteTestLayer = cc.Layer.extend ({
           }
        }
 
+       let current_anim_keys = animator.getCurrentAnimKeys ();
+
        // The same key can be defined as a transition more than once in a state
-       for (let i = 0; i < self.current_anim_keys.length; i++) {
-          let key = self.current_anim_keys [i];
+       for (let i = 0; i < current_anim_keys.length; i++) {
+          let key = current_anim_keys [i];
           let mod = key.mod;
 
           let pressed = self.keysPressed [key.keyCode()];
@@ -513,115 +996,28 @@ var SpriteTestLayer = cc.Layer.extend ({
           }
 
           if (pressed) {
+             let will_transition = false;
              if (mod === 0 && countPressed === 1) {
-                self.startTransition (key);
+                will_transition = animator.startTransition (key);
              } else {
                 let mCode = cc.KEY ['' + mod];
                 if (self.keysPressed [mCode]) {
-                   self.startTransition (key);
+                   will_transition = animator.startTransition (key);
                 }
+             }
+             if (will_transition) {
+                self.keysPressed [key.keyCode()] = false;
              }
           }
        }
    },
 
-   handleTransition: function () {
-       var self = this;
-
-       let sprite = self.getCurrentSprite ();
-       let sprite_frame_index = sprite.getUserData ().frameIndex;
-
-       if (sprite.transition_to) {
-          if (sprite.transition_to.now || sprite.transition_to.on_frame === sprite_frame_index) {
-
-             let to_anim = sprite.transition_to.transition.to_anim;
-             let to_frame = sprite.transition_to.transition.getFrame ();
-             let offset = sprite.transition_to.transition.getOffset ();
-
-             self._setSpriteAnim (sprite, to_anim, to_frame, offset);
-             self._initTransitions (to_anim);
-
-             self.keysPressed [sprite.transition_to.key.keyCode()] = false;
-
-             sprite.transition_to = null;
-          }
-       }
-   },
-
-   startTransition: function (key) {
+   _listTransitionControlKeys: function () {
        var self = this;
 
        let sprite = self.getCurrentSprite ();
 
-       if (sprite.transition_to) {
-          return;
-       }
-
-       // The current sprite frame
-       let sprite_frame_index = sprite.getUserData ().frameIndex;
-
-       let transition_to = null;
-       let transition_on_frame = sprite_frame_index;
-       let transition_now = false;
-
-       if (key.all) {
-          // Trigger the transition straight away
-          transition_to = key.transitions [0];
-          transition_now = true;
-       } else {
-          // The transition triggers on a certain frame
-         if (key.transitions [sprite_frame_index].to_anim) {
-            // We're on that frame, trigger it now
-            transition_to = key.transitions [sprite_frame_index];
-            transition_now = true;
-         } else {
-            // Loop over the transitions array until we find the next labelled transition frame
-            // This loops over the --> entries in the state_trans_key() entries
-            let num_frames = key.transitions.length;
-            let start = sprite_frame_index;
-            let end = (sprite_frame_index + num_frames - 1) % num_frames;
-            for (let i = start; i !== end; i = (i + 1) % num_frames ) {
-               if (key.transitions [i].to_anim) {
-                  transition_to = key.transitions [i];
-                  transition_on_frame = i;
-                  break;
-               }
-            }
-         }
-      }
-
-       if (transition_to !== null) {
-          sprite.transition_to = {
-             transition: transition_to,
-             on_frame: transition_on_frame,
-             now: transition_now,
-             key: key
-          };
-       }
-   },
-
-   _initTransitions: function (anim) {
-       var self = this;
-
-       if (!anim.keys) {
-          return;
-       }
-
-       let num_transitions = anim.keys.length;
-       let num_global_transitions = self.global_keys.length;
-
-       // Stash a list of all the anim transitions
-       self.current_anim_keys = [];
-       for (let i = 0; i < num_transitions; i++) {
-          self.current_anim_keys.push (anim.keys [i]);
-       }
-       for (let i = 0; i < num_global_transitions; i++) {
-          self.current_anim_keys.push (self.global_keys [i]);
-       }
-   },
-
-   _debugListTransitions: function (anim) {
-       var self = this;
+       let anim = sprite.getUserData ().anim;
 
        if (!anim.keys) {
           return;
@@ -634,13 +1030,15 @@ var SpriteTestLayer = cc.Layer.extend ({
        if (!self.transitions) {
           self.transitions = new cc.Node ();
           if (KEYS_CONTROL) {
-             self.addChild (self.transitions);
+             self.root.addChild (self.transitions);
           }
        }
        self.transitions.removeAllChildren ();
 
+       let global_keys = aq.spritey.GumblerAnimator.getGlobalTransitions ();
+
        let num_transitions = anim.keys.length;
-       let num_global_transitions = self.global_keys.length;
+       let num_global_transitions = global_keys.length;
 
        let label = new cc.LabelTTF ('', 'Arial', 32);
        let font_height = label.getLineHeight ();
@@ -662,7 +1060,7 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
 
        for (let i = 0; i < num_global_transitions; i++) {
-          let key_name = self.global_keys [i].name;
+          let key_name = global_keys [i].name;
           if (typeof (label_counts [key_name]) === 'undefined') {
              label_counts [key_name] = 0;
           }
@@ -725,56 +1123,12 @@ var SpriteTestLayer = cc.Layer.extend ({
        }
 
        key_pos = cc.p (10, (num_transitions + 1 + num_global_transitions) * (font_height - 1));
-       for (let i = 0; i < self.global_keys.length; i++) {
-          let key_label = get_key_label (self.global_keys [i]);
+       for (let i = 0; i < global_keys.length; i++) {
+          let key_label = get_key_label (global_keys [i]);
           key_label.setPosition (key_pos);
           self.transitions.addChild (key_label);
           key_pos.y -= font_height;
        }
-   },
-
-   initGlobalTransitions: function () {
-       var self = this;
-
-       self.global_keys = [];
-
-       let object_list = aq.spritey.object_list;
-       for (let o in object_list) {
-          if (object_list [o]) {
-             let object = object_list [o];
-             if (object.type () === 'Key') {
-                self.global_keys.push (object);
-             }
-          }
-       }
-   },
-
-   initTestSprite: function (sprite_data) {
-       var self = this;
-
-       //
-       // Sprite for testing the gumbler animations
-       //
-       let state = aq.spritey.states [sprite_data.state];
-       let anim = state.primary;
-
-       let sprite = new aq.Sprite ();
-       sprite.setScale (aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR);
-
-       // tmp position
-       sprite.setPosition (sprite_data.position);
-
-       // add to scene
-       self.addChild (sprite);
-
-       // tmp starting animation
-       self._setSpriteAnim (sprite, anim, sprite_data.frame_num);
-
-       // Show the state transitions
-       self._initTransitions (anim);
-
-       // save for later reference
-       self.sprites.push (sprite);
    },
 
    initFakeKeySequence: function () {
@@ -813,228 +1167,9 @@ var SpriteTestLayer = cc.Layer.extend ({
        self.runAction (action);
    },
 
-   // Setup the extra elements for fishing
-   _setupFishing: function (sprite) {
-      var self = this;
-      var line, fish;
-
-      var anim = sprite.getUserData ().anim;
-      if (anim.name.match (/.*fish.*/gi)) {
-         // Add a DrawNode for the line, and the fish sprite
-          if (!sprite.getChildByName ('line')) {
-             line = new cc.DrawNode ();
-             sprite.addChild (line, -2, 'line');
-          }
-          if (!sprite.getChildByName ('fish')) {
-             fish = new cc.Sprite (aq.res.Fish);
-             fish.setRotation (-90);
-             fish.setAnchorPoint (1.0, 0.95);
-             fish.texture.setAliasTexParameters ();
-             sprite.addChild (fish, -3, 'fish');
-          }
-
-          self.handleLineAndFish (sprite);
-      }
-   },
-
-   handleLineAndFish: function (sprite) {
-       // jshint unused:false
-       var self = this;
-
-       var anim = sprite.getUserData ().anim;
-       var frame = sprite.getUserData ().frameIndex;
-
-       var line = sprite.getChildByName ('line');
-       var fish = sprite.getChildByName ('fish');
-       var cp = sprite.getCustomPointForFrame ();
-
-       // This array is borrowed directly from the original code, and the numbers is signed byte range values
-       // for a sine table, used to move the fish in a flapping arc when it's being reeled in
-       var FISHFLAP_SIN_TAB = [0,150,243,243,150,0,-150,-243,-243,-150,0,150,243,243,150,0,-150,-243,-243,-150];
-
-       if (line && fish) {
-
-          // Setup the line.  Default to draw from the custom point to below the bottom of the screen
-          line.clear ();
-          fish.setOpacity (0);
-
-          if (cp) {
-
-             let mirror = false;
-
-             let world_rod_pos = sprite.convertToWorldSpace (cp);
-             // For future reference, I have no idea why the scale factor seems to be effecting the fishing line length
-             let LENGTH = world_rod_pos.y / aq.config.ORIGINAL_GRAPHIC_SCALE_FACTOR;
-
-             let lineTop = cp;
-             let lineBot = cc.p (cp.x, cp.y - LENGTH);
-
-             if (anim.name === 'fishflapR' || anim.name === 'fishflapL') {
-                lineBot.x = cp.x + (((FISHFLAP_SIN_TAB [frame] * 10) / 256) + 8);
-                lineBot.y = cp.y - ((LENGTH - cp.y) / 20) * (20 - frame);
-                mirror = FISHFLAP_SIN_TAB[frame] < 0 ? true : false;
-             }
-
-             line.drawSegment (lineTop, lineBot, 0, cc.color.BLACK);
-
-             if (fish) {
-                fish.setPosition (lineBot);
-                fish.setOpacity (255);
-                let sx = fish.getScaleY ();
-                if ((sx > 0 && mirror) || (sx < 0 && !mirror)) {
-                   fish.setScaleY (sx * -1.0);
-                }
-             }
-          }
-       }
-
-       var overlay = sprite.getChildByTag (99);
-       if (overlay) {
-          self.handleLineAndFish (overlay);
-       }
-   },
-
-   // Get an cc.Animation for an aq.spritey.objects.Anim
-   _getAnimationForAnim: function (anim) {
-       // jshint unused:false
-       var self = this;
-
-       let animation = cc.animationCache.getAnimation (anim.name);   // = anim.anim
-       if (!animation) {
-
-          // Create an Animation from the frames (which reference images)
-          let animation_frames = [];
-          for (var f = 0; f < anim.frames.length; f++) {
-             let spritey_frame = anim.frames [f];
-             let cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (spritey_frame.filename);
-             // Pulling the frame from the cache does not take into account the flippedX/mirror property so we need
-             // to clone the sprite frame when necessary if the same frame is used in multiple animations
-             if (typeof spritey_frame.mirror !== 'undefined' && cc_sprite_frame.flippedX !== spritey_frame.mirror) {
-                cc_sprite_frame = cc_sprite_frame.clone ();
-                cc_sprite_frame.flippedX = spritey_frame.mirror;
-             }
-
-             let speed = 10.0;
-             if (anim.speeds) {
-                speed = anim.speeds [f < anim.speeds.length ? f : 0];
-             }
-
-             let frame_user_data = {
-                anim: anim,
-                index: f
-             };
-
-             if (anim.custom_points) {
-                let cp = anim.custom_points [f < anim.custom_points.length ? f : 0];
-                frame_user_data.custom_point = cp;
-             }
-
-             animation_frames.push (new cc.AnimationFrame (cc_sprite_frame, speed / 10.0, frame_user_data));
-          }
-
-          // Create the animation from the frames
-          animation = new cc.Animation (animation_frames, 0.1);
-
-          // Save to the AnimationCache
-          cc.animationCache.addAnimation (animation, anim.name);
-       }
-
-       return animation;
-   },
-
    // Internal function to switch to a new animation
    _setSpriteAnim: function (sprite, anim, frame, offset) {
-       var self = this;
-
-       if (typeof frame === 'undefined' || frame < 0) {
-          frame = 0;
-       }
-
-       if (typeof anim === 'string') {
-          anim = aq.spritey.animations [anim];
-          if (!anim) {
-             aq.fatalError ('_setSpriteAnim unknown animation string name: ' + anim);
-          }
-       }
-
-       if (typeof offset === 'undefined') {
-          offset = cc.p (0,0);
-       }
-
-       // Get the Cocos2d animation
-       var animation = self._getAnimationForAnim (anim);
-
-       // Maintain the state
-       var user_data = sprite.getUserData ();
-       var current_state = user_data ? user_data.state : null;
-
-       // Store some of the spritey animation data in the CCSprite
-       sprite.setUserData ({
-          state: anim.major_state || current_state,
-          anim: anim,
-          animation: animation,
-          frameIndex: frame
-       });
-
-       // Set the first sprite frame, with no movement
-       sprite.setDisplayFrameWithFrameIndex (anim.name, frame, false);
-
-       // When scaling the sprite don't anti-alias the image, keep a pixel perfect scale.
-       // This only works in WebGL, and the opposite (default) is setAntiAliasTexParameters.
-       sprite.texture.setAliasTexParameters ();
-
-       // Anchor point
-       sprite.setFrameAnchor ();
-
-       // Move the sprite if an offset is required
-       sprite.move (offset);
-
-       // stop all current actions
-       sprite.stopAllActions ();
-
-       // Handle an overlay animation.
-       sprite.removeChildByTag (99);
-       if (anim.overlay) {
-
-          // Create a new sprite (having removed any existing ones above)
-          let overlay_sprite = new aq.Sprite ();
-          self._setSpriteAnim (overlay_sprite, anim.overlay, frame);
-
-          // Work out the offset. Remember, a child node at 0,0 does not get drawn at the anchor point
-          let overlay_offset = sprite.getAnchorPointInPoints ();
-          overlay_offset.y = -overlay_offset.y;
-
-          overlay_sprite.x = overlay_offset.x;
-          overlay_sprite.y = -overlay_offset.y;
-
-          // Update the sprite userData to include the overlay
-          let userData = sprite.getUserData ();
-          userData.overlay = anim.overlay;
-
-          sprite.addChild (overlay_sprite, -1, 99);
-       }
-
-       if (anim.custom_points) {
-          self._setupFishing (sprite);
-       }
-
-       // start the new animation
-       var animate = aq.animate (animation, frame);
-
-       var action = null;
-       if (anim.advance) {
-          var advanceAnim = cc.callFunc (function () {
-             self._setSpriteAnim (sprite, anim.advance.to_anim, anim.advance.getFrame (), anim.advance.getOffset ());
-             if (!anim.isOverlay) {
-                self._initTransitions (anim.advance.to_anim);
-             }
-          });
-          action = cc.sequence (animate, advanceAnim);
-       } else {
-          action = cc.repeatForever (animate);
-       }
-       action.setTag (0);
-       sprite.runAction (action);
+       sprite._setSpriteAnim (anim, frame, offset);
    }
 });
 

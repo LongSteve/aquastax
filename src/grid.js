@@ -53,9 +53,6 @@ aq.Grid = cc.Node.extend ({
    // grid break highlight position
    grid_break_highlights: null,
 
-   // Temporary holder for a gumbler sprite
-   tmp_sprite: null,
-
    // Reference to the currently falling block
    falling_block: null,
 
@@ -141,20 +138,11 @@ aq.Grid = cc.Node.extend ({
          self.addChild (self.grid_break_highlights, 500);
       }
 
-      // Navigation
-      self.navigation = new aq.Navigation ();
-      self.navigation.initWithGrid (self);
-      self.addChild (self.navigation.updateDebugNavNodes ());
-
       self.scheduleUpdate ();
    },
 
    update: function () {
       var self = this;
-
-      // TODO: Optimise. This really only needs to be done when the grid data changes, so when a block lands
-      self.navigation.updateNavData ();
-      self.navigation.updateDebugNavNodes ();
 
       if (self.falling_block) {
 
@@ -223,12 +211,6 @@ aq.Grid = cc.Node.extend ({
       }
    },
 
-   setSprite: function (node) {
-       var self = this;
-       self.tmp_sprite = node;
-       self.addChild (node, 4);
-   },
-
    moveToCamera: function (cameraY) {
       var self = this;
 
@@ -286,9 +268,7 @@ aq.Grid = cc.Node.extend ({
       if (self.falling_block) {
          self.falling_block.y -= delta_y;
       }
-      if (self.tmp_sprite) {
-         self.tmp_sprite.y -= delta_y;
-      }
+
       self.groupFloodFill (true);
    },
 

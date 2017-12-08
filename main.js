@@ -34,7 +34,8 @@ cc.game.onStart = function () {
             cc.color (255,255,255,255)          // fade up from white
          );
       } else {
-         toScene = new aq.scenes.GameScene ();
+         //toScene = new aq.scenes.GameScene ();
+         toScene = new aq.scenes.SpriteTestScene ();
       }
 
       cc.director.runScene (toScene);
