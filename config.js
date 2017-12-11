@@ -68,15 +68,20 @@ aq.config.KEY_DELAY_MS = 100;
  */
 aq.config.NORMAL_BLOCK_DROP_RATE = 1;
 
-/*
+/**
  * Block drop rate when fast dropping
  */
 aq.config.FAST_BLOCK_DROP_RATE = 20;
 
-/*
+/**
  * Camera movement rate in blocks per second
-*/
+ */
 aq.config.CAMERA_MOVEMENT_RATE = 10;
+
+/**
+ * Spritey debug output
+ */
+aq.config.SPRITEY_DEBUG = true;
 
 /**
  * Freeze the aq.config object so we don't go adding to it all over the code
