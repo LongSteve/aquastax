@@ -30,6 +30,10 @@
         "src/spritey/object/state.js",
         "src/spritey/object/color.js",
         "src/spritey/object/image.js",
-        "src/spritey/gumbler.js"
+        "src/spritey/gumbler.js",
+        "src/spritey/animate.js",
+        "src/spritey/sprite.js",
+        "src/spritey/gumbler_animator.js",
+        "src/spritey/gumbler_sprite.js"
     ]
 }
