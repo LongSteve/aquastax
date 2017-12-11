@@ -10,23 +10,6 @@ aq.spritey.test = [];
 var FAKE_KEYS = false;
 var KEYS_CONTROL = true;
 
-aq.spritey.dump = function () {
-   let image_count = 0;
-   let object_list = aq.spritey.object_list;
-   for (let o in object_list) {
-      if (object_list [o]) {
-         let object = object_list [o];
-         // Not sure I like this, but it's a shortcoming of the simple class/object structure I adopted
-         if (object.type () === 'Image') {
-            image_count++;
-         } else {
-            cc.log (o + ' : ' + object.description ());
-         }
-      }
-   }
-   cc.log ('Total Images : ' + image_count);
-};
-
 var SpriteTestLayer = cc.Layer.extend ({
 
    gumbler: null,

@@ -81,7 +81,7 @@ aq.config.CAMERA_MOVEMENT_RATE = 10;
 /**
  * Spritey debug output
  */
-aq.config.SPRITEY_DEBUG = true;
+aq.config.SPRITEY_DEBUG = false;
 
 /**
  * Freeze the aq.config object so we don't go adding to it all over the code
