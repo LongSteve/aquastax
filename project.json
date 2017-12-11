@@ -23,6 +23,8 @@
         "src/navigation.js",
         "src/block.js",
         "src/spritey/spritey.js",
+        "src/spritey/animate.js",
+        "src/spritey/sprite.js",
         "src/spritey/object/base.js",
         "src/spritey/object/key.js",
         "src/spritey/object/transition.js",
@@ -30,9 +32,7 @@
         "src/spritey/object/state.js",
         "src/spritey/object/color.js",
         "src/spritey/object/image.js",
-        "src/spritey/gumbler.js",
-        "src/spritey/animate.js",
-        "src/spritey/sprite.js",
+        "src/spritey/gumbler_data.js",
         "src/spritey/gumbler_animator.js",
         "src/spritey/gumbler_sprite.js"
     ]

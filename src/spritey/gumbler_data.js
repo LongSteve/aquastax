@@ -1,6 +1,6 @@
 'use strict';
 
-// One controllable LARGE Gumbler (FULL ANIM SET)
+// One controllable LARGE Gumbler (FULL ANIM DATA SET)
 
 aq.spritey.gumbler = function gumbler () {
 
