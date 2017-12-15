@@ -835,8 +835,8 @@ aq.spritey.gumbler = function gumbler () {
 
 
    //START
-   //start ('gumbler1', 'wait', 1, 60, 90, 'FOCUS');
-   start ('gumbler1', 'timeout_fish_right', 1, 384, 448, 'FOCUS');
+   start ('gumbler1', 'sleep', 1, 13 * 50, 0, 'FOCUS');
+   start ('gumbler2', 'timeout_fish_right', 1, 384, 448, 'FOCUS');
    //start ('gumbler2', 'hang_twohand', 1, 60, 94, 'FOCUS');
    //start ('gumbler3', 'walk_right', 1, 60, 94, 'FOCUS');
    //start ('gumbler1', 'fall', 1, 300, 600, 'FOCUS');

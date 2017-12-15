@@ -19,21 +19,11 @@ aq.spritey.Sprite = cc.Sprite.extend(/** @lends aq.spritey.Sprite# */{
       if (aq.config.SPRITEY_DEBUG) {
          self.debugRect = new cc.DrawNode ();
          self.addChild (self.debugRect);
-         self.scheduleUpdate ();
       }
 
       if (SPRITEY_ALPHA !== 255) {
          self.setOpacity (SPRITEY_ALPHA);
       }
-   },
-
-   update: function (dt) {
-       // jshint unused:false
-       var self = this;
-
-       if (aq.config.SPRITEY_DEBUG) {
-          self._updateDebugRects ();
-       }
    },
 
    _updateDebugRects: function () {
