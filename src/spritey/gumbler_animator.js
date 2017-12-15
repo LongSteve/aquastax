@@ -31,11 +31,11 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
        return (this.transition_to !== null);
    },
 
-   _dispatchEvent: function (name) {
+   _dispatchEvent: function (event) {
        var self = this;
 
-       cc.eventManager.dispatchCustomEvent (aq.spritey.GumblerAnimator.EVENT, {
-          'name': name,
+       cc.eventManager.dispatchCustomEvent (aq.spritey.GumblerAnimator.EVENT_TYPE, {
+          'event': event,
           'gumbler': self.gumbler
        });
    },
@@ -62,7 +62,7 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
           self.current_anim_keys.push (global_keys [i]);
        }
 
-       self._dispatchEvent ('initTransition');
+       self._dispatchEvent (aq.spritey.GumblerAnimator.EVENT_INIT);
    },
 
    handleTransition: function () {
@@ -133,6 +133,8 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
              now: transition_now,
              key: key
           };
+
+          self._dispatchEvent (aq.spritey.GumblerAnimator.EVENT_START);
        }
 
        if (self.transition_to) {
@@ -163,7 +165,10 @@ aq.spritey.GumblerAnimator.getGlobalTransitions = function () {
    return aq.spritey.GumblerAnimator.global_keys;
 };
 
-aq.spritey.GumblerAnimator.EVENT = 'gumbler_animator';
+aq.spritey.GumblerAnimator.EVENT_TYPE  = 'gumbler_animator';
+
+aq.spritey.GumblerAnimator.EVENT_START = 'start_transition';   // A new animation state has been requested
+aq.spritey.GumblerAnimator.EVENT_INIT  = 'init_transition';    // The requested new animation state has now been initialised
 
 aq.spritey.animator = function (gumbler) {
 

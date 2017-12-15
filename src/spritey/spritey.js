@@ -54,7 +54,7 @@ var SpriteTestLayer = cc.Layer.extend ({
       // by super::onEnter (called below in onEnter)
       cc.eventManager.addListener (cc.EventListener.create ({
          event: cc.EventListener.CUSTOM,
-         eventName: aq.spritey.GumblerAnimator.EVENT,
+         eventName: aq.spritey.GumblerAnimator.EVENT_TYPE,
          callback: function (event) {
            self.gumblerEvent (event);
          }
@@ -98,10 +98,10 @@ var SpriteTestLayer = cc.Layer.extend ({
       var self = this;
       let data = event.getUserData ();
 
-      if (data.name === 'initTransition') {
+      if (data.event === aq.spritey.GumblerAnimator.EVENT_INIT) {
          self._listTransitionControlKeys ();
       } else {
-         cc.log ('Unknown gumbler event: ' + data.name);
+         //cc.log ('Unhandled gumbler event: ' + data.event);
       }
    },
 

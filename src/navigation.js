@@ -11,8 +11,8 @@ aq.Navigation = cc.Node.extend ({
    // Reference to the game grid
    grid: null,
 
-   // Gumbler sprite (TODO: Handle multiple sprites)
-   gumbler: null,
+   // Gumbler sprites
+   gumblers: null,
 
    // Debug draw nodes to display the nav data
    debug_node: null,
@@ -32,6 +32,8 @@ aq.Navigation = cc.Node.extend ({
 
       // super init first
       self._super ();
+
+      self.gumblers = [];
 
       return this;
    },
@@ -55,9 +57,17 @@ aq.Navigation = cc.Node.extend ({
       self.scheduleUpdate ();
    },
 
-   addGumbler: function (node) {
+   addGumbler: function (n) {
       var self = this;
-      self.gumbler = node;
+
+      if (typeof (n) === 'undefined') {
+         n = 0;
+      }
+
+      let gumbler = new aq.spritey.Gumbler ();
+      gumbler.initWithTestData (aq.spritey.test [n]);
+      self.addChild (gumbler);
+      self.gumblers.push (gumbler);
    },
 
    update: function () {

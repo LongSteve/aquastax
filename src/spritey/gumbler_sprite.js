@@ -49,6 +49,7 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
 
       self.animator.handleTransition ();
       self._handleLineAndFish ();
+      self._updateDebugRects ();       // From aq.spritey.Sprite
    },
 
    // Get an cc.Animation for an aq.spritey.objects.Anim
