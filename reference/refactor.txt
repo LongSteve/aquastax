@@ -1,9 +1,25 @@
+3rd January 2018
+
+Due to very limited travel in December, I did not progress very much. I did however refactor the spritey animation
+system so that it is spit nicely into general sprite, gumbler data and specialised gumbler sprite classes, along with
+the base spritey class.  Alongside the grid class is also a new 'navigation' class that is going to handle the
+Gumbler movement around the grid.  The block class related to grid and gumbler will to navigation.  The grid and
+navigation classes will need to share much data, as the 'nav mesh' data structures will need to mirror the grid
+layout at all times, and be kept up to date as blocks land and the grid expands and collapses.
+
+diagram.txt shows that it will be the job of navigation.js to effectively 'contain' the gumblers, and drive their
+states for movement and animation.  The order in which I plan to implement the gumbler is much like the description
+of the basic logic for animateGumbler, that I describe below.  This means I will start with the A* pathfinding
+routines.  I remember these were originally quite fun to implement, and a lot of the gumbler logic is driven by the
+calculated path data.  It is also quite visual so easy to determine the correctness of the results (if not so easy
+to actually debug when errors occur!)
+
 22nd November 2017
 
 I have chosen a plan for continued development in the mid term.  I am not going to reuse verbatim the old Gumbler
 animation logic.  I have not re-used existing logic wholesale yet, except for the animation description, which I
 consider data and not logic.  I am first going to work on the grid metadata, describing the various movement related
-areas, creating something equivalent to a navigation mesh. With visual representation or where the gumblers can walk,
+areas, creating something equivalent to a navigation mesh. With visual representation of where the gumblers can walk,
 climb, stand and sit, this will be the perfect place to move into the pathfinding logic.  Once that is done, the
 movement directives and state machine will probably come almost automatically by filling in the gaps.
 
@@ -25,7 +41,7 @@ Loop over each active Gumbler:
 - Update Sprite at 20fps
 - Set speed factor if climbing
 - Check for state change request (from the level script)
-- If no requested change, call animateGumbler:
+- If no requested change, call animateGumbler ( --> see below) :
 - Handle drowning
 - Handle exiting
 - Handle exited
@@ -54,9 +70,9 @@ original code:
 Here's the basic logic for animateGumbler:
 
 - If climbing or walking, run pathfinding to determine direction requirements
-- If knocked off, update based on looping path and falling
 - Determine climb animation based on direction requirements
 - Check for falling (when the stack is collapsed)
+- If knocked off, update based on looping path and falling
 - Handle wakeup of a sleeping gumbler
 - Handle random timeouts for a sitting gumbler
 - Handle the fishing and reeling in
