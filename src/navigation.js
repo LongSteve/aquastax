@@ -1,5 +1,7 @@
 'use strict';
 
+var NAVIGATION_DEBUGGING = true;
+
 var WALK_BOT      = (1 << 8);
 var SIT_LEFT      = (1 << 9);
 var SIT_RIGHT     = (1 << 10);
@@ -49,10 +51,11 @@ aq.Navigation = cc.Node.extend ({
          self.nav_grid [i] = self.grid.game_grid [i] & 0xff;
       }
 
-      self.debug_node = new cc.Node ();
-      self.addChild (self.debug_node);
-
-      self.updateDebugNavNodes ();
+      if (NAVIGATION_DEBUGGING) {
+         self.debug_node = new cc.Node ();
+         self.addChild (self.debug_node);
+         self.updateDebugNavNodes ();
+      }
 
       self.scheduleUpdate ();
    },
@@ -77,7 +80,10 @@ aq.Navigation = cc.Node.extend ({
       // TODO: Optimise. This really only needs to be done when the grid data changes, so when a block lands.
       // The grid should send an event which the navigation class listens for and handles.
       self.updateNavData ();
-      self.updateDebugNavNodes ();
+
+      if (NAVIGATION_DEBUGGING) {
+         self.updateDebugNavNodes ();
+      }
    },
 
    updateDebugNavNodes: function () {
@@ -108,11 +114,12 @@ aq.Navigation = cc.Node.extend ({
 
       self.debug_node.addChild (grid_nav, 1);
 
-      if (self.gumbler) {
-         let p1 = self.grid.getGridPositionForNode (self.gumbler);
+      for (let i = 0; i < self.gumblers.length; i++) {
+         let gumbler = self.gumblers [i];
+         let p1 = self.grid.getGridPositionForNode (gumbler);
          let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE, p1.y + aq.config.BLOCK_SIZE);
          let gumbler_nav = new cc.DrawNode ();
-         gumbler_nav.drawRect (p1, p2, null, 1, cc.color.YELLOW);
+         gumbler_nav.drawRect (p1, p2, cc.color.YELLOW, 1, cc.color.YELLOW);
          self.debug_node.addChild (gumbler_nav);
       }
 
