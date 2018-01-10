@@ -2,11 +2,19 @@
 
 var NAVIGATION_DEBUGGING = true;
 
-var WALK_BOT      = (1 << 8);
-var SIT_LEFT      = (1 << 9);
-var SIT_RIGHT     = (1 << 10);
-//var STAND_LEFT    = (1 << 11);
-//var STAND_RIGHT   = (1 << 12);
+aq.nav = aq.nav || {};
+
+(function () {
+
+// constants
+aq.nav.WALK_BOT      = (1 << 8);
+aq.nav.SIT_LEFT      = (1 << 9);
+aq.nav.SIT_RIGHT     = (1 << 10);
+aq.nav.STAND_LEFT    = (1 << 11);
+aq.nav.STAND_RIGHT   = (1 << 12);
+aq.nav.CLIMB         = (1 << 13);      // climbing occurs up the left edge of a cell
+
+})();
 
 aq.Navigation = cc.Node.extend ({
 
@@ -18,6 +26,9 @@ aq.Navigation = cc.Node.extend ({
 
    // Debug draw nodes to display the nav data
    debug_node: null,
+
+   // Highlight the grid cell under the mouse
+   grid_pos_highlight: null,
 
    // The nav grid is an single dimensional array of ints, starting at 0 bottom left.
    // It mirrors the game grid, and is generated from the game grid as base data.
@@ -51,11 +62,26 @@ aq.Navigation = cc.Node.extend ({
          self.nav_grid [i] = self.grid.game_grid [i] & 0xff;
       }
 
+      self.grid_pos_highlight = new cc.DrawNode();
+      self.grid_pos_highlight.index = 0;
+      self.addChild (self.grid_pos_highlight);
+
+      aq.path.initPathfinding ();
+
       if (NAVIGATION_DEBUGGING) {
          self.debug_node = new cc.Node ();
          self.addChild (self.debug_node);
          self.updateDebugNavNodes ();
       }
+
+      cc.eventManager.addListener ({
+         event: cc.EventListener.MOUSE,
+         onMouseMove: function (event) {
+            let l = event.getLocation ();
+            let p = self.convertToNodeSpace (l);
+            self.highlightPos (p);
+         }
+      }, self);
 
       self.scheduleUpdate ();
    },
@@ -81,8 +107,39 @@ aq.Navigation = cc.Node.extend ({
       // The grid should send an event which the navigation class listens for and handles.
       self.updateNavData ();
 
+      // handle the gumblers
+      self.updateGumblers ();
+
       if (NAVIGATION_DEBUGGING) {
          self.updateDebugNavNodes ();
+      }
+   },
+
+   highlightPos: function (p) {
+      var self = this;
+
+      if (!self.grid_pos_highlight) {
+         return;
+      }
+
+      let block_size = aq.config.BLOCK_SIZE;
+      let index = self.grid.getGridIndexForPoint (p);
+
+      // set a specific index for testing
+      //index = 5 * 14 + 6;
+
+      if (index !== self.grid_pos_highlight.index) {
+         self.grid_pos_highlight.index = index;
+
+         self.grid_pos_highlight.clear ();
+
+         // Add in the geometry for a rectangle to highlight the block grid position
+         self.grid_pos_highlight.drawRect (cc.p (0,0), cc.p (block_size, block_size),
+                                           null, // fillcolor
+                                           4,    // line width
+                                           cc.color (255,0,0,255));
+
+         self.grid_pos_highlight.setPosition (self.grid.getGridPositionForIndex (index));
       }
    },
 
@@ -117,9 +174,23 @@ aq.Navigation = cc.Node.extend ({
       for (let i = 0; i < self.gumblers.length; i++) {
          let gumbler = self.gumblers [i];
          let p1 = self.grid.getGridPositionForNode (gumbler);
-         let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE, p1.y + aq.config.BLOCK_SIZE);
+         p1.x += aq.config.BLOCK_SIZE / 2;
+         p1.y += aq.config.BLOCK_SIZE / 2;
          let gumbler_nav = new cc.DrawNode ();
-         gumbler_nav.drawRect (p1, p2, cc.color.YELLOW, 1, cc.color.YELLOW);
+         gumbler_nav.drawDot (p1, 4, cc.color.GREY);
+
+         if (gumbler.path) {
+            for (let j = 0; j < gumbler.path.length; j++) {
+               let index = gumbler.path [j];
+               if (index !== -1) {
+                  let pos = self.grid.getGridPositionForIndex (index);
+                  pos.x += aq.config.BLOCK_SIZE / 2;
+                  pos.y += aq.config.BLOCK_SIZE / 2;
+                  gumbler_nav.drawDot (pos, 4, cc.color.WHITE);
+               }
+            }
+         }
+
          self.debug_node.addChild (gumbler_nav);
       }
 
@@ -138,7 +209,7 @@ aq.Navigation = cc.Node.extend ({
          return true;
       }
 
-      return self._indexMatchFlag (index, WALK_BOT);
+      return self._indexMatchFlag (index, aq.nav.WALK_BOT);
    },
 
    _canSit: function (index, flag) {
@@ -153,12 +224,22 @@ aq.Navigation = cc.Node.extend ({
 
    canSitLeft: function (index) {
       var self = this;
-      return self._canSit (index, SIT_LEFT);
+      return self._canSit (index, aq.nav.SIT_LEFT);
    },
 
    canSitRight: function (index) {
       var self = this;
-      return self._canSit (index, SIT_RIGHT);
+      return self._canSit (index, aq.nav.SIT_RIGHT);
+   },
+
+   canClimb: function (index) {
+       var self = this;
+
+       if (index < 0) {
+          return false;
+       }
+
+       return self._indexMatchFlag (index, aq.nav.CLIMB);
    },
 
    updateNavData: function () {
@@ -177,6 +258,9 @@ aq.Navigation = cc.Node.extend ({
 
          // sitability
          self.nav_grid [i] |= self._determineSitFlags (i);
+
+         // climbability
+         self.nav_grid [i] |= self._determineClimbFlags (i);
       }
    },
 
@@ -184,7 +268,7 @@ aq.Navigation = cc.Node.extend ({
       var self = this;
 
       if (index < self.grid.blocks_wide) {
-         return WALK_BOT;
+         return aq.nav.WALK_BOT;
       }
 
       var g = self.nav_grid [index];
@@ -205,7 +289,7 @@ aq.Navigation = cc.Node.extend ({
          self._isPlatform (g_below)
          )
        {
-          return WALK_BOT;
+          return aq.nav.WALK_BOT;
        }
 
        return 0;
@@ -230,20 +314,70 @@ aq.Navigation = cc.Node.extend ({
        if (bx > 0) {
           let g_left = self.nav_grid [index - 1] & 0xff;
           let g_below_left = self.nav_grid [index - 1 - self.grid.blocks_wide] & 0xff;
-          can_sit_left = (g_left === 0 && g_below_left === 0 ? SIT_LEFT : 0);
+          can_sit_left = (g_left === 0 && g_below_left === 0 ? aq.nav.SIT_LEFT : 0);
        }
 
        if (bx < self.grid.blocks_wide - 1) {
           let g_right = self.nav_grid [index + 1] & 0xff;
           let g_below_right = self.nav_grid [index + 1 - self.grid.blocks_wide] & 0xff;
-          can_sit_right = (g_right === 0 && g_below_right === 0 ? SIT_RIGHT : 0);
+          can_sit_right = (g_right === 0 && g_below_right === 0 ? aq.nav.SIT_RIGHT : 0);
        }
 
        return can_sit_left | can_sit_right;
    },
 
+   _determineClimbFlags: function (index) {
+      var self = this;
+
+      // Cannot climb along the bottom row, or far left hand column
+      if ((index < aq.config.GRID_WIDTH) || ((index % aq.config.GRID_WIDTH) === 0)) {
+         return 0;
+      }
+
+      // TODO: Check for the blocks under water
+      // TODO: Check for unclimable blocks
+
+      // Only climb up where there are two square grid cells together (horizontally)
+      let c1 = self.nav_grid [index];
+      let c2 = self.nav_grid [index - 1];
+      if (aq.isSquareCell (c1) && aq.isSquareCell (c2)) {
+         return aq.nav.CLIMB;
+      }
+
+      return 0;
+   },
+
    _isPlatform: function (/*index*/) {
        // TODO: Add this test when platforms are implemented
        return false;
+   },
+
+   updateGumblers: function () {
+       var self = this;
+
+       var climbable = function (x, y) {
+          let i = self.grid.getGridIndexForPosition (x, y);
+          return self.canClimb (i);
+       };
+
+       for (let i = 0; i < self.gumblers.length; i++) {
+          let gumbler = self.gumblers [i];
+
+          let start = self.grid.getGridPointForNode (gumbler);
+
+          // route the gumbler up, as for an infinite level
+          //let exit = cc.clone (start);
+          //exit.y += self.grid.getHeight () >> 1;
+
+          // Set the path using the mouse pointer
+          let exit = self.grid.getGridPointForIndex (self.grid_pos_highlight.index);
+
+          let path = [];
+
+          aq.path.findPath (start.x, start.y, exit.x, exit.y, path, climbable);
+
+          // TODO: Formalise this
+          gumbler.path = path;
+       }
    }
 });

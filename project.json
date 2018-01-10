@@ -20,6 +20,7 @@
         "src/menu.js",
         "src/game.js",
         "src/grid.js",
+        "src/path.js",
         "src/navigation.js",
         "src/block.js",
         "src/spritey/spritey.js",
