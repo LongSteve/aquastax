@@ -121,7 +121,7 @@ var GameLayer = cc.Layer.extend ({
 
       // Test Gumblers
       self.navigation.addGumbler (0);
-      self.navigation.addGumbler (1);
+      //self.navigation.addGumbler (1);
 
       // Create the first block to drop onto the playing area
       self.nextBlock ();

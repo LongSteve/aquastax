@@ -141,6 +141,14 @@ aq.Grid = cc.Node.extend ({
       self.scheduleUpdate ();
    },
 
+   getWidth: function () {
+       return this.blocks_wide;
+   },
+
+   getHeight: function () {
+       return this.blocks_high;
+   },
+
    update: function () {
       var self = this;
 
@@ -392,12 +400,17 @@ aq.Grid = cc.Node.extend ({
       return indexes;
    },
 
+   getGridIndexForPosition: function (x, y) {
+      var self = this;
+      var i = (y * self.blocks_wide) + x;
+      return i;
+   },
+
    getGridIndexForPoint: function (p) {
        var self = this;
        var y = Math.floor (p.y / aq.config.BLOCK_SIZE);
        var x = Math.floor (p.x / aq.config.BLOCK_SIZE);
-       var i = (y * self.blocks_wide) + x;
-       return i;
+       return self.getGridIndexForPosition (x, y);
    },
 
    getGridIndexForNode: function (node) {
@@ -405,9 +418,25 @@ aq.Grid = cc.Node.extend ({
       return self.getGridIndexForPoint (node.getPosition ());
    },
 
+   getGridPointForIndex: function (index) {
+       var self = this;
+
+       var bx = index % self.blocks_wide;
+       var by = Math.floor (index / self.blocks_wide);
+
+       var point = cc.p (bx, by);
+
+       return point;
+   },
+
+   getGridPointForNode: function (node) {
+       var self = this;
+       return self.getGridPointForIndex (self.getGridIndexForNode (node));
+   },
+
    getGridDataForIndex: function (index) {
-      var self = this;
-      return self.game_grid [index];
+       var self = this;
+       return self.game_grid [index];
    },
 
    getGridPositionForIndex: function (index) {
