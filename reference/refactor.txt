@@ -1,3 +1,14 @@
+31st January 2018
+
+I wrote the entry below (on Jan 15th if seems) but didn't commit the code that day. I was probably only able to do so much in the single commute session and decided that it would be better to wait until things were stable. Then due to personal illness, I was not able to work on AquaStax again until today (31st Jan). Now at least I remember where I was and have picked up at the point of implementing grid events. These events will form the basis of altering the Gumbler state, so they navigate around (walk and climb).
+
+15th January 2018
+
+After a fairly easy direct source copy from my original Java code, I have integrated the A* pathfinding code into
+Javascript functions.  Testing this out by using the mouse pointer as the path target seems to work pretty well.
+Now the job is to work out how to control the Gumbler, possibly using a state machine, effected by events from
+from the grid.
+
 3rd January 2018
 
 Due to very limited travel in December, I did not progress very much. I did however refactor the spritey animation
