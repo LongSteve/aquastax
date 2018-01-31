@@ -360,15 +360,19 @@ aq.Navigation = cc.Node.extend ({
    gridEvent: function (event) {
       var self = this;
 
-      let data = event.getUserData ();
+      let event_data = event.getUserData ();
 
-      cc.log ('Grid Event: ' + data.event +
-              (data.block ? (' block: ' + JSON.stringify (data.block.getPosition ())) : ''));
+      cc.log ('Grid Event: ' + event_data.event +
+              (event_data.block ? (' block: ' + JSON.stringify (event_data.block.getPosition ())) : ''));
 
       // Any grid event (block land or break/collapse) means the nav data must be re-calculated
       self.updateNavData ();
 
-      // TODO: Handle a block landing to wake up any sleeping Gumblers
+      // Process the gumbler behaviours for when a grid event occurs
+      for (let i = 0; i < self.gumblers.length; i++) {
+         let gumbler = self.gumblers [i];
+         aq.behaviour.GumblerRespondToGridEvent (event_data, gumbler);
+      }
    },
 
    updateGumblers: function () {
@@ -381,7 +385,9 @@ aq.Navigation = cc.Node.extend ({
 
        for (let i = 0; i < self.gumblers.length; i++) {
           let gumbler = self.gumblers [i];
+          aq.behaviour.GumblerHandleGameUpdate (gumbler);
 
+          // TEMP: Gumbler pathfinding code.  To be refactored into behaviour.js
           let start = self.grid.getGridPointForNode (gumbler);
 
           // route the gumbler up, as for an infinite level
@@ -392,6 +398,11 @@ aq.Navigation = cc.Node.extend ({
           let exit = self.grid.getGridPointForIndex (self.grid_pos_highlight.index);
 
           let path = [];
+
+          // Temp: Check against the sprite anchor point being under the 0 line
+          if (start.y < 0 || start.x < 0) {
+             continue;
+          }
 
           aq.path.findPath (start.x, start.y, exit.x, exit.y, path, climbable);
 

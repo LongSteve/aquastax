@@ -65,6 +65,48 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
       return null;
    },
 
+   getAnimationStateName: function () {
+      var self = this;
+      let state = self.getAnimationState ();
+      return state ? state.name : null;
+   },
+
+   /**
+    * Sets the gumbler animation state, given a name (or an
+    * instance of aq.spritey.objects.State)
+    */
+   setAnimationState: function (state) {
+      var self = this;
+
+      let state_name = state;
+
+      // Assume a string
+      if (state instanceof aq.spritey.objects.State) {
+         state_name = state.name;
+      }
+
+      cc.log ('Gumbler setAnimationState: ' + state_name);
+
+      let animator = self.getAnimator ();
+
+      if (animator.isTransitioning ()) {
+         cc.log ('Gumbler setAnimationState fail: already transitioning');
+         return false;
+      }
+
+      let state_transitions = animator.listStateTransitions ();
+      let states = Object.keys (state_transitions);
+      cc.log ('State transition keys: ' + states);
+      let key = state_transitions [state_name];
+      if (key) {
+         animator.startTransition (key);
+         return true;
+      }
+
+      cc.log ('Animation State Transition not possible from current state');
+      return false;
+   },
+
    initWithTestData: function (sprite_data) {
       var self = this;
 
@@ -196,12 +238,10 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
        self.stopAllActions ();
 
        // Handle an overlay animation.
-       let userData = self.getUserData ();
-       if (userData.overlay) {
-          let overlay_sprite_to_remove = self.getChildByTag (99);
-          if (overlay_sprite_to_remove) {
-             self.removeChild (overlay_sprite_to_remove);
-          }
+
+       let overlay_sprite_to_remove = self.getChildByTag (99);
+       if (overlay_sprite_to_remove) {
+          self.removeChild (overlay_sprite_to_remove);
        }
 
        if (anim.overlay) {
@@ -218,6 +258,7 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
           overlay_sprite.y = -overlay_offset.y;
 
           // Update the sprite userData to include the overlay
+          let userData = self.getUserData ();
           userData.overlay = anim.overlay;
 
           self.addChild (overlay_sprite, -1, 99);
