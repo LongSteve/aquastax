@@ -74,6 +74,16 @@ aq.Navigation = cc.Node.extend ({
          self.updateDebugNavNodes ();
       }
 
+      // The custom event listener will be initially paused.  It is un-paused
+      // by super::onEnter (called below in onEnter)
+      cc.eventManager.addListener (cc.EventListener.create ({
+         event: cc.EventListener.CUSTOM,
+         eventName: aq.Grid.EVENT_TYPE,
+         callback: function (event) {
+           self.gridEvent (event);
+         }
+      }), self);
+
       cc.eventManager.addListener ({
          event: cc.EventListener.MOUSE,
          onMouseMove: function (event) {
@@ -82,6 +92,16 @@ aq.Navigation = cc.Node.extend ({
             self.highlightPos (p);
          }
       }, self);
+   },
+
+   onEnter: function () {
+      var self = this;
+
+      // This is important to un-pause the custom event listener
+      this._super ();
+
+      // Initialise the nav data for the first time
+      self.updateNavData ();
 
       self.scheduleUpdate ();
    },
@@ -101,11 +121,6 @@ aq.Navigation = cc.Node.extend ({
 
    update: function () {
       var self = this;
-
-      // Navigation (of the Gumblers)
-      // TODO: Optimise. This really only needs to be done when the grid data changes, so when a block lands.
-      // The grid should send an event which the navigation class listens for and handles.
-      self.updateNavData ();
 
       // handle the gumblers
       self.updateGumblers ();
@@ -179,9 +194,10 @@ aq.Navigation = cc.Node.extend ({
          let gumbler_nav = new cc.DrawNode ();
          gumbler_nav.drawDot (p1, 4, cc.color.GREY);
 
-         if (gumbler.path) {
-            for (let j = 0; j < gumbler.path.length; j++) {
-               let index = gumbler.path [j];
+         let path = gumbler.getNavigationPath ();
+         if (path) {
+            for (let j = 0; j < path.length; j++) {
+               let index = path [j];
                if (index !== -1) {
                   let pos = self.grid.getGridPositionForIndex (index);
                   pos.x += aq.config.BLOCK_SIZE / 2;
@@ -199,26 +215,20 @@ aq.Navigation = cc.Node.extend ({
 
    _indexMatchFlag: function (index, flag) {
       var self = this;
-      return (self.nav_grid [index] & flag) !== 0;
+      if (index < 0 || index > self.nav_grid.length) {
+         return false;
+      }
+      return (self.nav_grid[index] & flag) !== 0;
    },
 
    canWalk: function (index) {
       var self = this;
 
-      if (index < 0) {
-         return true;
-      }
-
-      return self._indexMatchFlag (index, aq.nav.WALK_BOT);
+     return self._indexMatchFlag (index, aq.nav.WALK_BOT);
    },
 
    _canSit: function (index, flag) {
        var self = this;
-
-       if (index < 0) {
-          return true;
-       }
-
        return self._indexMatchFlag (index, flag);
    },
 
@@ -234,11 +244,6 @@ aq.Navigation = cc.Node.extend ({
 
    canClimb: function (index) {
        var self = this;
-
-       if (index < 0) {
-          return false;
-       }
-
        return self._indexMatchFlag (index, aq.nav.CLIMB);
    },
 
@@ -352,6 +357,20 @@ aq.Navigation = cc.Node.extend ({
        return false;
    },
 
+   gridEvent: function (event) {
+      var self = this;
+
+      let data = event.getUserData ();
+
+      cc.log ('Grid Event: ' + data.event +
+              (data.block ? (' block: ' + JSON.stringify (data.block.getPosition ())) : ''));
+
+      // Any grid event (block land or break/collapse) means the nav data must be re-calculated
+      self.updateNavData ();
+
+      // TODO: Handle a block landing to wake up any sleeping Gumblers
+   },
+
    updateGumblers: function () {
        var self = this;
 
@@ -376,8 +395,7 @@ aq.Navigation = cc.Node.extend ({
 
           aq.path.findPath (start.x, start.y, exit.x, exit.y, path, climbable);
 
-          // TODO: Formalise this
-          gumbler.path = path;
+          gumbler.setNavigationPath (path);
        }
    }
 });

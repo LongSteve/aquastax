@@ -121,3 +121,14 @@ aq.createArray = function (length) {
 
     return arr;
 };
+
+/**
+ * Dispatch an event.  Currently this uses the
+ * cc.eventManager class.
+ */
+aq.dispatchEvent = function (type, event, data) {
+    data = data || {};
+    data.event = event;
+    cc.eventManager.dispatchCustomEvent (type, data);
+};
+

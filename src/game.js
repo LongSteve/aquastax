@@ -318,6 +318,7 @@ var GameLayer = cc.Layer.extend ({
 
          if (!self.isCollapsing) {
             self.nextBlock ();
+            aq.dispatchEvent (aq.Grid.EVENT_TYPE, aq.Grid.EVENT_STACK_COLLAPSED);
          }
       } else {
          self.handleBlockMovement (self.block);
@@ -751,6 +752,8 @@ var GameLayer = cc.Layer.extend ({
 
             // Allocate a new block for falling
             self.nextBlock ();
+
+            aq.dispatchEvent (aq.Grid.EVENT_TYPE, aq.Grid.EVENT_BLOCK_LAND, {'block': block});
          }
       };
 
@@ -848,6 +851,8 @@ var GameLayer = cc.Layer.extend ({
 
                      // Remove the broken falling block straight away
                      block.removeFromParent (true);
+
+                     aq.dispatchEvent (aq.Grid.EVENT_TYPE, aq.Grid.EVENT_BLOCK_BREAK, {'block': block});
 
                      //return 2;
                      return 0;

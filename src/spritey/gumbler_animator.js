@@ -33,11 +33,7 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
 
    _dispatchEvent: function (event) {
        var self = this;
-
-       cc.eventManager.dispatchCustomEvent (aq.spritey.GumblerAnimator.EVENT_TYPE, {
-          'event': event,
-          'gumbler': self.gumbler
-       });
+       aq.dispatchEvent (aq.spritey.GumblerAnimator.EVENT_TYPE, event, {'gumbler': self.gumbler});
    },
 
    initTransitions: function () {

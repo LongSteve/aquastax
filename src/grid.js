@@ -1559,3 +1559,11 @@ aq.Grid = cc.Node.extend ({
    }
 });
 
+/**
+ * Events emitted by the game logic
+ */
+aq.Grid.EVENT_TYPE            = 'grid';             // Grid event type
+aq.Grid.EVENT_BLOCK_LAND      = 'block_land';       // Block has fully landed
+aq.Grid.EVENT_BLOCK_BREAK     = 'block_break';      // A landed block is broken (was pointy, or landed on a point)
+aq.Grid.EVENT_STACK_COLLAPSED = 'stack_collapsed';  // Stack has collapsed (and finished collapsing)
+
