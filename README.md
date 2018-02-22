@@ -5,9 +5,9 @@ This is the repo for my remake of AquaStax, a 2007 mobile puzzle game.
 
 The game will use the Cocos2d-JS framework, and be coded in Javascript, with possibly some old Java tools.
 
-I will be live streaming the work I do on this project on Thursdays at 3pm UK time:
+I will be live streaming the work I do on this project on Thursdays at 4pm UK time:
 
-- [livecoding.tv/longsteve](https://www.livecoding.tv/longsteve/)
+- [twitch.tv/l0ngsteve](https://twitch.tv/l0ngsteve)
 
 Stream Archive
 
