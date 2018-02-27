@@ -404,6 +404,11 @@ aq.Navigation = cc.Node.extend ({
              continue;
           }
 
+          // Temp: Also make sure the mouse pointer isn't offscreen
+          if (exit.y < 0 || exit.x < 0) {
+             continue;
+          }
+
           aq.path.findPath (start.x, start.y, exit.x, exit.y, path, climbable);
 
           gumbler.setNavigationPath (path);

@@ -1,6 +1,15 @@
+27th February 2018
+
+First proper 1 hour stream on twitch.tv.  Basically wrote no code, but fixed a tiny bug in the path finding test code,
+and refreshed my memory on where I'm at.  Ready to continue implementing the Gumbler logic.
+
 31st January 2018
 
-I wrote the entry below (on Jan 15th if seems) but didn't commit the code that day. I was probably only able to do so much in the single commute session and decided that it would be better to wait until things were stable. Then due to personal illness, I was not able to work on AquaStax again until today (31st Jan). Now at least I remember where I was and have picked up at the point of implementing grid events. These events will form the basis of altering the Gumbler state, so they navigate around (walk and climb).
+I wrote the entry below (on Jan 15th if seems) but didn't commit the code that day. I was probably only able to do
+so much in the single commute session and decided that it would be better to wait until things were stable. Then
+due to personal illness, I was not able to work on AquaStax again until today (31st Jan). Now at least I remember
+where I was and have picked up at the point of implementing grid events. These events will form the basis of altering
+the Gumbler state, so they navigate around (walk and climb).
 
 15th January 2018
 
@@ -127,7 +136,7 @@ setting, the sprite object itself can handle the horizontal mirroring.
 Gumbler Animation System History
 
 I have taken the original Gumbler Animation System data file and converted it to Javascript. The original text definition
-file was a domain specific language, with the processor implemented by a jflex/cup parser. The processor generated pure 
+file was a domain specific language, with the processor implemented by a jflex/cup parser. The processor generated pure
 binary data (as arrays) from the animations and processed png image files.
 
 The runtime animation system loaded the binary animation and image data, and presented a state machine for the gumblers,
@@ -136,19 +145,19 @@ handled all the animations and transitions, and rendered the sprites frame by fr
 The complex set of animations, even when encoded at it's highest quality and sprite resolution was still only about
 250kb of data. This was then compressed within .jar files to take up less package space, and at runtime, could be memory
 managed to use minimal heap. When the animations were reduced (automatically) based on some filters, it was possible
-to output a bundle of less than 64kb in size, useable on even the lowest end, extremely memory limited devices of the time. 
+to output a bundle of less than 64kb in size, useable on even the lowest end, extremely memory limited devices of the time.
 
 Modern Sprite Animation with Cocos2D-JS
 
 I decided that attempting to recreate the domain specific language parser and sprite processor in Javascript was not a
 good use of time. I did investigate some parser generators that output Javascript, but the original Java based lexer and
-parser definitions would need almost a complete re-write. I could have kept the processor in Java, just modifying it's output 
-to be more relevant to a new animation system, but I think the new system would still have had to be created with all the 
+parser definitions would need almost a complete re-write. I could have kept the processor in Java, just modifying it's output
+to be more relevant to a new animation system, but I think the new system would still have had to be created with all the
 constraints of the original. I want to animate the gumblers in my new game using the modern and comphrensive sprite animation
 features of Cocos2D-JS, and not simply port my 10 year old code.
 
 There is still a lot of useful information within the text based sprite definition data file. With the help of some simple
-editor macros (SlickEdit) I was easily able to convert the data file into syntatically correct Javascript. By implementing 
+editor macros (SlickEdit) I was easily able to convert the data file into syntatically correct Javascript. By implementing
 the various keyword functions like image(), begin_anim(), major_state() etc. I should be able to build a data structure that
 can then be used to generate Cocos2D-JS sprite/node/action animations.
 
@@ -164,15 +173,15 @@ there are some snags I have hit that I must work out.
   sprite being flipped in the X direction (flippedX), but does not support individual sprite frame textures being flipped.
 
   2) The original animation system runtime was entirely built from scratch, and hence managed the sprite update entirely
-  by itself. Each game update called the sprite runtime update method, which handled all state changes, movement and frame 
+  by itself. Each game update called the sprite runtime update method, which handled all state changes, movement and frame
   incrementing based on the delta time for the update. The render method was almost trivial, simply rendering the current
-  frame at it's already calculated position. 
+  frame at it's already calculated position.
 
-  The Cocos2D-JS sprite animation system is built on the concept of an individual cc.Sprite instance running a cc.Animation 
+  The Cocos2D-JS sprite animation system is built on the concept of an individual cc.Sprite instance running a cc.Animation
   which is comprised of cc.SpriteFrame instances for the image updating. Alongside this, you create sequences of cc.Action
   elements and call runAction on the sprite node to perform things like movement, flipping and other transformations.
 
-  All of this happens logically independently of the main game update loop.  Mapping the original animation data to 
+  All of this happens logically independently of the main game update loop.  Mapping the original animation data to
   the new system is not quite straightfoward, especially in the areas of individually variable frame times, and sprite
   frame image mirror/flippedX requirements.
 
