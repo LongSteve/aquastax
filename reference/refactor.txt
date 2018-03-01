@@ -93,7 +93,7 @@ Here's the basic logic for animateGumbler:
 - Determine climb animation based on direction requirements
 - Check for falling (when the stack is collapsed)
 - If knocked off, update based on looping path and falling
-- Handle wakeup of a sleeping gumbler
++ Handle wakeup of a sleeping gumbler
 - Handle random timeouts for a sitting gumbler
 - Handle the fishing and reeling in
 - Handle hitting platform (and play area) edges and turning around
