@@ -55,8 +55,12 @@ var HSPACER = [
 //var TEST_GRID = [33688612,33688612,67111938,117902372,117836849,67374129,67374129,50531377,33688642,84216881,84216881,16845873,16845890,16845890,33688612,67374099,67374099,117771313,101059603,67177508,3072,33688642,33688642,84347953,16780291,16845873,33688642,17239076,33688612,33688612,84216851,84216851,50531377,16845860,16845860,84216881,84216881,117443620,33688625,33688642,33688642,117771313,33688612,33688612,33688612,67374129,67374129,16845890,16845890,83889201,3108,3091,33688625,33688625,84216851,84216851,33688625,33688612,3072,67374116,3121,101059650,17173540,50531377,33688625,3138,3121,3108,16845890,16845890,33688625,33688625,67374099,67374099,67112002,3121,3121,33688625,33688625,33688625,67374129,67374129,101059650,17173540,33688612,33688612,33688642,67374099,67374099,461860,3108,33688625,33688625,33688642,67570724,16845873,84216881,84216881,33688612,33688642,33688642,50531377,3072,117836849,3091,50531377,33688642,33688642,117509169,16845873,84282417,3072,3072,3072,3072,3072,3072,101059603,33688642,16845890,16845890,16845843,17173553,3072,101059603,3072,0,0,0,0,3072,33688642,33688642,101059650,17173540,16845843,101059603,3072,3072,0,0,0,0,0,0,3072,3072,67374129,67374129,3072,3072,0,0,0,0,0,0,0,0,0,0,67111940,3072,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 //var TEST_GRID = [0,0,3072,101059650,101059620,101059620,101059650,100666370,3072,0,0,3072,0,0,0,0,0,3072,3138,3091,3108,84216881,84216881,3072,0,0,0,3072,0,0,0,0,3072,3072,3072,84216881,84216898,3072,0,0,0,0,0,0,0,0,3072,16780290,84216851,84216851,84216898,83889154,0,0,0,0,0,0,0,0,3072,16845860,16845860,3072,3072,3072,0,0,0,0,0,0,0,0,0,3072,3072,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 //var TEST_GRID = [0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,3072,3138,3073,0,0,0,0,0,0,0,0,0,0,0,3138,3073,0,0,0,0,0,0,0,0,0,0,0,0,3072];
+//var TEST_GRID = [0,3072,100666404,101059620,101059633,117443620,117902385,16845890,16845890,16845843,16780289,0,0,0,0,3072,3091,50531377,101125169,3091,117705764,50531377,16780324,16845843,3072,0,0,0,0,0,3072,3072,117443588,67374099,67374099,33688625,3091,50531377,3072,0,0,0,0,0,0,0,3072,84216881,84216881,33688625,33688625,50531377,3072,0,0,0,0,0,0,0,3072,84151345,67374116,3072,3072,3072,0,0,0,0,0,0,0,0,3072,101059633,67374116,3072,0,0,0,0,0,0,0,0,0,0,3072,100994097,50531377,3072,0,0,0,0,0,0,0,0,0,3072,84216851,84216851,33688625,3072,0,0,0,0,0,0,0,0,0,3072,84216881,84216881,33688625,33688625,3072,0,0,0,0,0,0,0,0,3072,83889153,3072,3072,3072];
 
-var TEST_GRID = [0,3072,100666404,101059620,101059633,117443620,117902385,16845890,16845890,16845843,16780289,0,0,0,0,3072,3091,50531377,101125169,3091,117705764,50531377,16780324,16845843,3072,0,0,0,0,0,3072,3072,117443588,67374099,67374099,33688625,3091,50531377,3072,0,0,0,0,0,0,0,3072,84216881,84216881,33688625,33688625,50531377,3072,0,0,0,0,0,0,0,3072,84151345,67374116,3072,3072,3072,0,0,0,0,0,0,0,0,3072,101059633,67374116,3072,0,0,0,0,0,0,0,0,0,0,3072,100994097,50531377,3072,0,0,0,0,0,0,0,0,0,3072,84216851,84216851,33688625,3072,0,0,0,0,0,0,0,0,0,3072,84216881,84216881,33688625,33688625,3072,0,0,0,0,0,0,0,0,3072,83889153,3072,3072,3072];
+var TEST_GRID = [0,3072,100666404,101059620,101059633,117443620,117902385,16845890,16845890,16845843,16780289,0,0,0,0,3072,3091,50531377,101125169,3091,117705764,50531377,16780324,16845843,3072,0,0,0,0,0,3072,3072,117443588,67374099,67374099,33688625,3091,50531377,3072,0,0,0,0,0,0,0,3072,84216881,84216881,33688625,33688625,50531377,33688642,3072,0,0,0,0,0,0,3072,84151345,67374116,3072,3072,33688642,33688642,3072,0,0,0,0,0,0,3072,101059633,67374116,3072,0,3072,3072,0,0,0,0,0,0,0,3072,100994097,50531377,3072,0,0,0,0,0,0,0,0,0,3072,84216851,84216851,33688625,3072,0,0,0,0,0,0,0,0,0,3072,84216881,84216881,33688625,33688625,3072,0,0,0,0,0,0,0,0,3072,83889201,3108,3072,50531377,3072,0,0,0,0,0,0,0,0,0,3072,3072,0,3072];
+
+
+
 //var TEST_GRID = [];
 
 var GameLayer = cc.Layer.extend ({
@@ -155,7 +159,7 @@ var GameLayer = cc.Layer.extend ({
       var x, y;
       if (typeof (TEST_GRID) !== 'undefined') {
          self.grid.game_grid = TEST_GRID;
-         self.grid.groupFloodFill (true); 
+         self.grid.groupFloodFill (true);
       }
 
       if (TEST_LAYOUT) {
@@ -164,7 +168,7 @@ var GameLayer = cc.Layer.extend ({
                var gr = GR [i];
                var new_block = new aq.Block (true, gr[0]);
                new_block.setNewRotationAndPosition ({
-                  rotation: gr [1], 
+                  rotation: gr [1],
                   position: cc.p ((col + gr [2]) * aq.config.BLOCK_SIZE, (row + gr [3]) * aq.config.BLOCK_SIZE)
                });
                self.grid.insertBlockIntoGrid (new_block);
@@ -219,7 +223,7 @@ var GameLayer = cc.Layer.extend ({
          }
          self.grid.groupFloodFill (true);
       }
-      
+
       cc.eventManager.addListener ({
          event: cc.EventListener.KEYBOARD,
          onKeyPressed: function (keyCode) {
@@ -273,7 +277,7 @@ var GameLayer = cc.Layer.extend ({
        if (!SHOW_KEYPRESS_INDICATORS) {
           return;
        }
-       
+
        // Create DrawNode objects to show the up,down,left and right key pressed states
        var i;
 
@@ -310,7 +314,7 @@ var GameLayer = cc.Layer.extend ({
       var self = this;
 
       self.handleCameraMovement ();
-             
+
       // Handle a collapsing stack. This takes president over normal block dropping and movement
       if (self.isCollapsing) {
 
@@ -337,7 +341,7 @@ var GameLayer = cc.Layer.extend ({
        var self = this;
 
        var framesPerSecond = cc.game.config.frameRate;
-       var cameraDy = (aq.config.BLOCK_SIZE * aq.config.CAMERA_MOVEMENT_RATE) / framesPerSecond; 
+       var cameraDy = (aq.config.BLOCK_SIZE * aq.config.CAMERA_MOVEMENT_RATE) / framesPerSecond;
        var deltaCamera = 0;
 
        // Currently, just move the camera with keys, but ultimately it will focus on
@@ -354,7 +358,7 @@ var GameLayer = cc.Layer.extend ({
 
        if (deltaCamera !== 0) {
           self.grid.moveToCamera (self.cameraHeight);
-       }       
+       }
    },
 
    fallingGroup: null,
@@ -367,13 +371,13 @@ var GameLayer = cc.Layer.extend ({
        // If at the cluster level, the large chunks will fall, but it may look less
        // 'realistic', but if at the group level, it could take a lot longer to
        // resolve a collapse as each block is going to fall individually.
-                        
-       var movement = 0;       
-                    
+
+       var movement = 0;
+
        var bm;
        var clusters, cluster, c;
        var groups, group, g;
-                           
+
        if (self.fallingGroup) {
           movement = self.handleBlockMovement (self.fallingGroup);
           if (movement === 0) {
@@ -394,7 +398,7 @@ var GameLayer = cc.Layer.extend ({
           }
        }
 
-       self.grid.groupFloodFill ();       
+       self.grid.groupFloodFill ();
        clusters = self.grid.getClusterList ();
 
        for (c = 0; c < clusters.length; c++) {
@@ -410,7 +414,7 @@ var GameLayer = cc.Layer.extend ({
                 self.gamePanel.addChild (groupNode, 3);
                 self.fallingGroup = groupNode;
 
-                bm = self.handleBlockMovement (self.fallingGroup); 
+                bm = self.handleBlockMovement (self.fallingGroup);
                 if (bm === 0) {
                    self.fallingGroup.removeFromParent ();
                    self.fallingGroup = null;
@@ -428,12 +432,12 @@ var GameLayer = cc.Layer.extend ({
        self.grid.groupFloodFill ();
        self.fallingGroup = null;
 
-       // Now test for any loose clusters that can fall, otherwise, we get the 
+       // Now test for any loose clusters that can fall, otherwise, we get the
        // rare case of a group surrounding another group, and they 'hold' each
        // other up.  By falling clusters, we get around this...
 
        movement = 0;
-       
+
        clusters = self.grid.getClusterList ();
 
        for (c = 0; c < clusters.length; c++) {
@@ -486,11 +490,11 @@ var GameLayer = cc.Layer.extend ({
    // 1 if still potentially moving or sliding
    handleBlockMovement: function (block) {
       var self = this;
-      
+
       if (!block) {
          return 0;
       }
-      
+
       // Game update values
       var framesPerSecond = cc.game.config.frameRate;
       var millisPerUpdate = 1000.0 / framesPerSecond;
@@ -517,7 +521,7 @@ var GameLayer = cc.Layer.extend ({
       if (collapse) {
          leftPressed = rightPressed = rotatePressed = dropPressed = false;
       }
-      
+
       // Move left or right
       if (self.moveDelayMS >= aq.config.KEY_DELAY_MS) {
          if (leftPressed) {
@@ -612,7 +616,7 @@ var GameLayer = cc.Layer.extend ({
       }
 
       // dx,dy are the point (pixels) difference to move the block in one game update
-      var normal_dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond; 
+      var normal_dy = -(aq.config.BLOCK_SIZE * aq.config.NORMAL_BLOCK_DROP_RATE) / framesPerSecond;
       if (BLOCK_DROPPING) {
          dy = normal_dy;
       }
@@ -650,7 +654,7 @@ var GameLayer = cc.Layer.extend ({
       if (collapse) {
          dy = -(aq.config.BLOCK_SIZE >> 1);
       }
-      
+
       // Render the speed as xx.yy limited to 2 fractional digits
       var dy_s = Number (dy).toString ();
       var p = dy_s.indexOf ('.');
@@ -659,7 +663,7 @@ var GameLayer = cc.Layer.extend ({
          dy_s = dy_s.substring (0, p) + f;
       }
       self.debugDropSpeed.setString ('Speed: ' + dy_s);
-            
+
       // If the block is within 2 * the amount it moves by per frame, then
       // assume it's aligned with the grid
       var alignedDistance = (aq.config.BLOCK_SIZE * 2) / framesPerSecond;
@@ -691,7 +695,7 @@ var GameLayer = cc.Layer.extend ({
       if (typeof (block.could_move_right) === 'undefined') {
          block.could_move_right = false;
       }
-      
+
       if (can_move_left && !block.could_move_left) {
          dx = tmp_dx;
       }
@@ -920,7 +924,7 @@ var GameLayer = cc.Layer.extend ({
       }
    },
 
-   // Create a new random block, at the top middle of the game panel, lso removing the 
+   // Create a new random block, at the top middle of the game panel, lso removing the
    // currently falling block
    nextBlock: function () {
        var self = this;

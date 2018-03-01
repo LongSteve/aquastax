@@ -94,6 +94,11 @@ aq.Navigation = cc.Node.extend ({
       }, self);
    },
 
+   getGrid: function () {
+       var self = this;
+       return self.grid;
+   },
+
    onEnter: function () {
       var self = this;
 
@@ -385,7 +390,7 @@ aq.Navigation = cc.Node.extend ({
 
        for (let i = 0; i < self.gumblers.length; i++) {
           let gumbler = self.gumblers [i];
-          aq.behaviour.GumblerHandleGameUpdate (gumbler);
+          aq.behaviour.GumblerHandleGameUpdate (gumbler, self);
 
           // TEMP: Gumbler pathfinding code.  To be refactored into behaviour.js
           let start = self.grid.getGridPointForNode (gumbler);

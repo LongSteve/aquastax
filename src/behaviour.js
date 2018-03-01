@@ -8,16 +8,17 @@ aq.behaviour = aq.behaviour || {};
  *
  * @param gumbler The method is called for each gumbler in turn
  */
-aq.behaviour.GumblerHandleGameUpdate = function (gumbler) {
+aq.behaviour.GumblerHandleGameUpdate = function (gumbler, navigation) {
 
    // This list of behaviours to process each game update
    let behaviours = [
       aq.behaviour.GumblerRandomlyWalksAround,
-      aq.behaviour.GumblerReversesAtGridEdge
+      aq.behaviour.GumblerReversesAtGridEdge,
+      aq.behaviour.GumblerLandsOnStackWhenFalling
    ];
 
    for (let i = 0; i < behaviours.length; i++) {
-      if (behaviours [i] (gumbler)) {
+      if (behaviours [i] (gumbler, navigation)) {
          return true;
       }
    }
@@ -53,6 +54,28 @@ aq.behaviour.GumblerReversesAtGridEdge = function (gumbler) {
          gumbler.setAnimationState ('walk_left');
          cc.log (description);
          return true;
+      }
+   }
+
+   return false;
+};
+
+aq.behaviour.GumblerLandsOnStackWhenFalling = function (gumbler, navigation) {
+   let description = 'Gumbler falling lands upon the stack (or the ground)';
+   let current_state_name = gumbler.getAnimationStateName ();
+   let grid = navigation.getGrid ();
+   if (current_state_name === 'fall') {
+      let grid_index = grid.getGridIndexForNode (gumbler);
+      if (grid_index < 0 || (navigation.canWalk (grid_index) && navigation.canWalk (grid_index - 1))) {
+         if (gumbler.setAnimationState ('wait')) {
+
+            // Adjust the Gumbler Y position so he sits properly on the grid cell
+            let grid_pos = grid.getGridPositionForIndex (grid_index);
+            gumbler.setPositionY (grid_pos.y + aq.config.BLOCK_SIZE);
+
+            cc.log (description);
+            return true;
+         }
       }
    }
 
