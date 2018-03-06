@@ -28,7 +28,7 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
    },
 
    getNavigationState: function () {
-      return this.nagivation.state;
+      return this.navigation.state;
    },
 
    setNavigationState: function (s) {
@@ -69,6 +69,11 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
       var self = this;
       let state = self.getAnimationState ();
       return state ? state.name : null;
+   },
+
+   getAnimationStateTime: function () {
+       var self = this;
+       return self.animator.getStateTime ();
    },
 
    /**
@@ -131,10 +136,10 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
       return self;
    },
 
-   update: function () {
+   update: function (dt) {
       var self = this;
 
-      self.animator.handleTransition ();
+      self.animator.handleTransition (dt);
       self._handleLineAndFish ();
       self._updateDebugRects ();       // From aq.spritey.Sprite
    },
