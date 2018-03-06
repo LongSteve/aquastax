@@ -15,6 +15,8 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
 
    transition_to: null,
 
+   state_time: 0,
+
    ctor: function (gumbler) {
       this.gumbler = gumbler;
    },
@@ -29,6 +31,10 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
 
    isTransitioning: function () {
        return (this.transition_to !== null);
+   },
+
+   getStateTime: function () {
+       return this.state_time;
    },
 
    _dispatchEvent: function (event) {
@@ -58,11 +64,15 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
           self.current_anim_keys.push (global_keys [i]);
        }
 
+       self.state_time = 0;
+
        self._dispatchEvent (aq.spritey.GumblerAnimator.EVENT_INIT);
    },
 
-   handleTransition: function () {
+   handleTransition: function (dt) {
        var self = this;
+
+       self.state_time += dt;
 
        let sprite_frame_index = self.gumbler.getUserData ().frameIndex;
 
