@@ -14,8 +14,9 @@ aq.behaviour.GumblerHandleGameUpdate = function (gumbler, navigation) {
    let behaviours = [
       aq.behaviour.GumblerRandomlyWalksAround,
       aq.behaviour.GumblerReversesAtGridEdge,
-      aq.behaviour.GumblerRandomlyStopsAtPlatformEdge,
-      aq.behaviour.GumblerReversesAtPlatformEdge,
+      aq.behaviour.GumblerDoesSomethingAtPlatformEdge,
+      aq.behaviour.GumblerSittingTimesOut,
+      aq.behaviour.GumblerReelsInFish,
       aq.behaviour.GumblerLandsOnStackWhenFalling
    ];
 
@@ -79,22 +80,40 @@ aq.behaviour.GumblerReversesAtGridEdge = function (gumbler) {
    return false;
 };
 
-aq.behaviour.GumblerReversesAtPlatformEdge = function (gumbler, navigation) {
-   let description = 'Gumbler walking towards platform edge reverses direction';
+aq.behaviour.GumblerDoesSomethingAtPlatformEdge = function (gumbler, navigation) {
+   let description = 'Gumbler does something at a platform edge';
    let current_state_name = gumbler.getAnimationStateName ();
 
    let grid = navigation.getGrid ();
    let grid_index = grid.getGridIndexForNode (gumbler);
 
+   let rnd = Math.random ();
+
+   let grid_pos = grid.getGridPositionForIndex (grid_index);
+
    if (current_state_name === 'walk_left') {
       if (!navigation.canWalk (grid_index - 1)) {
-         gumbler.setAnimationState ('walk_right');
+         if (rnd < 0.25) {
+            gumbler.setAnimationState ('wait');
+         } else if (rnd < 0.75) {
+            gumbler.setAnimationState ('walk_right');
+         } else {
+            gumbler.setAnimationState ('timeout_sit_left');
+            gumbler.setPositionX (grid_pos.x + (aq.config.BLOCK_SIZE / 3));
+         }
          cc.log (description);
          return true;
       }
    } else if (current_state_name === 'walk_right') {
       if (!navigation.canWalk (grid_index + 1)) {
-         gumbler.setAnimationState ('walk_left');
+         if (rnd < 0.25) {
+            gumbler.setAnimationState ('wait');
+         } else if (rnd < 0.75) {
+            gumbler.setAnimationState ('walk_left');
+         } else {
+            gumbler.setAnimationState ('timeout_sit_right');
+            gumbler.setPositionX (grid_pos.x + (aq.config.BLOCK_SIZE / 3 * 2));
+         }
          cc.log (description);
          return true;
       }
@@ -103,25 +122,48 @@ aq.behaviour.GumblerReversesAtPlatformEdge = function (gumbler, navigation) {
    return false;
 };
 
-aq.behaviour.GumblerRandomlyStopsAtPlatformEdge = function (gumbler, navigation) {
-   let description = 'Gumbler walking towards platform will randomly decide to stop';
+aq.behaviour.GumblerSittingTimesOut = function (gumbler) {
+   let description = 'Gumbler setting performs a timeout';
    let current_state_name = gumbler.getAnimationStateName ();
+   let current_state_time = gumbler.getAnimationStateTime ();
 
-   let grid = navigation.getGrid ();
-   let grid_index = grid.getGridIndexForNode (gumbler);
+   let rnd = Math.random ();
 
-   if (current_state_name === 'walk_left') {
-      if (!navigation.canWalk (grid_index - 1)) {
+   if (current_state_time > 3.0) {
+      if (current_state_name === 'timeout_sit_left') {
+         gumbler.setAnimationState (rnd < 0.5 ? 'timeout_fish_left' : 'wait');
+         cc.log (description);
+         return true;
+      } else if (current_state_name === 'timeout_sit_right') {
+         gumbler.setAnimationState (rnd < 0.5 ? 'timeout_fish_right' : 'wait');
+         cc.log (description);
+         return true;
+      }
+   }
+
+   return false;
+};
+
+aq.behaviour.GumblerReelsInFish = function (gumbler) {
+   let description = 'Gumbler reels in a fish';
+   let current_state_name = gumbler.getAnimationStateName ();
+   let current_state_time = gumbler.getAnimationStateTime ();
+
+   if (current_state_time > 3.0) {
+      if (current_state_name === 'timeout_fish_left') {
+         gumbler.setAnimationState ('timeout_reel_left');
+         cc.log (description);
+         return true;
+      } else if (current_state_name === 'timeout_fish_right') {
+         gumbler.setAnimationState ('timeout_reel_right');
+         cc.log (description);
+         return true;
+      } else if (current_state_name === 'timeout_reel_left' || current_state_name === 'timeout_reel_right') {
          gumbler.setAnimationState ('wait');
          cc.log (description);
          return true;
       }
-   } else if (current_state_name === 'walk_right') {
-      if (!navigation.canWalk (grid_index + 1)) {
-         gumbler.setAnimationState ('wait');
-         cc.log (description);
-         return true;
-      }
+
    }
 
    return false;

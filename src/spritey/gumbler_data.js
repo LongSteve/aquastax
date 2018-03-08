@@ -839,7 +839,7 @@ aq.spritey.gumbler = function gumbler () {
    //start ('gumbler2', 'timeout_fish_right', 1, 384, 448, 'FOCUS');
    //start ('gumbler2', 'hang_twohand', 1, 60, 94, 'FOCUS');
    //start ('gumbler3', 'walk_right', 1, 60, 94, 'FOCUS');
-   start ('gumbler1', 'fall', 1, 350, 800, 'FOCUS');
+   start ('gumbler1', 'fall', 1, 300, 800, 'FOCUS');
 
    //STATES
    state ('wait');
