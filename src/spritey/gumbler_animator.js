@@ -93,7 +93,7 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
    },
 
    /**
-    * List all the major states that each the current animation can
+    * List all the major states that the current animation can
     * transition into.  Returns a set of name->key pairs.
     */
    listStateTransitions: function () {
@@ -103,7 +103,17 @@ aq.spritey.GumblerAnimator = cc.Class.extend (/** @lends cc.Class# */{
        let states = {};
        for (let i = 0; i < self.current_anim_keys.length; i++) {
           let key = self.current_anim_keys [i];
+
+          // Handle the --> case where a transition occurs on a specific frame
           let tran = key.transitions [0];
+          let num_frames = key.transitions.length;
+          for (let j = 0; j < num_frames; j++ ) {
+             if (key.transitions [j].to_anim) {
+                tran = key.transitions [j];
+                break;
+             }
+          }
+
           let to_anim = tran.to_anim;
           let to_state = to_anim.to_state || to_anim.major_state;
           let state_name = to_state.name;
