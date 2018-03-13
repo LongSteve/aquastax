@@ -2,6 +2,18 @@
 
 aq.behaviour = aq.behaviour || {};
 
+// 'Constants' for determining the behaviour time spans
+aq.behaviour.WaitBeforeMovingSeconds = 3.0;
+aq.behaviour.TimeoutWhenSittingSeconds = 3.0;
+aq.behaviour.TimeSpentFishingSeconds = 3.0;
+
+// ... and random modifiers to alter the states
+aq.behaviour.MoveLeftOrRightChance = 0.5;
+aq.behaviour.WaitAtPlatformEdgeChance = 0.25;
+aq.behaviour.WalkAtPlatformEdgeChance = 0.75;
+aq.behaviour.FishingWhenSittingChance = 0.5;
+
+
 /**
  * Function that runs each game update to handle the general
  * gumbler behaviours.
@@ -35,7 +47,7 @@ aq.behaviour.GumblerRandomlyWalksAround = function (gumbler, navigation) {
    let current_state_time = gumbler.getAnimationStateTime ();
 
    if (current_state_name === 'wait') {
-      if (current_state_time > 3.0) {
+      if (current_state_time > aq.behaviour.WaitBeforeMovingSeconds) {
 
          let grid = navigation.getGrid ();
          let grid_index = grid.getGridIndexForNode (gumbler);
@@ -43,7 +55,7 @@ aq.behaviour.GumblerRandomlyWalksAround = function (gumbler, navigation) {
          let can_walk_left = grid_index > 0 && navigation.canWalk (grid_index - 1);
          let can_walk_right = navigation.canWalk (grid_index + 1);
 
-         let direction = Math.random () < 0.5 ? 'walk_left' : 'walk_right';
+         let direction = Math.random () < aq.behaviour.MoveLeftOrRightChance ? 'walk_left' : 'walk_right';
          if (can_walk_left && !can_walk_right) {
             direction = 'walk_left';
          } else if (can_walk_right && !can_walk_left) {
@@ -89,34 +101,34 @@ aq.behaviour.GumblerDoesSomethingAtPlatformEdge = function (gumbler, navigation)
 
    let rnd = Math.random ();
 
+   let can_walk_left = grid_index > 0 && navigation.canWalk (grid_index - 1);
+   let can_walk_right = navigation.canWalk (grid_index + 1);
+
+   let walking_left = (current_state_name === 'walk_left');
+   let walking_right = (current_state_name === 'walk_right');
+
    let grid_pos = grid.getGridPositionForIndex (grid_index);
 
-   if (current_state_name === 'walk_left') {
-      if (!navigation.canWalk (grid_index - 1)) {
-         if (rnd < 0.25) {
-            gumbler.setAnimationState ('wait');
-         } else if (rnd < 0.75) {
+   if ((walking_left && !can_walk_left) || (walking_right && !can_walk_right)) {
+      if (rnd < aq.behaviour.WaitAtPlatformEdgeChance) {
+         gumbler.setAnimationState ('wait');
+      } else if (rnd < aq.behaviour.WalkAtPlatformEdgeChance) {
+         if (walking_left) {
             gumbler.setAnimationState ('walk_right');
          } else {
+            gumbler.setAnimationState ('walk_left');
+         }
+      } else {
+         if (walking_left) {
             gumbler.setAnimationState ('timeout_sit_left');
             gumbler.setPositionX (grid_pos.x + (aq.config.BLOCK_SIZE / 3));
-         }
-         cc.log (description);
-         return true;
-      }
-   } else if (current_state_name === 'walk_right') {
-      if (!navigation.canWalk (grid_index + 1)) {
-         if (rnd < 0.25) {
-            gumbler.setAnimationState ('wait');
-         } else if (rnd < 0.75) {
-            gumbler.setAnimationState ('walk_left');
          } else {
             gumbler.setAnimationState ('timeout_sit_right');
             gumbler.setPositionX (grid_pos.x + (aq.config.BLOCK_SIZE / 3 * 2));
          }
-         cc.log (description);
-         return true;
       }
+      cc.log (description);
+      return true;
    }
 
    return false;
@@ -129,13 +141,13 @@ aq.behaviour.GumblerSittingTimesOut = function (gumbler) {
 
    let rnd = Math.random ();
 
-   if (current_state_time > 3.0) {
+   if (current_state_time > aq.behaviour.TimeoutWhenSittingSeconds) {
       if (current_state_name === 'timeout_sit_left') {
-         gumbler.setAnimationState (rnd < 0.5 ? 'timeout_fish_left' : 'wait');
+         gumbler.setAnimationState (rnd < aq.behaviour.FishingWhenSittingChance ? 'timeout_fish_left' : 'wait');
          cc.log (description);
          return true;
       } else if (current_state_name === 'timeout_sit_right') {
-         gumbler.setAnimationState (rnd < 0.5 ? 'timeout_fish_right' : 'wait');
+         gumbler.setAnimationState (rnd < aq.behaviour.FishingWhenSittingChance ? 'timeout_fish_right' : 'wait');
          cc.log (description);
          return true;
       }
@@ -149,7 +161,7 @@ aq.behaviour.GumblerReelsInFish = function (gumbler) {
    let current_state_name = gumbler.getAnimationStateName ();
    let current_state_time = gumbler.getAnimationStateTime ();
 
-   if (current_state_time > 3.0) {
+   if (current_state_time > aq.behaviour.TimeSpentFishingSeconds) {
       if (current_state_name === 'timeout_fish_left') {
          gumbler.setAnimationState ('timeout_reel_left');
          cc.log (description);
