@@ -6,6 +6,7 @@ aq.behaviour = aq.behaviour || {};
 aq.behaviour.WaitBeforeMovingSeconds = 3.0;
 aq.behaviour.TimeoutWhenSittingSeconds = 3.0;
 aq.behaviour.TimeSpentFishingSeconds = 3.0;
+aq.behaviour.HangingTimeBeforePullUp = 3.0;
 
 // ... and random modifiers to alter the states
 aq.behaviour.MoveLeftOrRightChance = 0.5;
@@ -13,6 +14,15 @@ aq.behaviour.WaitAtPlatformEdgeChance = 0.25;
 aq.behaviour.WalkAtPlatformEdgeChance = 0.75;
 aq.behaviour.FishingWhenSittingChance = 0.5;
 
+aq.behaviour.climbing_states = Object.freeze ({
+   'climb_up': true,
+   'climb_down': true,
+   'climb_left': true,
+   'climb_right': true,
+   'hang_twohand': true,
+   'hang_lefthand': true,
+   'hang_righthand': true
+});
 
 /**
  * Function that runs each game update to handle the general
@@ -29,7 +39,10 @@ aq.behaviour.GumblerHandleGameUpdate = function (gumbler, navigation) {
       aq.behaviour.GumblerDoesSomethingAtPlatformEdge,
       aq.behaviour.GumblerSittingTimesOut,
       aq.behaviour.GumblerReelsInFish,
-      aq.behaviour.GumblerLandsOnStackWhenFalling
+      aq.behaviour.GumblerLandsOnStackWhenFalling,
+      aq.behaviour.GumblerStartsClimbing,
+      aq.behaviour.GumblerClimbingFollowsPath,
+      aq.behaviour.GumblerHangingPullsHimselfUp,
    ];
 
    for (let i = 0; i < behaviours.length; i++) {
@@ -198,6 +211,97 @@ aq.behaviour.GumblerLandsOnStackWhenFalling = function (gumbler, navigation) {
             return true;
          }
       }
+   }
+
+   return false;
+};
+
+aq.behaviour.GumblerStartsClimbing = function (gumbler, navigation) {
+   let description = 'Gumbler starts climbing when a path upwards is possible';
+   let current_state_name = gumbler.getAnimationStateName ();
+   let grid = navigation.getGrid ();
+
+   let gumbler_is_climbing = aq.behaviour.climbing_states [current_state_name] ? true : false;
+   let path = gumbler.getNavigationPath ();
+
+   if (!gumbler_is_climbing && path && path.length > 1) {
+      if (path [1] === path [0] + aq.config.GRID_WIDTH) {
+
+         let grid_index = grid.getGridIndexForNode (gumbler);
+
+         // path is going up, make the gumbler climb
+         gumbler.setAnimationState ('climb_up');
+
+         // Adjust the Gumbler X position so he is aligned between two grid cells
+         let grid_pos = grid.getGridPositionForIndex (grid_index);
+         gumbler.setPositionX (grid_pos.x);
+
+         cc.log (description);
+         return true;
+      }
+   }
+
+   return false;
+};
+
+aq.behaviour.GumblerClimbingFollowsPath = function (gumbler, navigation) {
+
+   let description = 'Gumbler climbing follows the direction of the path';
+   let current_state_name = gumbler.getAnimationStateName ();
+   let grid = navigation.getGrid ();
+
+   let gumbler_is_climbing = aq.behaviour.climbing_states [current_state_name] ? true : false;
+   let path = gumbler.getNavigationPath ();
+
+   let grid_index = grid.getGridIndexForNode (gumbler);
+   let grid_pos = grid.getGridPositionForIndex (grid_index);
+
+   if (!path || path.length === 0) {
+      return false;
+   }
+
+   let state_changed = false;
+
+   if (gumbler_is_climbing) {
+      if (path.length > 1) {
+         if (path [1] === path [0] + aq.config.GRID_WIDTH) {
+            state_changed = gumbler.setAnimationState ('climb_up');
+            if (state_changed) {
+               gumbler.setPositionX (grid_pos.x);
+            }
+         } else if (path [1] === path [0] - aq.config.GRID_WIDTH) {
+            state_changed = gumbler.setAnimationState ('climb_down');
+            if (state_changed) {
+               gumbler.setPositionX (grid_pos.x);
+            }
+         } else if (path [1] === path [0] - 1) {
+            state_changed = gumbler.setAnimationState ('climb_left');
+         } else if (path [1] === path [0] + 1) {
+            state_changed = gumbler.setAnimationState ('climb_right');
+         }
+      } else {
+         state_changed = gumbler.setAnimationState ('hang_twohand');
+      }
+
+      if (state_changed) {
+         cc.log (description);
+         return true;
+      }
+   }
+
+   return false;
+};
+
+aq.behaviour.GumblerHangingPullsHimselfUp = function (gumbler) {
+
+   let description = 'Gumbler hanging pulls himself up';
+   let current_state_name = gumbler.getAnimationStateName ();
+   let current_state_time = gumbler.getAnimationStateTime ();
+
+   if (current_state_name === 'hang_twohand' && current_state_time > aq.behaviour.HangingTimeBeforePullUp) {
+      gumbler.setAnimationState ('wait');
+      cc.log (description);
+      return true;
    }
 
    return false;
