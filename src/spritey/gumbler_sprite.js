@@ -76,6 +76,11 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
        return self.animator.getStateTime ();
    },
 
+   getAnimationFrameIndex: function () {
+       var self = this;
+       return self.getUserData ().frameIndex;
+   },
+
    /**
     * Sets the gumbler animation state, given a name (or an
     * instance of aq.spritey.objects.State)

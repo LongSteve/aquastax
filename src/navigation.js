@@ -122,6 +122,17 @@ aq.Navigation = cc.Node.extend ({
       gumbler.initWithTestData (aq.spritey.test [n]);
       self.addChild (gumbler);
       self.gumblers.push (gumbler);
+
+      let highlight = function () {
+         let h = new cc.DrawNode();
+         h.index = 0;
+         self.addChild (h);
+         return h;
+      };
+
+      gumbler.gumbler_pos_highlight = highlight ();
+      gumbler.gumbler_right_hand_highlight = highlight ();
+      gumbler.gumbler_left_hand_highlight = highlight ();
    },
 
    update: function () {
@@ -135,10 +146,14 @@ aq.Navigation = cc.Node.extend ({
       }
    },
 
-   highlightPos: function (p) {
+   highlightPos: function (p, highlight) {
       var self = this;
 
-      if (!self.grid_pos_highlight) {
+      if (!highlight) {
+         highlight = self.grid_pos_highlight;
+      }
+
+      if (!highlight) {
          return;
       }
 
@@ -148,18 +163,18 @@ aq.Navigation = cc.Node.extend ({
       // set a specific index for testing
       //index = 5 * 14 + 6;
 
-      if (index !== self.grid_pos_highlight.index) {
-         self.grid_pos_highlight.index = index;
+      if (index !== highlight.index) {
+         highlight.index = index;
 
-         self.grid_pos_highlight.clear ();
+         highlight.clear ();
 
          // Add in the geometry for a rectangle to highlight the block grid position
-         self.grid_pos_highlight.drawRect (cc.p (0,0), cc.p (block_size, block_size),
-                                           null, // fillcolor
-                                           4,    // line width
-                                           cc.color (255,0,0,255));
+         highlight.drawRect (cc.p (0,0), cc.p (block_size, block_size),
+                             null, // fillcolor
+                             4,    // line width
+                             cc.color (255,0,0,255));
 
-         self.grid_pos_highlight.setPosition (self.grid.getGridPositionForIndex (index));
+         highlight.setPosition (self.grid.getGridPositionForIndex (index));
       }
    },
 
@@ -193,11 +208,7 @@ aq.Navigation = cc.Node.extend ({
 
       for (let i = 0; i < self.gumblers.length; i++) {
          let gumbler = self.gumblers [i];
-         let p1 = self.grid.getGridPositionForNode (gumbler);
-         p1.x += aq.config.BLOCK_SIZE / 2;
-         p1.y += aq.config.BLOCK_SIZE / 2;
          let gumbler_nav = new cc.DrawNode ();
-         gumbler_nav.drawDot (p1, 4, cc.color.GREY);
 
          let path = gumbler.getNavigationPath ();
          if (path) {
@@ -417,6 +428,19 @@ aq.Navigation = cc.Node.extend ({
           aq.path.findPath (start.x, start.y, exit.x, exit.y, path, climbable);
 
           gumbler.setNavigationPath (path);
+
+          // Highlight the gumbler grid cell
+          self.highlightPos (gumbler.getPosition (), gumbler.gumbler_pos_highlight);
+
+          if (gumbler.left_hand_index) {
+             let left_hand_pos = self.grid.getGridPositionForIndex (gumbler.left_hand_index);
+             self.highlightPos (left_hand_pos, gumbler.gumbler_left_hand_highlight);
+          }
+
+          //if (gumbler.right_hand_index) {
+          //   let right_hand_pos = self.grid.getGridPositionForIndex (gumbler.right_hand_index);
+          //   self.highlightPos (right_hand_pos, gumbler.gumbler_right_hand_highlight);
+          //}
        }
    }
 });
