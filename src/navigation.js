@@ -386,7 +386,7 @@ aq.Navigation = cc.Node.extend ({
       // Process the gumbler behaviours for when a grid event occurs
       for (let i = 0; i < self.gumblers.length; i++) {
          let gumbler = self.gumblers [i];
-         aq.behaviour.GumblerRespondToGridEvent (event_data, gumbler);
+         aq.behaviour.GumblerRespondToGridEvent (event_data, gumbler, self);
       }
    },
 
