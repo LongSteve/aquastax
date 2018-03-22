@@ -45,7 +45,6 @@ aq.behaviour.GumblerHandleGameUpdate = function (gumbler, navigation) {
       aq.behaviour.GumblerReelsInFish,
       aq.behaviour.GumblerLandsOnStackWhenFalling,
       aq.behaviour.GumblerStartsClimbing,
-      aq.behaviour.GumblerClimbingOnlyPutsHandsOnSolidSquares,
       aq.behaviour.GumblerClimbingFollowsPath,
       aq.behaviour.GumblerHangingPullsHimselfUp,
    ];
@@ -248,42 +247,6 @@ aq.behaviour.GumblerStartsClimbing = function (gumbler, navigation) {
    return false;
 };
 
-aq.behaviour.GumblerClimbingOnlyPutsHandsOnSolidSquares = function (gumbler, navigation) {
-
-   //let description = 'Gumbler climbing only puts his hands on solid grid squares';
-   let current_state_name = gumbler.getAnimationStateName ();
-   let grid = navigation.getGrid ();
-
-   let grid_index = grid.getGridIndexForNode (gumbler);
-
-   let gumbler_is_climbing = aq.behaviour.GumblerIsClimbing (gumbler);
-
-   if (gumbler_is_climbing) {
-      if (current_state_name === 'climb_up' || current_state_name === 'climb_down') {
-         // work out the grid cells for his hands
-         let frame = gumbler.getAnimationFrameIndex ();
-
-         // Determine the hand offsets.  Temp.  Don't like this very much!!
-
-         let loffsets = [2,2,2,2,3,3,3,    // left hand moving
-                         3,3,3,3,2,2,2];   // left hand still
-
-         let roffsets = [2,2,2,2,2,2,2,
-                         2,2,2,2,2,2,2];
-
-         let right_hand_index = grid_index + (aq.config.GRID_WIDTH * roffsets [frame]);
-         let left_hand_index = (grid_index - 1) + (aq.config.GRID_WIDTH * loffsets [frame]);
-
-         gumbler.right_hand_index = right_hand_index;
-         gumbler.left_hand_index = left_hand_index;
-
-         //cc.log (frame);
-      }
-   }
-
-   return false;
-};
-
 aq.behaviour.GumblerClimbingFollowsPath = function (gumbler, navigation) {
 
    let description = 'Gumbler climbing follows the direction of the path';
@@ -295,7 +258,7 @@ aq.behaviour.GumblerClimbingFollowsPath = function (gumbler, navigation) {
    let grid_index = grid.getGridIndexForNode (gumbler);
    let grid_pos = grid.getGridPositionForIndex (grid_index);
 
-   if (!path || path.length === 0) {
+   if (!path) {
       return false;
    }
 

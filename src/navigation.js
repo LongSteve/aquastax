@@ -130,9 +130,8 @@ aq.Navigation = cc.Node.extend ({
          return h;
       };
 
-      gumbler.gumbler_pos_highlight = highlight ();
-      gumbler.gumbler_right_hand_highlight = highlight ();
-      gumbler.gumbler_left_hand_highlight = highlight ();
+      //gumbler.temp_pos_highlight = highlight ();
+      gumbler.temp_path_start_highlight = highlight ();
    },
 
    update: function () {
@@ -403,8 +402,13 @@ aq.Navigation = cc.Node.extend ({
           let gumbler = self.gumblers [i];
           aq.behaviour.GumblerHandleGameUpdate (gumbler, self);
 
+          // Pathfind from the middle of the Gumbler, not his feet.  This works for both walking and climbing
+          let gumbler_anchor = gumbler.getPosition ();
+          let path_start = cc.p (gumbler_anchor.x, gumbler_anchor.y + (aq.config.BLOCK_SIZE * 1));
+
           // TEMP: Gumbler pathfinding code.  To be refactored into behaviour.js
-          let start = self.grid.getGridPointForNode (gumbler);
+          let start_index = self.grid.getGridIndexForPoint (path_start);
+          let start = self.grid.getGridPointForIndex (start_index);
 
           // route the gumbler up, as for an infinite level
           //let exit = cc.clone (start);
@@ -430,17 +434,11 @@ aq.Navigation = cc.Node.extend ({
           gumbler.setNavigationPath (path);
 
           // Highlight the gumbler grid cell
-          self.highlightPos (gumbler.getPosition (), gumbler.gumbler_pos_highlight);
+          //self.highlightPos (gumbler.getPosition (), gumbler.temp_pos_highlight);
 
-          if (gumbler.left_hand_index) {
-             let left_hand_pos = self.grid.getGridPositionForIndex (gumbler.left_hand_index);
-             self.highlightPos (left_hand_pos, gumbler.gumbler_left_hand_highlight);
-          }
-
-          //if (gumbler.right_hand_index) {
-          //   let right_hand_pos = self.grid.getGridPositionForIndex (gumbler.right_hand_index);
-          //   self.highlightPos (right_hand_pos, gumbler.gumbler_right_hand_highlight);
-          //}
+          // Highlight the pathfinding start position
+          let start_pos = self.grid.getGridPositionForIndex (start_index);
+          self.highlightPos (start_pos, gumbler.temp_path_start_highlight);
        }
    }
 });
