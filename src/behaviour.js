@@ -324,15 +324,16 @@ aq.behaviour.GumblerHangingPullsHimselfUp = function (gumbler) {
  * @param event_data The event that has occured
  * @param gumbler The method is called for each gumbler in turn
  */
-aq.behaviour.GumblerRespondToGridEvent = function (event_data, gumbler) {
+aq.behaviour.GumblerRespondToGridEvent = function (event_data, gumbler, navigation) {
 
    // This list of behaviours is processed when a grid event occurs
    let behaviours = [
-      aq.behaviour.GumblerWakeWhenBlockLandsNear
+      aq.behaviour.GumblerWakeWhenBlockLandsNear,
+      aq.behaviour.GumblerFallsWhenStackIsBroken
    ];
 
    for (let i = 0; i < behaviours.length; i++) {
-      if (behaviours [i] (event_data, gumbler)) {
+      if (behaviours [i] (event_data, gumbler, navigation)) {
          return true;
       }
    }
@@ -357,6 +358,30 @@ aq.behaviour.GumblerWakeWhenBlockLandsNear = function (event_data, gumbler) {
             return true;
          }
       }
+   }
+
+   return false;
+};
+
+aq.behaviour.GumblerFallsWhenStackIsBroken = function (event_data, gumbler, navigation) {
+   let description = 'Gumbler falls when the stack collapses and he ends up in mid air';
+
+   if (event_data.event !== aq.Grid.EVENT_STACK_COLLAPSED) {
+      return false;
+   }
+
+   let grid = navigation.getGrid ();
+   let grid_index = grid.getGridIndexForNode (gumbler);
+
+   // Test the blocks where the gumbler would stand.
+   // TODO: If the gumbler is climbing, test the blocks where is hands are
+
+   let can_walk = navigation.canWalk (grid_index);
+
+   if (!can_walk) {
+      gumbler.setAnimationState ('fall');
+      cc.log (description);
+      return true;
    }
 
    return false;
