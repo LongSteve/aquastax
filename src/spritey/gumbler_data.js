@@ -263,12 +263,17 @@ aq.spritey.gumbler = function gumbler () {
       current_anim.moves = [get_move (value)];
    };
 
-   var custom_points = function (points) {
+   var custom_points = function (name, points) {
       if (!current_anim) {
          parse_error ('custom_points specified without current_anim');
       }
 
-      current_anim.custom_points = parse_space_list ('custom_points', points, get_move);
+      if (typeof points === 'undefined' && typeof name === 'string') {
+         points = name;
+         name = 'default';
+      }
+
+      current_anim.custom_points [name] = parse_space_list ('custom_points', points, get_move);
    };
 
    var get_key = function (key_string) {
@@ -930,6 +935,8 @@ aq.spritey.gumbler = function gumbler () {
    frames ('cl1 cl2 cl3 cl4 cl5 cl6 cl7 cl8 cl9 cl10 cl11 cl12 cl13 cl14');
    speed_all (15);
    move_all ('0,-2');
+   custom_points ('left_hand', '2,7 2,5 2,4 3,2 4,2 4,1 6,0 6,2 6,4 6,6 6,8 6,10 6,12 3,11');
+   custom_points ('right_hand', '21,2 21,4 21,6 21,8 21,10 21,12 24,11 25,7 25,5 25,4 24,2 23,2 23,1 21,0');
 
    state_trans_key ('ONCE RIGHT', 'ALL handright,2');
    state_trans_key ('ONCE LEFT', 'ALL handleft,2');

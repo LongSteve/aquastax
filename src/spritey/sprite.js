@@ -42,6 +42,15 @@ aq.spritey.Sprite = cc.Sprite.extend(/** @lends aq.spritey.Sprite# */{
 
        let app = self.getAnchorPointInPoints ();
        self.debugRect.drawRect (app, cc.p (app.x + 1, app.y + 1), cc.color (255,0,0,SPRITEY_ALPHA), 1, cc.color (255,0,0,SPRITEY_ALPHA));
+
+       // Draw any custom points
+       let cp = self.getCustomPointForFrame ('left_hand');
+       if (cp) {
+          let frame = self._getCurrentSpriteFrame ();
+          let size = frame.getOriginalSizeInPixels ();
+          cp.y = size.height - cp.y;
+          self.debugRect.drawDot (cp, 1, cc.color.BLUE);
+       }
    },
 
    /**
@@ -120,10 +129,22 @@ aq.spritey.Sprite = cc.Sprite.extend(/** @lends aq.spritey.Sprite# */{
        this._setSpriteFrame(animFrame.getSpriteFrame (), movement);
    },
 
+   _getCurrentSpriteFrame: function () {
+       let userData = this.getUserData ();
+       let image = userData.anim.frames [userData.frameIndex];
+       let cc_sprite_frame = cc.spriteFrameCache.getSpriteFrame (image.filename);
+       return cc_sprite_frame;
+   },
+
    _getPointForFrame: function (anim_array_name, index) {
        let cp = cc.p (0, 0);
        let userData = this.getUserData ();
        let points = userData.anim [anim_array_name];
+
+       // Catch a reference to the custom_points object
+       if (!points && userData.anim.custom_points) {
+         points = userData.anim.custom_points [anim_array_name];
+       }
 
        if (!points || points.length === 0) {
           return null;
@@ -158,8 +179,11 @@ aq.spritey.Sprite = cc.Sprite.extend(/** @lends aq.spritey.Sprite# */{
    /**
     * Getter for frame specific custom point data
     */
-   getCustomPointForFrame: function (index) {
-       return this._getPointForFrame ('custom_points', index);
+   getCustomPointForFrame: function (name, index) {
+      if (typeof name === 'undefined') {
+         name = 'default';
+      }
+      return this._getPointForFrame (name, index);
    },
 
    /**
