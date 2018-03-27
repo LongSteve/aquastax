@@ -179,11 +179,6 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
                 index: f
              };
 
-             if (anim.custom_points) {
-                let cp = anim.custom_points [f < anim.custom_points.length ? f : 0];
-                frame_user_data.custom_point = cp;
-             }
-
              animation_frames.push (new cc.AnimationFrame (cc_sprite_frame, speed / 10.0, frame_user_data));
           }
 
@@ -304,7 +299,7 @@ aq.spritey.Gumbler = aq.spritey.Sprite.extend (/** @lends aq.spritey.Sprite# */{
 
       var anim = self.getUserData ().anim;
       if (anim.name.match (/.*fish.*/gi)) {
-         // Add a DrawNode for the line, and the fish sprite
+          // Add a DrawNode for the line, and the fish sprite
           if (!self.getChildByName ('line')) {
              line = new cc.DrawNode ();
              self.addChild (line, -2, 'line');

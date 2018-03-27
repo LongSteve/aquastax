@@ -29,6 +29,7 @@ aq.spritey.objects.Anim = aq.spritey.objects.ScriptObject.extend ({
       this.speeds = [];
       this.moves = [];
       this.keys = [];
+      this.custom_points = {};
       return this;
    },
 
@@ -52,7 +53,7 @@ aq.spritey.objects.Anim = aq.spritey.objects.ScriptObject.extend ({
          '\nFrames:' + listToString (this.frames) +
          '\nSpeeds:' + listToString (this.speeds) +
          '\nMoves:' + listToString (this.moves) +
-         '\nCustomPoints:' + listToString (this.custom_points) +
+         '\nCustomPoints:' + listToString (this.custom_points ['default']) +
          '\nKeys:' + listToString (this.keys) +
          '\nAdvance:' + (this.advance && this.advance.name) || 'null' +
          '\nMajorState:' + this.major_state + ' ToState:' + this.to_state + ' Overlay:' + this.overlay;
