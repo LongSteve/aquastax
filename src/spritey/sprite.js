@@ -48,7 +48,17 @@ aq.spritey.Sprite = cc.Sprite.extend(/** @lends aq.spritey.Sprite# */{
        if (cp) {
           let frame = self._getCurrentSpriteFrame ();
           let size = frame.getOriginalSizeInPixels ();
-          cp.y = size.height - cp.y;
+          cp.y = size.height - cp.y - 1;
+          cp.x += 0.5;
+          self.debugRect.drawDot (cp, 1, cc.color.BLUE);
+       }
+
+       cp = self.getCustomPointForFrame ('right_hand');
+       if (cp) {
+          let frame = self._getCurrentSpriteFrame ();
+          let size = frame.getOriginalSizeInPixels ();
+          cp.y = size.height - cp.y - 1;
+          cp.x += 0.5;
           self.debugRect.drawDot (cp, 1, cc.color.BLUE);
        }
    },
