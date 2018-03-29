@@ -951,12 +951,16 @@ aq.spritey.gumbler = function gumbler () {
    speed_all (10);
    advance ('hangstraight,1');
    move_all ('0,0');
+   custom_points ('left_hand', '2,0 2,0');
+   custom_points ('right_hand', '19,0 21,0');
 
    begin_anim ('hangstraight');
    major_state ('hang_twohand');
    frames ('hangst1');
    speed_all (10);
    move_all ('0,0');
+   custom_points ('left_hand', '2,0');
+   custom_points ('right_hand', '21,0');
 
    state_trans_key ('ONCE UP', 'ALL climb,1');
    state_trans_key ('ONCE DOWN', 'ALL climbdown,6');
@@ -1057,6 +1061,8 @@ aq.spritey.gumbler = function gumbler () {
    frames ('cl14 cl13 cl12 cl11 cl10 cl9 cl8 cl7 cl6 cl5 cl4 cl3 cl2 cl1');
    speed_all (15);
    move_all ('0,2');
+   custom_points ('left_hand', '3,11 6,12 6,10 6,8 6,6 6,4 6,2 6,0 4,1 4,2 3,2 2,4 2,5 2,7');
+   custom_points ('right_hand', '21,0 23,1 23,2 24,2 25,4 25,5 25,7 24,11 21,12 21,10 21,8 21,6 21,4 21,2');
 
    state_trans_key ('RIGHT', 'ALL handright,2');
    state_trans_key ('LEFT', 'ALL handleft,2');
@@ -1070,6 +1076,8 @@ aq.spritey.gumbler = function gumbler () {
    frames ('handR1 handR2 handR3 handR4 handR5 handR6 handR7 handR8');
    speed_all (15);
    move ('0,0 0,0 0,0 0,0 1,0 0,0 1,0 1,0');
+   custom_points ('left_hand', '3,0 3,0 3,0 3,0 2,0 2,0 2,0 2,0');
+   custom_points ('right_hand', '22,0 22,2 24,2 25,0 24,0 24,0 23,0 22,0');
 
    state_trans_key ('ONCE LEFT', 'handleft,1 --> --> --> --> --> --> -->');
    state_trans_key ('ONCE UP', 'ALL climb,2');
@@ -1083,6 +1091,8 @@ aq.spritey.gumbler = function gumbler () {
    frames ('handL1 handL2 handL3 handL4 handL5 handL6 handL7 handL8');
    speed_all (15);
    move ('0,0 0,0 0,0 0,0 -1,0 0,0 -1,0 -1,0');
+   custom_points ('left_hand', '5,0 5,2 3,2 2,0 3,0 3,0 4,0 5,0');
+   custom_points ('right_hand', '24,0 24,0 24,0 24,0 25,0 25,0 25,0 25,0');
 
    state_trans_key ('ONCE RIGHT', 'handright,1 --> --> --> --> --> --> -->');
    state_trans_key ('ONCE UP', 'ALL climb,9');
