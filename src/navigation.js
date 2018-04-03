@@ -10,9 +10,8 @@ aq.nav = aq.nav || {};
 aq.nav.WALK_BOT      = (1 << 8);
 aq.nav.SIT_LEFT      = (1 << 9);
 aq.nav.SIT_RIGHT     = (1 << 10);
-aq.nav.STAND_LEFT    = (1 << 11);
-aq.nav.STAND_RIGHT   = (1 << 12);
-aq.nav.CLIMB         = (1 << 13);      // climbing occurs up the left edge of a cell
+aq.nav.CLIMB_LEFT    = (1 << 11);        // vertical climbing occurs up the left edge of a cell
+aq.nav.CLIMB_TOP     = (1 << 12);        // horizontal climb movement occurs on the top edge of a cell
 
 })();
 
@@ -184,6 +183,7 @@ aq.Navigation = cc.Node.extend ({
 
       let grid_nav = new cc.DrawNode ();
 
+      // Render walk segments
       for (let i = 0; i < self.grid.grid_cell_count; i++) {
          let p = self.grid.getGridPositionForIndex (i);
          if (self.canWalk (i)) {
@@ -201,10 +201,25 @@ aq.Navigation = cc.Node.extend ({
                grid_nav.drawDot (p1, 4, cc.color.YELLOW);
             }
          }
+
+         // Climb vertically up
+         if (self.canClimbLeft (i)) {
+            let p1 = cc.p (p.x + 1, p.y + 1);
+            let p2 = cc.p (p1.x + 1, p1.y + aq.config.BLOCK_SIZE - 2);
+            grid_nav.drawSegment (p1, p2, 2, cc.color (255,0,0,255));
+         }
+
+         // Climb horizontally along
+         if (self.canClimbTop (i)) {
+            let p1 = cc.p (p.x + 1, p.y + aq.config.BLOCK_SIZE - 2);
+            let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE - 2, p1.y);
+            grid_nav.drawSegment (p1, p2, 2, cc.color (255,0,255,255));
+         }
       }
 
       self.debug_node.addChild (grid_nav, 1);
 
+      // Render gumbler path points
       for (let i = 0; i < self.gumblers.length; i++) {
          let gumbler = self.gumblers [i];
          let gumbler_nav = new cc.DrawNode ();
@@ -257,9 +272,16 @@ aq.Navigation = cc.Node.extend ({
       return self._canSit (index, aq.nav.SIT_RIGHT);
    },
 
-   canClimb: function (index) {
+   canClimbLeft: function (index) {
        var self = this;
-       return self._indexMatchFlag (index, aq.nav.CLIMB);
+       //
+       return self._indexMatchFlag (index, aq.nav.CLIMB_LEFT);
+   },
+
+   canClimbTop: function (index) {
+       var self = this;
+       //
+       return self._indexMatchFlag (index, aq.nav.CLIMB_TOP);
    },
 
    updateNavData: function () {
@@ -357,14 +379,25 @@ aq.Navigation = cc.Node.extend ({
       // TODO: Check for the blocks under water
       // TODO: Check for unclimable blocks
 
-      // Only climb up where there are two square grid cells together (horizontally)
+      let climb = 0;
+
+      // Only climb (vertical) up where there are two square grid cells together (horizontally)
       let c1 = self.nav_grid [index];
       let c2 = self.nav_grid [index - 1];
       if (aq.isSquareCell (c1) && aq.isSquareCell (c2)) {
-         return aq.nav.CLIMB;
+         climb |= aq.nav.CLIMB_LEFT;
       }
 
-      return 0;
+      // Only climb along (horizontally) where there is a walkable edge to the left and the right,
+      // and the cell is not in the far right column (far left also not allowed, but handled above)
+      if (((index + 1) % aq.config.GRID_WIDTH) !== 0) {
+         let c3 = self.nav_grid [index + 1];
+         if (aq.isSquareCell (c1) && aq.isSquareCell (c2) && aq.isSquareCell (c3)) {
+            climb |= aq.nav.CLIMB_TOP;
+         }
+      }
+
+      return climb;
    },
 
    _isPlatform: function (/*index*/) {
@@ -395,7 +428,7 @@ aq.Navigation = cc.Node.extend ({
 
        var climbable = function (x, y) {
           let i = self.grid.getGridIndexForPosition (x, y);
-          return self.canClimb (i);
+          return self.canClimbLeft (i);
        };
 
        for (let i = 0; i < self.gumblers.length; i++) {
