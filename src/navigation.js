@@ -29,6 +29,11 @@ aq.Navigation = cc.Node.extend ({
    // Highlight the grid cell under the mouse
    grid_pos_highlight: null,
 
+   // Pathfinding start and end
+   path_start: null,
+   path_end: null,
+   path: null,
+
    // The nav grid is an single dimensional array of ints, starting at 0 bottom left.
    // It mirrors the game grid, and is generated from the game grid as base data.
    //
@@ -89,6 +94,15 @@ aq.Navigation = cc.Node.extend ({
             let l = event.getLocation ();
             let p = self.convertToNodeSpace (l);
             self.highlightPos (p);
+         },
+         onMouseDown: function (event) {
+             let l = event.getLocation ();
+             let p = self.convertToNodeSpace (l);
+             if (event.getButton () === cc.EventMouse.BUTTON_LEFT) {
+                self.path_start = p;
+             } else if (event.getButton () === cc.EventMouse.BUTTON_RIGHT) {
+                self.path_end = p;
+             }
          }
       }, self);
    },
@@ -183,7 +197,8 @@ aq.Navigation = cc.Node.extend ({
 
       let grid_nav = new cc.DrawNode ();
 
-      // Render walk segments
+      // Render walk and climb segments
+      /*
       for (let i = 0; i < self.grid.grid_cell_count; i++) {
          let p = self.grid.getGridPositionForIndex (i);
          if (self.canWalk (i)) {
@@ -205,39 +220,108 @@ aq.Navigation = cc.Node.extend ({
          // Climb vertically up
          if (self.canClimbLeft (i)) {
             let p1 = cc.p (p.x + 1, p.y + 1);
-            let p2 = cc.p (p1.x + 1, p1.y + aq.config.BLOCK_SIZE - 2);
+            let p2 = cc.p (p1.x + 1, p1.y + aq.config.BLOCK_SIZE - 1);
             grid_nav.drawSegment (p1, p2, 2, cc.color (255,0,0,255));
          }
 
          // Climb horizontally along
          if (self.canClimbTop (i)) {
-            let p1 = cc.p (p.x + 1, p.y + aq.config.BLOCK_SIZE - 2);
-            let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE - 2, p1.y);
+            let p1 = cc.p (p.x + 1, p.y + aq.config.BLOCK_SIZE - 1);
+            let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE - 1, p1.y);
             grid_nav.drawSegment (p1, p2, 2, cc.color (255,0,255,255));
          }
       }
+      */
 
       self.debug_node.addChild (grid_nav, 1);
 
+      // Render path data
+      let renderPath = function (path, node) {
+
+         let drawArrow = function (p1, p2, color) {
+            // some trigonometry...
+         };
+
+         if (path) {
+            for (let j = 0; j < path.length; j++) {
+               let current_index = path [j];
+               if (current_index !== -1 && j < path.length - 1) {
+                  let next_index = path [j + 1];
+
+                  let current_pos = self.grid.getGridPositionForIndex (current_index);
+                  let next_pos = self.grid.getGridPositionForIndex (next_index);
+
+                  // vertical path up?
+                  if (next_pos.y > current_pos.y) {
+                     let p1 = cc.p (current_pos.x, current_pos.y + aq.config.BLOCK_SIZE);
+                     let p2 = cc.p (p1.x, p1.y + aq.config.BLOCK_SIZE);
+                     node.drawSegment (p1, p2, 2, cc.color (0,255,0,255));
+                     drawArrow (p1, p2, cc.color.YELLOW);
+                  }
+
+                  // vertical path down?
+                  if (next_pos.y < current_pos.y) {
+                     let p1 = cc.p (current_pos.x, current_pos.y + aq.config.BLOCK_SIZE);
+                     let p2 = cc.p (p1.x, p1.y - aq.config.BLOCK_SIZE);
+                     node.drawSegment (p1, p2, 2, cc.color (0,255,0,255));
+                     drawArrow (p1, p2, cc.color.YELLOW);
+                  }
+
+                  // horizontal path left
+                  if (next_pos.x < current_pos.x) {
+                     let p1 = cc.p (current_pos.x, current_pos.y + aq.config.BLOCK_SIZE);
+                     let p2 = cc.p (p1.x - aq.config.BLOCK_SIZE, p1.y);
+                     node.drawSegment (p1, p2, 2, cc.color (0,255,0,255));
+                     drawArrow (p1, p2, cc.color.YELLOW);
+                  }
+
+                  // horizontal path right?
+                  if (next_pos.x > current_pos.x) {
+                     let p1 = cc.p (current_pos.x, current_pos.y + aq.config.BLOCK_SIZE);
+                     let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE, p1.y);
+                     node.drawSegment (p1, p2, 2, cc.color (0,255,0,255));
+                     drawArrow (p1, p2, cc.color.YELLOW);
+                  }
+
+               }
+
+               // blob at the center of the path cell
+               let pos = self.grid.getGridPositionForIndex (current_index);
+               pos.x += aq.config.BLOCK_SIZE / 2;
+               pos.y += aq.config.BLOCK_SIZE / 2;
+               let col = cc.color.WHITE;
+
+               if (j === 0) {
+                  col = cc.color.GREEN;      // start of path
+               } else if (j === path.length - 1) {
+                  col = cc.color.RED;        // end of path
+               }
+
+               node.drawDot (pos, 4, col);
+            }
+         }
+      };
+
       // Render gumbler path points
+      /*
       for (let i = 0; i < self.gumblers.length; i++) {
          let gumbler = self.gumblers [i];
          let gumbler_nav = new cc.DrawNode ();
 
          let path = gumbler.getNavigationPath ();
-         if (path) {
-            for (let j = 0; j < path.length; j++) {
-               let index = path [j];
-               if (index !== -1) {
-                  let pos = self.grid.getGridPositionForIndex (index);
-                  pos.x += aq.config.BLOCK_SIZE / 2;
-                  pos.y += aq.config.BLOCK_SIZE / 2;
-                  gumbler_nav.drawDot (pos, 4, cc.color.WHITE);
-               }
-            }
-         }
+         renderPath (path, gumbler_nav);
 
          self.debug_node.addChild (gumbler_nav);
+      }
+      */
+
+      // Render the test path, based on the mouse click points
+      if (self.path) {
+         let path_node = new cc.DrawNode ();
+
+         renderPath (self.path, path_node);
+
+         self.debug_node.addChild (path_node);
       }
 
       return self.debug_node;
@@ -381,18 +465,21 @@ aq.Navigation = cc.Node.extend ({
 
       let climb = 0;
 
-      // Only climb (vertical) up where there are two square grid cells together (horizontally)
-      let c1 = self.nav_grid [index];
-      let c2 = self.nav_grid [index - 1];
-      if (aq.isSquareCell (c1) && aq.isSquareCell (c2)) {
+      // Only climb (vertically) up where there are two square grid cells together (horizontally)
+      let check_cell = self.nav_grid [index];
+      let check_left = self.nav_grid [index - 1];
+      let check_below = self.nav_grid [index - aq.config.GRID_WIDTH];
+      let check_below_left = self.nav_grid [index - aq.config.GRID_WIDTH - 1];
+      if (aq.isSquareCell (check_cell) && aq.isSquareCell (check_left) &&
+          aq.isSquareCell (check_below) && aq.isSquareCell (check_below_left)) {
          climb |= aq.nav.CLIMB_LEFT;
       }
 
       // Only climb along (horizontally) where there is a walkable edge to the left and the right,
       // and the cell is not in the far right column (far left also not allowed, but handled above)
       if (((index + 1) % aq.config.GRID_WIDTH) !== 0) {
-         let c3 = self.nav_grid [index + 1];
-         if (aq.isSquareCell (c1) && aq.isSquareCell (c2) && aq.isSquareCell (c3)) {
+         let check_right = self.nav_grid [index + 1];
+         if (aq.isSquareCell (check_cell) && aq.isSquareCell (check_left) && aq.isSquareCell (check_right)) {
             climb |= aq.nav.CLIMB_TOP;
          }
       }
@@ -431,10 +518,25 @@ aq.Navigation = cc.Node.extend ({
           return self.canClimbLeft (i);
        };
 
+       if (self.path_start && self.path_end) {
+          let path = [];
+
+          let start_index = self.grid.getGridIndexForPoint (self.path_start);
+          let start = self.grid.getGridPointForIndex (start_index);
+
+          let end_index = self.grid.getGridIndexForPoint (self.path_end);
+          let end = self.grid.getGridPointForIndex (end_index);
+
+          aq.path.findPath (start.x, start.y, end.x, end.y, path, climbable);
+
+          self.path = path;
+       }
+
        for (let i = 0; i < self.gumblers.length; i++) {
           let gumbler = self.gumblers [i];
           aq.behaviour.GumblerHandleGameUpdate (gumbler, self);
 
+          /*
           // Pathfind from the middle of the Gumbler, not his feet.  This works for both walking and climbing
           let gumbler_anchor = gumbler.getPosition ();
           let path_start = cc.p (gumbler_anchor.x, gumbler_anchor.y + (aq.config.BLOCK_SIZE * 1));
@@ -472,6 +574,8 @@ aq.Navigation = cc.Node.extend ({
           // Highlight the pathfinding start position
           let start_pos = self.grid.getGridPositionForIndex (start_index);
           self.highlightPos (start_pos, gumbler.temp_path_start_highlight);
+
+          */
        }
    }
 });
