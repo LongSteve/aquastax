@@ -238,14 +238,39 @@ aq.Navigation = cc.Node.extend ({
       // Render path data
       let renderPath = function (path, node) {
 
-         let drawArrow = function (p1, p2, color) {
-            // some trigonometry...
+         // Thanks to https://stackoverflow.com/a/43295360 for the simple arrow logic
+         let drawArrow = function (p0, p1, color) {
+            let dx = p1.x - p0.x;
+            let dy = p1.y - p0.y;
+            let size = Math.sqrt (dx*dx + dy*dy);
+
+            let ux = dx / size;
+            let uy = dy / size;
+
+            let vx = -uy;
+            let vy = -ux;
+
+            let head_length = 10;
+            let half_width = 5;
+            node.drawSegment (p1, cc.p (p1.x - head_length*ux + half_width*vx,
+                                        p1.y - head_length*uy + half_width*vy), 2, color);
+
+            node.drawSegment (p1, cc.p (p1.x - head_length*ux - half_width*vx,
+                                        p1.y - head_length*uy - half_width*vy), 2, color);
          };
 
          if (path) {
+
+            let num_path_points = 0;
             for (let j = 0; j < path.length; j++) {
+               if (path [j] !== -1) {
+                  num_path_points++;
+               }
+            }
+
+            for (let j = 0; j < num_path_points; j++) {
                let current_index = path [j];
-               if (current_index !== -1 && j < path.length - 1) {
+               if (j < num_path_points - 1) {
                   let next_index = path [j + 1];
 
                   let current_pos = self.grid.getGridPositionForIndex (current_index);
@@ -293,7 +318,7 @@ aq.Navigation = cc.Node.extend ({
 
                if (j === 0) {
                   col = cc.color.GREEN;      // start of path
-               } else if (j === path.length - 1) {
+               } else if (j === num_path_points - 1) {
                   col = cc.color.RED;        // end of path
                }
 
