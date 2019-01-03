@@ -30,9 +30,9 @@ aq.Navigation = cc.Node.extend ({
    grid_pos_highlight: null,
 
    // Pathfinding start and end
-   path_start: null,
-   path_end: null,
-   path: null,
+   //path_start: null,
+   //path_end: null,
+   //path: null,
 
    // The nav grid is an single dimensional array of ints, starting at 0 bottom left.
    // It mirrors the game grid, and is generated from the game grid as base data.
@@ -94,7 +94,8 @@ aq.Navigation = cc.Node.extend ({
             let l = event.getLocation ();
             let p = self.convertToNodeSpace (l);
             self.highlightPos (p);
-         },
+         }
+         /*,
          onMouseDown: function (event) {
              let l = event.getLocation ();
              let p = self.convertToNodeSpace (l);
@@ -103,7 +104,7 @@ aq.Navigation = cc.Node.extend ({
              } else if (event.getButton () === cc.EventMouse.BUTTON_RIGHT) {
                 self.path_end = p;
              }
-         }
+         }*/
       }, self);
    },
 
@@ -198,9 +199,9 @@ aq.Navigation = cc.Node.extend ({
       let grid_nav = new cc.DrawNode ();
 
       // Render walk and climb segments
-      /*
       for (let i = 0; i < self.grid.grid_cell_count; i++) {
          let p = self.grid.getGridPositionForIndex (i);
+         /*
          if (self.canWalk (i)) {
             let p1 = cc.p (p.x + 1, p.y + 1);
             let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE - 2, p1.y);
@@ -215,7 +216,7 @@ aq.Navigation = cc.Node.extend ({
                p1.x += aq.config.BLOCK_SIZE;
                grid_nav.drawDot (p1, 4, cc.color.YELLOW);
             }
-         }
+         }*/
 
          // Climb vertically up
          if (self.canClimbLeft (i)) {
@@ -231,7 +232,6 @@ aq.Navigation = cc.Node.extend ({
             grid_nav.drawSegment (p1, p2, 2, cc.color (255,0,255,255));
          }
       }
-      */
 
       self.debug_node.addChild (grid_nav, 1);
 
@@ -328,7 +328,6 @@ aq.Navigation = cc.Node.extend ({
       };
 
       // Render gumbler path points
-      /*
       for (let i = 0; i < self.gumblers.length; i++) {
          let gumbler = self.gumblers [i];
          let gumbler_nav = new cc.DrawNode ();
@@ -338,9 +337,9 @@ aq.Navigation = cc.Node.extend ({
 
          self.debug_node.addChild (gumbler_nav);
       }
-      */
 
       // Render the test path, based on the mouse click points
+      /*
       if (self.path) {
          let path_node = new cc.DrawNode ();
 
@@ -348,6 +347,7 @@ aq.Navigation = cc.Node.extend ({
 
          self.debug_node.addChild (path_node);
       }
+      */
 
       return self.debug_node;
    },
@@ -540,7 +540,7 @@ aq.Navigation = cc.Node.extend ({
 
        var climbable = function (x, y) {
           let i = self.grid.getGridIndexForPosition (x, y);
-          return self.canClimbLeft (i);
+          return self.canClimbLeft (i) || self.canClimbTop (i);
        };
 
        if (self.path_start && self.path_end) {
@@ -561,7 +561,6 @@ aq.Navigation = cc.Node.extend ({
           let gumbler = self.gumblers [i];
           aq.behaviour.GumblerHandleGameUpdate (gumbler, self);
 
-          /*
           // Pathfind from the middle of the Gumbler, not his feet.  This works for both walking and climbing
           let gumbler_anchor = gumbler.getPosition ();
           let path_start = cc.p (gumbler_anchor.x, gumbler_anchor.y + (aq.config.BLOCK_SIZE * 1));
@@ -571,11 +570,11 @@ aq.Navigation = cc.Node.extend ({
           let start = self.grid.getGridPointForIndex (start_index);
 
           // route the gumbler up, as for an infinite level
-          //let exit = cc.clone (start);
-          //exit.y += self.grid.getHeight () >> 1;
+          let exit = cc.clone (start);
+          exit.y += self.grid.getHeight () >> 1;
 
           // Set the path using the mouse pointer
-          let exit = self.grid.getGridPointForIndex (self.grid_pos_highlight.index);
+          //let exit = self.grid.getGridPointForIndex (self.grid_pos_highlight.index);
 
           let path = [];
 
@@ -599,8 +598,6 @@ aq.Navigation = cc.Node.extend ({
           // Highlight the pathfinding start position
           let start_pos = self.grid.getGridPositionForIndex (start_index);
           self.highlightPos (start_pos, gumbler.temp_path_start_highlight);
-
-          */
        }
    }
 });
