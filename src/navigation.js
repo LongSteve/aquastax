@@ -201,7 +201,7 @@ aq.Navigation = cc.Node.extend ({
       // Render walk and climb segments
       for (let i = 0; i < self.grid.grid_cell_count; i++) {
          let p = self.grid.getGridPositionForIndex (i);
-         /*
+
          if (self.canWalk (i)) {
             let p1 = cc.p (p.x + 1, p.y + 1);
             let p2 = cc.p (p1.x + aq.config.BLOCK_SIZE - 2, p1.y);
@@ -216,7 +216,7 @@ aq.Navigation = cc.Node.extend ({
                p1.x += aq.config.BLOCK_SIZE;
                grid_nav.drawDot (p1, 4, cc.color.YELLOW);
             }
-         }*/
+         }
 
          // Climb vertically up
          if (self.canClimbLeft (i)) {
@@ -453,8 +453,14 @@ aq.Navigation = cc.Node.extend ({
           return 0;
        }
 
-       var g = self.nav_grid [index] & 0xff;
-       if (g !== 0) {
+       var g = self.nav_grid [index];
+       if ((g & 0xff) !== 0) {
+          // Cannot sit on an occupied grid square
+          return 0;
+       }
+
+       if ((g & aq.nav.WALK_BOT) === 0) {
+          // Cannot only sit if grid square can also be walked upon
           return 0;
        }
 

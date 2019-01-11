@@ -77,6 +77,8 @@ aq.behaviour.GumblerRandomlyWalksAround = function (gumbler, navigation) {
             direction = 'walk_left';
          } else if (can_walk_right && !can_walk_left) {
             direction = 'walk_right';
+         } else if (!can_walk_left && !can_walk_right) {
+            direction = 'wait';
          }
 
          gumbler.setAnimationState (direction);
@@ -118,6 +120,8 @@ aq.behaviour.GumblerDoesSomethingAtPlatformEdge = function (gumbler, navigation)
 
    let rnd = Math.random ();
 
+   let on_ground = (grid_index < aq.config.GRID_WIDTH);
+
    let can_walk_left = grid_index > 0 && navigation.canWalk (grid_index - 1);
    let can_walk_right = navigation.canWalk (grid_index + 1);
 
@@ -125,6 +129,8 @@ aq.behaviour.GumblerDoesSomethingAtPlatformEdge = function (gumbler, navigation)
    let walking_right = (current_state_name === 'walk_right');
 
    let grid_pos = grid.getGridPositionForIndex (grid_index);
+
+   let prev_state_name = gumbler.getAnimationStateName ();
 
    if ((walking_left && !can_walk_left) || (walking_right && !can_walk_right)) {
       if (rnd < aq.behaviour.WaitAtPlatformEdgeChance) {
@@ -136,16 +142,29 @@ aq.behaviour.GumblerDoesSomethingAtPlatformEdge = function (gumbler, navigation)
             gumbler.setAnimationState ('walk_left');
          }
       } else {
-         if (walking_left) {
-            gumbler.setAnimationState ('timeout_sit_left');
-            gumbler.setPositionX (grid_pos.x + (aq.config.BLOCK_SIZE / 3));
-         } else {
-            gumbler.setAnimationState ('timeout_sit_right');
-            gumbler.setPositionX (grid_pos.x + (aq.config.BLOCK_SIZE / 3 * 2));
+         if (!on_ground) {
+            if (walking_left && navigation.canSitLeft (grid_index)) {
+               gumbler.setAnimationState ('timeout_sit_left');
+               gumbler.setPositionX (grid_pos.x + (aq.config.BLOCK_SIZE / 3));
+            } else if(walking_right && navigation.canSitRight (grid_index)) {
+               gumbler.setAnimationState ('timeout_sit_right');
+               gumbler.setPositionX (grid_pos.x + (aq.config.BLOCK_SIZE / 3 * 2));
+            } else {
+               if (walking_left && can_walk_right) {
+                  gumbler.setAnimationState ('walk_right');
+               } else if (can_walk_left) {
+                  gumbler.setAnimationState ('walk_left');
+               }
+            }
          }
       }
-      cc.log (description);
-      return true;
+
+      if (gumbler.getAnimationStateName () === prev_state_name) {
+         return false;
+      } else {
+         cc.log (description);
+         return true;
+      }
    }
 
    return false;
